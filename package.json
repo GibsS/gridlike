@@ -1,0 +1,47 @@
+{
+  "name": "grid.js",
+  "version": "0.1.0",
+  "description": "A grid-centric physics engine",
+  "main": "index.js",
+  "keywords": [
+    "js",
+    "typescript",
+    "ECS"
+  ],
+  "author": "GibsS",
+  "license": "MIT",
+  "dependencies": {
+    "@types/chai": "^3.4.35",
+    "@types/lodash": "^4.14.50",
+    "@types/mocha": "^2.2.40",
+    "@types/node": "^7.0.12",
+    "chai": "^3.5.0",
+    "events": "^1.1.1",
+    "lodash": "^4.14.0",
+    "mocha": "^3.2.0"
+  },
+  "devDependencies": {
+    "browserify": "^13.1.1",
+    "del": "^2.2.2",
+    "gulp": "3.9.1",
+    "gulp-clean": "^0.3.2",
+    "gulp-concat": "2.6.1",
+    "gulp-if": "^2.0.2",
+    "gulp-json-editor": "^2.2.1",
+    "gulp-minify": "0.0.14",
+    "gulp-mocha": "^4.3.0",
+    "gulp-rename": "1.2.2",
+    "gulp-replace": "^0.5.4",
+    "gulp-sequence": "^0.4.6",
+    "gulp-sourcemaps": "1.9.1",
+    "gulp-typescript": "3.1.3",
+    "gulp-uglify": "2.0.0",
+    "merge2": "1.0.2",
+    "tsify": "^2.0.3",
+    "typescript": "2.1.4",
+    "uglify-js-harmony": "^2.7.5",
+    "vinyl-buffer": "^1.0.0",
+    "vinyl-source-stream": "^1.1.0",
+    "yargs-parser": "^5.0.0"
+  }
+}
