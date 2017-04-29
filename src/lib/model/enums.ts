@@ -1,13 +1,18 @@
 export const LayerCollision = {
-    ALWAYS: "ALWAYS", 
-    NEVER: "NEVER", 
-    EQUAL_GROUP: "EQUAL_GROUP", 
-    UNEQUAL_GROUP: "UNEQUAL_GROUP"
+    ALWAYS: "always", 
+    NEVER: "never", 
+    EQUAL_GROUP: "equa_group", 
+    UNEQUAL_GROUP: "unequal_group"
 }
 
 export const Direction = {
-    UP: "UP",
-    DOWN: "DOWN",
-    LEFT: "LEFT",
-    RIGHT: "RIGHT"
+    UP: "up",
+    DOWN: "down",
+    LEFT: "left",
+    RIGHT: "right"
+}
+
+export const ParentType = {
+    FOLLOW: "follow",
+    STATIC: "static"
 }

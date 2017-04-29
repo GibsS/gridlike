@@ -12,23 +12,52 @@ export declare interface QueryResult {
 }
 
 export declare class Contact {
-
-    body1: Body // top or right
-    body2: Body
-    isHorizontal: boolean
-}
-
-export declare class RelativeContact {
-
-    body1: Body // current considered entity
-    body2: Body
+    body: Body // current considered entity
+    otherBody: Body
     side: string // right, left, up, down
 }
 
+interface BodyArgs {
+    x?: number
+    y?: number
+}
+interface SmallBodyArgs extends BodyArgs {
+    isSensor?: boolean
+    layer?: string
+    layerGroup?: number
+}
+interface RectArgs extends SmallBodyArgs {
+    width: number
+    height: number
+}
+interface LineArgs extends SmallBodyArgs {
+    size: number
+    isHorizontal: boolean
+    oneway?: boolean // default: no
+}
+interface GridArgs extends BodyArgs {
+    tiles: TileArgs
+}
+type TileArgs = any[] | { x: number, y: number, info: (number | any)[][] }
+
+declare type EntityArgs = {
+    x: number
+    y: number
+    level?: number
+    type?: string
+
+    body?: (RectArgs | LineArgs | GridArgs)
+    bodies?: (RectArgs | LineArgs | GridArgs) | (RectArgs | LineArgs | GridArgs)[]
+} 
+| (RectArgs & { level?: number, type: "rect" }) 
+| (LineArgs & { level?: number, type: "line" }) 
+| (GridArgs & { level?: number, type: "grid" })
+
+
 export declare interface EntityDelegate {
 
-    contactStart()
-    contactEnd()
+    contactStart(body: Body, otherBody: Body, side: string)
+    contactEnd(body: Body, otherBody: Body, side: string)
 }
 
 export declare class Entity {
@@ -57,27 +86,31 @@ export declare class Entity {
     vx: number
     vy: number
 
-    readonly contacts: RelativeContact[]
-    readonly leftContact: RelativeContact
-    readonly rightContact: RelativeContact
-    readonly upContact: RelativeContact
-    readonly downContact: RelativeContact
+    readonly contacts: Contact[]
+    readonly leftContact: Contact
+    readonly rightContact: Contact
+    readonly upContact: Contact
+    readonly downContact: Contact
 
     // HIERARCHY
-    createRect(args): Rect
-    createLine(args): Line
-    createGrid(args): Grid
+    createRect(args: RectArgs): Rect
+    createLine(args: LineArgs): Line
+    createGrid(args: GridArgs): Grid
     removeBody(body: Body)
 
-    addChild(ent: Entity, parentType: number)
+    addChild(ent: Entity, parentType?: string)
     removeChild(ent: Entity)
-    setParent(parent: Entity, parentType: number)
+    setParent(parent: Entity, parentType?: string)
+    createEntity(args: EntityArgs)
+
+    destroyChild(ent: Entity)
+    destroy()
 
     move(dx: number, dy: number)
     moveTo(x: number, y: number)
 }
 
-export declare abstract class Body {
+declare abstract class Body {
 
     type: number
 
@@ -91,14 +124,14 @@ export declare abstract class Body {
     globalx: number
     globaly: number
 
-    readonly contacts: RelativeContact[]
-    readonly leftContact: RelativeContact
-    readonly rightContact: RelativeContact
-    readonly upContact: RelativeContact
-    readonly downContact: RelativeContact
+    readonly contacts: Contact[]
+    readonly leftContact: Contact
+    readonly rightContact: Contact
+    readonly upContact: Contact
+    readonly downContact: Contact
 }
 
-export declare abstract class SmallBody extends Body {
+declare abstract class SmallBody extends Body {
 
     isSensor: boolean
     layer: number
@@ -130,11 +163,11 @@ export declare class Grid extends Body {
     setTile(x: number, y: number, val: any)
     clearTile(x: number, y: number)
 
-    setTiles(arg)
-    clearTiles(args)
+    setTiles(arg: any[] | { x: number, y: number, info: any[][]})
+    clearTiles(args: { x: number, y: number }[] | { x: number, y: number, width: number, height: number })
 }
 
-export declare class World {
+declare class World {
 
     readonly time: number
 
@@ -148,10 +181,10 @@ export declare class World {
     getLayerRule(layer1: string, layer2: string): string
 
     // ##### ENTITIES
-    createEntity(args): Entity
-    createRect(args): Entity
-    createLine(args): Entity
-    createGrid(args): Entity
+    createEntity(args: EntityArgs): Entity
+    createRect(args: RectArgs): Entity
+    createLine(args: LineArgs): Entity
+    createGrid(args: GridArgs): Entity
     destroyEntity(entity: Entity)
 
     // ##### QUERYING

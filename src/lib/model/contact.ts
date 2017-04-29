@@ -9,7 +9,7 @@ export class Contact {
 
 export class RelativeContact {
 
-    body1: Body // current considered entity
-    body2: Body
+    body: Body // current considered entity
+    otherBody: Body
     side: string // right, left, up, down
 }

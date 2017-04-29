@@ -2,15 +2,30 @@ import * as _ from 'lodash'
 
 import { VBH } from '../vbh/vbh'
 
-import { Body } from './body'
+import { Body, RectArgs, LineArgs, GridArgs } from './body'
 import { World } from './world'
 import { Rect, Line, Grid } from './body'
 import { Contact, RelativeContact } from './contact'
 
+import { ParentType } from './enums'
+
+export type EntityArgs = {
+    x: number
+    y: number
+    level?: number
+    type?: string
+
+    body?: (RectArgs | LineArgs | GridArgs)
+    bodies?: (RectArgs | LineArgs | GridArgs) | (RectArgs | LineArgs | GridArgs)[]
+} 
+| (RectArgs & { level?: number, type: "rect" }) 
+| (LineArgs & { level?: number, type: "line" }) 
+| (GridArgs & { level?: number, type: "grid" })
+
 export interface EntityDelegate {
 
-    contactStart()
-    contactEnd()
+    contactStart(body: Body, otherBody: Body, side: string)
+    contactEnd(body: Body, otherBody: Body, side: string)
 }
 
 export class Entity {
@@ -118,8 +133,8 @@ export class Entity {
         return this._lowerContacts.concat(this._higherContacts).map(c => { 
             let entityHasBody1 = c.body1._entity == this
             return {
-                body1: entityHasBody1 ? c.body1 : c.body2,
-                body2: entityHasBody1 ? c.body2 : c.body1,
+                body: entityHasBody1 ? c.body1 : c.body2,
+                otherBody: entityHasBody1 ? c.body2 : c.body1,
                 side: entityHasBody1 ? (c.isHorizontal ? "right" : "down") : (c.isHorizontal ? "up" : "left")
             }
         })
@@ -142,26 +157,36 @@ export class Entity {
     }
 
     // HIERARCHY
-    createRect(args): Rect {
+    createRect(args: RectArgs): Rect {
         return null
     }
-    createLine(args): Line {
+    createLine(args: LineArgs): Line {
         return null
     }
-    createGrid(args): Grid {
+    createGrid(args: GridArgs): Grid {
         return null
     }
     removeBody(body: Body) {
 
     }
 
-    addChild(ent: Entity, parentType: number) {
+    addChild(ent: Entity, parentType?: string) { // static | follow
 
     }
     removeChild(ent: Entity) {
 
     }
-    setParent(parent: Entity, parentType: number) {
+    setParent(parent: Entity, parentType?: string) {
+
+    }
+
+    createEntity(args: EntityArgs) {
+
+    }
+    destroyChild(ent: Entity) {
+
+    }
+    destroy() {
 
     }
 

@@ -1,6 +1,29 @@
 import { Entity } from './entity'
 import { RelativeContact } from './contact'
 
+interface BodyArgs {
+    x?: number
+    y?: number
+}
+interface SmallBodyArgs extends BodyArgs {
+    isSensor?: boolean
+    layer?: string
+    layerGroup?: number
+}
+export interface RectArgs extends SmallBodyArgs {
+    width: number
+    height: number
+}
+export interface LineArgs extends SmallBodyArgs {
+    size: number
+    isHorizontal: boolean
+    oneway?: boolean // default: no
+}
+export interface GridArgs extends BodyArgs {
+    tiles: TileArgs
+}
+export type TileArgs = any[] | { x: number, y: number, info: (number | any)[][] }
+
 export abstract class Body {
 
     type: number
@@ -139,10 +162,10 @@ export class Grid extends Body {
 
     }
 
-    setTiles(arg) {
+    setTiles(args: TileArgs) {
 
     }
-    clearTiles(args) {
+    clearTiles(args: { x: number, y: number, width: number, height: number } | { x: number, y: number }[]) {
 
     }
 }

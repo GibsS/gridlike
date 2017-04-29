@@ -1,4 +1,5 @@
-import { Entity } from './entity'
+import { Entity, EntityArgs } from './entity'
+import { RectArgs, LineArgs, GridArgs } from './body'
 
 import { RaycastResult, QueryResult } from './query'
 import { LayerCollision } from './enums'
@@ -124,16 +125,16 @@ export class World {
     }
 
     // ##### ENTITIES
-    createEntity(args): Entity {
+    createEntity(args: EntityArgs): Entity {
         return null
     }
-    createRect(args): Entity {
+    createRect(args: RectArgs & { level?: number }): Entity {
         return null
     }
-    createLine(args): Entity {
+    createLine(args: LineArgs & { level?: number }): Entity {
         return null
     }
-    createGrid(args): Entity {
+    createGrid(args: GridArgs & { level?: number }): Entity {
         return null
     }
     destroyEntity(entity: Entity) {
