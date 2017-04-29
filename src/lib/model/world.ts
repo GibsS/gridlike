@@ -36,7 +36,7 @@ export class World {
     get time(): number { return this._time }
     set time(val: number) { console.log("[ERROR] you can't change the time")}
 
-        get layers(): string[] { return Object.keys(this.layerIds).filter(l => l) }
+    get layers(): string[] { return Object.keys(this.layerIds).filter(l => l) }
 
     // ##### LAYER
     addLayer(layer: string) {

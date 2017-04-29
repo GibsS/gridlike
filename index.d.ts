@@ -108,6 +108,9 @@ export declare class Entity {
 
     move(dx: number, dy: number)
     moveTo(x: number, y: number)
+
+    localToGlobal(x: number | { x: number, y: number }, y?: number)
+    globalToLocal(x: number | { x: number, y: number }, y?: number)  
 }
 
 declare abstract class Body {
@@ -129,6 +132,9 @@ declare abstract class Body {
     readonly rightContact: Contact
     readonly upContact: Contact
     readonly downContact: Contact
+
+    localToGlobal(x: number | { x: number, y: number }, y?: number)
+    globalToLocal(x: number | { x: number, y: number }, y?: number)  
 }
 
 declare abstract class SmallBody extends Body {

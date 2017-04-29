@@ -196,4 +196,11 @@ export class Entity {
     moveTo(x: number, y: number) {
 
     }
+
+    localToGlobal(x: number | { x: number, y: number }, y?: number) {
+
+    }
+    globalToLocal(x: number | { x: number, y: number }, y?: number) {
+
+    }
 }

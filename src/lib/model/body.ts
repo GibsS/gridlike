@@ -73,6 +73,13 @@ export abstract class Body {
     get downContact(): RelativeContact {
         return null
     }
+
+    localToGlobal(x: number | { x: number, y: number }, y?: number) {
+
+    }
+    globalToLocal(x: number | { x: number, y: number }, y?: number) {
+
+    }
 }
 
 export abstract class SmallBody extends Body {
