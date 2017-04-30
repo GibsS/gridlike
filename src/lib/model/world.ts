@@ -4,12 +4,14 @@ import { RectArgs, LineArgs, GridArgs } from './body'
 import { RaycastResult, QueryResult } from './query'
 import { LayerCollision } from './enums'
 
+export const EPS = 0.001
+
 export class World {
 
     _time: number
     
-    layerIds: any
-    layerNames: string[]
+    _layerIds: any
+    _layerNames: string[]
     _layers: number[]
 
     _ents: Entity[][]
@@ -17,12 +19,12 @@ export class World {
     constructor() {
         this._time = 0
 
-        this.layerIds = {}
-        this.layerNames = new Array(32)
+        this._layerIds = {}
+        this._layerNames = new Array(32)
         this._layers = new Array(64)
 
-        this.layerIds["default"] = 0
-        this.layerNames[0] = "default"
+        this._layerIds["default"] = 0
+        this._layerNames[0] = "default"
         this._layers[0] = 0xFFFFFFFF
         this._layers[32] = 0xFFFFFFFF
 
@@ -30,37 +32,54 @@ export class World {
             this._layers[i] = 0x3
             this._layers[i+32] = 0x0
         }
+
+        this._ents = []
     }
 
     // ##### TIME
     get time(): number { return this._time }
     set time(val: number) { console.log("[ERROR] you can't change the time")}
 
-    get layers(): string[] { return Object.keys(this.layerIds).filter(l => l) }
+    get layers(): string[] { return Object.keys(this._layerIds).filter(l => l) }
 
     // ##### LAYER
+    _getLayer(layer: string): number {
+        let id = this._layerIds[layer]
+
+        if(id != null) {
+            return id
+        } else {
+            this.addLayer(layer)
+            let id = this._layerIds[layer]
+            if(id != null) {
+                return id
+            } else {
+                return 0
+            }
+        }
+    }
     addLayer(layer: string) {
         let i = 16
-        while(i < 32 && this.layerNames[i]) {
+        while(i < 32 && this._layerNames[i]) {
             i++
         }
         if(i == 32) {
             console.log("[ERROR] Can't add layer: no more layers available")
         } else {
-            this.layerNames[i] = layer
-            this.layerIds[layer] = i
+            this._layerNames[i] = layer
+            this._layerIds[layer] = i
         }
     }
     setLayerRule(layer1: string, layer2: string, rule: string) {
-        if(!this.layerIds[layer1]) {
+        if(!this._layerIds[layer1]) {
             this.addLayer(layer1)
         }
-        if(!this.layerIds[layer2]) {
+        if(!this._layerIds[layer2]) {
             this.addLayer(layer2)
         }
         
-        let id1 = this.layerIds[layer1],
-            id2 = this.layerIds[layer2]
+        let id1 = this._layerIds[layer1],
+            id2 = this._layerIds[layer2]
         
         if(id2 >= 16) {
             let add, clear = ~(3 << (2 * id2 - 16))
@@ -113,8 +132,8 @@ export class World {
         }
     }
     getLayerRule(layer1: string, layer2: string): string {
-        let id1 = this.layerIds[layer1],
-            id2 = this.layerIds[layer2]
+        let id1 = this._layerIds[layer1],
+            id2 = this._layerIds[layer2]
         
         switch(this._getLayerRule(id1, id2)) {
             case 0x3: return LayerCollision.ALWAYS
@@ -126,19 +145,36 @@ export class World {
 
     // ##### ENTITIES
     createEntity(args: EntityArgs): Entity {
-        return null
+        let entity = new Entity(this, args)
+        this._addEntity(entity)
+        return entity
     }
     createRect(args: RectArgs & { level?: number }): Entity {
-        return null
+        (args as any).type = "rect"
+        let entity = new Entity(this, args as any)
+        this._addEntity(entity)
+        return entity
     }
     createLine(args: LineArgs & { level?: number }): Entity {
-        return null
+        (args as any).type = "line"
+        let entity = new Entity(this, args as any)
+        this._addEntity(entity)
+        return entity
     }
     createGrid(args: GridArgs & { level?: number }): Entity {
-        return null
+        (args as any).type = "grid"
+        let entity = new Entity(this, args as any)
+        this._addEntity(entity)
+        return entity
+    }
+    _addEntity(entity: Entity) {
+        if(!this._ents[entity._level]) {
+            this._ents[entity._level] = []
+        }
+        this._ents[entity._level].push(entity)
     }
     destroyEntity(entity: Entity) {
-
+        entity.destroy()
     }
 
     // ##### QUERYING
@@ -147,5 +183,13 @@ export class World {
     }
     queryRect(x: number, y, number, w: number, h: number): QueryResult {
         return null
+    }
+
+    // ##### SIMULATION
+    simulate(delta: number) {
+        this._time += delta
+    }
+    _move(entity: Entity, dx: number, dy: number) {
+
     }
 }

@@ -20,6 +20,8 @@ export declare class Contact {
 interface BodyArgs {
     x?: number
     y?: number
+
+    enabled?: boolean
 }
 interface SmallBodyArgs extends BodyArgs {
     isSensor?: boolean
@@ -33,7 +35,7 @@ interface RectArgs extends SmallBodyArgs {
 interface LineArgs extends SmallBodyArgs {
     size: number
     isHorizontal: boolean
-    oneway?: boolean // default: no
+    side?: string // default: no
 }
 interface GridArgs extends BodyArgs {
     tiles: TileArgs
@@ -83,6 +85,9 @@ export declare class Entity {
     x: number
     y: number
 
+    globalvx: number
+    globalvy: number
+
     vx: number
     vy: number
 
@@ -101,16 +106,17 @@ export declare class Entity {
     addChild(ent: Entity, parentType?: string)
     removeChild(ent: Entity)
     setParent(parent: Entity, parentType?: string)
-    createEntity(args: EntityArgs)
 
+    createChild(args: EntityArgs, parentType?: string): Entity
     destroyChild(ent: Entity)
     destroy()
 
     move(dx: number, dy: number)
-    moveTo(x: number, y: number)
+    moveToLocal(x: number, y: number)
+    moveToGlobal(x: number, y: number)
 
-    localToGlobal(x: number | { x: number, y: number }, y?: number)
-    globalToLocal(x: number | { x: number, y: number }, y?: number)  
+    localToGlobal(x: number | { x: number, y: number }, y?: number): { x: number, y: number }
+    globalToLocal(x: number | { x: number, y: number }, y?: number): { x: number, y: number }
 }
 
 declare abstract class Body {
@@ -133,8 +139,8 @@ declare abstract class Body {
     readonly upContact: Contact
     readonly downContact: Contact
 
-    localToGlobal(x: number | { x: number, y: number }, y?: number)
-    globalToLocal(x: number | { x: number, y: number }, y?: number)  
+    localToGlobal(x: number | { x: number, y: number }, y?: number): { x: number, y: number }
+    globalToLocal(x: number | { x: number, y: number }, y?: number): { x: number, y: number }  
 }
 
 declare abstract class SmallBody extends Body {
@@ -154,7 +160,7 @@ export declare class Line extends SmallBody {
 
     size: number
     readonly isHorizontal: boolean
-    oneway: boolean
+    side: string
 }
 
 export declare class Grid extends Body {
@@ -196,9 +202,6 @@ declare class World {
     // ##### QUERYING
     raycast(x: number, y: number, dx: number, dy: number): RaycastResult
     queryRect(x: number, y, number, w: number, h: number): QueryResult
-}
-
-export declare class Engine extends World {
 
     simulate(delta: number)
 }

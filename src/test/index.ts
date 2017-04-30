@@ -1,5 +1,7 @@
-import { Engine } from '../lib'
+import layerTest from './layer'
+import worldTest from './world'
+import entityTest from './entity'
 
-let e = new Engine()
-
-console.log(e)
+layerTest()
+worldTest()
+entityTest()
