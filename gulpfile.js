@@ -103,6 +103,18 @@ gulp.task('build-test', ['compile'], function() {
     .pipe(gulp.dest('dist/'))
 })
 
+gulp.task('build-testbed', ['compile'], function() {
+  var b = browserify('js/testbed/index.js')
+
+  return merge(
+    b.bundle()
+      .pipe(source('testbed.js'))
+      .pipe(gulp.dest('dist/testbed/')),
+    gulp.src('src/testbed/static/**/*')
+      .pipe(gulp.dest('dist/testbed/'))
+  )
+})
+
 // -- remove generated files (js and dist)
 gulp.task('clean', function () {
   return gulp.src(['js', 'dist'], { read: false })

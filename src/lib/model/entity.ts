@@ -246,16 +246,22 @@ export class Entity {
             }
             case "rect": {
                 let a = args as RectArgs
+                a.x = 0
+                a.y = 0
                 this.createRect(a)
                 break
             }
             case "line": {
                 let a = args as LineArgs
+                a.x = 0
+                a.y = 0
                 this.createLine(a)
                 break
             }
             case "grid": {
                 let a = args as GridArgs
+                a.x = 0
+                a.y = 0
                 this.createGrid(a)
                 break
             }

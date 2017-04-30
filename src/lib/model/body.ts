@@ -3,6 +3,10 @@ import * as _ from 'lodash'
 import { Entity } from './entity'
 import { RelativeContact } from './contact'
 
+export enum BodyType {
+    RECT, LINE, GRID
+}
+
 interface BodyArgs {
     x?: number
     y?: number
@@ -278,6 +282,8 @@ export abstract class SmallBody extends Body {
 
 export class Rect extends SmallBody {
 
+    type = BodyType.RECT
+
     _width: number
     _height: number
 
@@ -302,6 +308,8 @@ export class Rect extends SmallBody {
 }
 
 export class Line extends SmallBody {
+
+    type = BodyType.LINE
 
     _size: number
 
@@ -358,6 +366,8 @@ export class Line extends SmallBody {
 }
 
 export class Grid extends Body {
+
+    type = BodyType.GRID
 
     _minx: number
     _maxx: number

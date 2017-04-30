@@ -118,8 +118,10 @@ export declare class Entity {
     localToGlobal(x: number | { x: number, y: number }, y?: number): { x: number, y: number }
     globalToLocal(x: number | { x: number, y: number }, y?: number): { x: number, y: number }
 }
-
-declare abstract class Body {
+export declare enum BodyType {
+    RECT, LINE, GRID
+}
+export declare abstract class Body {
 
     type: number
 
@@ -143,7 +145,7 @@ declare abstract class Body {
     globalToLocal(x: number | { x: number, y: number }, y?: number): { x: number, y: number }  
 }
 
-declare abstract class SmallBody extends Body {
+export declare abstract class SmallBody extends Body {
 
     isSensor: boolean
     layer: number
@@ -179,7 +181,7 @@ export declare class Grid extends Body {
     clearTiles(args: { x: number, y: number }[] | { x: number, y: number, width: number, height: number })
 }
 
-declare class World {
+export declare class World {
 
     readonly time: number
 

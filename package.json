@@ -1,5 +1,5 @@
 {
-  "name": "grid.js",
+  "name": "grid",
   "version": "0.1.0",
   "description": "A grid-centric physics engine",
   "main": "dist/grid.js",
