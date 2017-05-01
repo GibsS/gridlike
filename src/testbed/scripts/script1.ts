@@ -25,7 +25,7 @@ class TestScript extends Script {
         this.testbed.registerEntity(this.line)
     }
     update(time: number, delta: number) {
-        console.log(this.line.globalx, this.line.globaly, this.rect.globalx, this.rect.globaly)
+        //console.log(this.line.globalx, this.line.globaly, this.rect.globalx, this.rect.globaly)
     }
 }
 

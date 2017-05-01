@@ -3,6 +3,7 @@ import * as _ from 'lodash'
 export interface VBH<X> {
 
     all(): X[]
+    forAll(lambda: (b: X) => void)
 
     insert(element: X)
     remove(element: X)
@@ -14,6 +15,9 @@ export class SimpleVBH<X> implements VBH<X> {
 
     all(): X[] {
         return _.clone(this.elements)
+    }
+    forAll(lambda: (x: X) => void) {
+        this.elements.forEach(x => lambda(x))
     }
 
     insert(element: X) {

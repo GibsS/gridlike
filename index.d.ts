@@ -39,8 +39,12 @@ interface LineArgs extends SmallBodyArgs {
 }
 interface GridArgs extends BodyArgs {
     tiles: TileArgs
+    width?: number
+    height?: number
+    tileSize?: number
 }
-type TileArgs = any[] | { x: number, y: number, info: (number | any)[][] }
+export type TileArgs = { x: number, y: number, shape: number, data?: any }[]
+                     | { x: number, y: number, info: { shape: number, data?: any }[][] }
 
 declare type EntityArgs = {
     x: number
@@ -102,6 +106,7 @@ export declare class Entity {
     createLine(args: LineArgs): Line
     createGrid(args: GridArgs): Grid
     removeBody(body: Body)
+    forBodies(lambda: (b: Body) => void)
 
     addChild(ent: Entity, parentType?: string)
     removeChild(ent: Entity)
@@ -173,12 +178,21 @@ export declare class Grid extends Body {
     readonly maxy: number
     readonly tileSize: number
 
-    getTile(x: number, y: number): any
-    setTile(x: number, y: number, val: any)
+    getTile(x: number, y: number): { shape: number, data: any }
+    setTile(x: number, y: number, shape: number, data: any)
     clearTile(x: number, y: number)
 
-    setTiles(arg: any[] | { x: number, y: number, info: any[][]})
+    setTiles(arg: any[] | { x: number, y: number, info: { shape: number, data }[][]})
     clearTiles(args: { x: number, y: number }[] | { x: number, y: number, width: number, height: number })
+    forTiles(x: number, y: number, width: number, height: number, lambda: (x: number, y: number, shape: number, data) => { shape: number, data })
+    
+    getTileShape(x: number, y: number): number
+    setTileShape(x: number, y: number, shape: number)
+    clearTileShape(x: number, y: number)
+
+    setTilesShape(arg: any[] | { x: number, y: number, shapes: number[][]})
+    clearTileShapes(args: { x: number, y: number }[] | { x: number, y: number, width: number, height: number })
+    forTilesShape(x: number, y: number, width: number, height: number, lambda: (x: number, y: number, shape: number) => number)
 }
 
 export declare class World {

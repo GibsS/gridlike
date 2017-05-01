@@ -32,6 +32,12 @@ export interface EntityDelegate {
 
 export class Entity {
 
+    // INV1.1: x._parent = y => y.childs contains x
+    // INV2.1: _bodies contains lower.body1 or lower.body2
+    // INV2.2: _bodies contains lower.body[1|2] => lower.body[2|1]._topEntity.level < this._level
+
+    // INV3.1: _lower != null => _lower.body1 and _lower.body2 are in contact && enabled && layers allowing
+
     _world: World
 
     _delegate: EntityDelegate
@@ -39,6 +45,8 @@ export class Entity {
     _parent: Entity // a rect of higher level
     _parentType: number // 0: static, 1: follow
     _childs: Entity[]
+
+    _level: number
 
     _bodies: Body | VBH<Body>
     _allBodies: VBH<Body>
@@ -53,21 +61,17 @@ export class Entity {
     _rightLower: Contact
     _upLower: Contact
     _downLower: Contact
-    _higherContacts: Contact[]
 
     get world(): World { return this._world }
-    set world(val: World) {
-        console.log("[ERROR] can't set Entity.world")
-    }
+    set world(val: World) { console.log("[ERROR] can't set Entity.world") }
 
     get delegate(): EntityDelegate { return this._delegate }
     set delegate(val: EntityDelegate) { this._delegate = val }
 
     // HIERARCHY
     get parent(): Entity { return this._parent }
-    set parent(val: Entity) {
-        this._setParent(val, this._parentType)
-    }
+    set parent(val: Entity) { this._setParent(val, this._parentType) }
+
     get _topEntity(): Entity {
         let topParent: Entity = this
         while(topParent._parent && topParent._parentType == 0) {
@@ -92,63 +96,64 @@ export class Entity {
         if(this._bodies instanceof Body) {
             return [this._bodies]
         } else {
-            return (this._bodies as VBH<Body>).all()
+            return this._bodies.all()
         }
     }
     set bodies(val: Body[]) { console.log("[ERROR] can't set Entity.bodies") }
 
-    _level: number
     get level(): number { return this._level }
     set level(val: number) { 
         if(val > this._level) {
-            let len = this._higherContacts.length,
-                remove = []
-            
-            for(let i = 0; i < len; i++) {
-                let c = this._higherContacts[i]
+            this.forBodies(b => {
+                let len = b._higherContacts.length,
+                    remove = []
 
-                if(c.body1._entity == this) {
-                    if(c.body2._entity.level <= val) {
-                        if(c.isHorizontal) {
-                            c.body2._entity._leftLower = null
-                        } else {
-                            c.body2._entity._downLower = null
-                        }
-                        remove.push(i)
-                    }                    
-                } else {
-                    if(c.body1._entity.level <= val) {
-                        if(c.isHorizontal) {
-                            c.body1._entity._rightLower = null
-                        } else {
-                            c.body1._entity._upLower = null
-                        }
-                        remove.push(i)
-                    }   
-                }
-            }
+                for(let i = 0; i < len; i++) {
+                    let c = b._higherContacts[i]
 
-            _.pullAt(this._higherContacts, remove)
-        } else if(val < this._level) {
-            for(let t of ["up", "down", "left", "right"]) {
-                let c = this["_" + t + "Lower"]
-                if(c.body1._entity == this) {
-                    let otherEnt = c.body2._entity
-                    if(otherEnt.level >= val) {
-                        let i = otherEnt._higherContacts.indexOf(c)
-                        otherEnt._higherContacts.splice(i, 1)
-                        this["_" + t + "Lower"] = null
+                    if(c.body1._topEntity == this) {
+                        if(c.body2._topEntity._level <= val) {
+                            if(c.isHorizontal) {
+                                c.body2._topEntity._leftLower = null
+                            } else {
+                                c.body2._topEntity._upLower = null
+                            }
+                            remove.push(i)
+                        }
+                    } else {
+                        if(c.body1._topEntity._level <= val) {
+                            if(c.isHorizontal) {
+                                c.body1._topEntity._rightLower = null
+                            } else {
+                                c.body1._topEntity._downLower = null
+                            }
+                            remove.push(i)
+                        }
                     }
-                } else {
-                    let otherEnt = c.body1._entity
-                    if(otherEnt.level >= val) {
-                        let i = otherEnt._higherContacts.indexOf(c)
-                        otherEnt._higherContacts.splice(i, 1)
-                        this["_" + t + "Lower"] = null
+                    _.pullAt(b._higherContacts, remove)
+                }
+            })
+        } else if(val < this._level) {
+            for(let t of ["_upLower", "_downLower", "_leftLower", "_rightLower"]) {
+                let c: Contact = this[t]
+                if(c) {
+                    if(c.body1._topEntity == this) {
+                        if( c.body2._topEntity.level >= val) {
+                            let i = c.body2._higherContacts.indexOf(c)
+                            c.body2._higherContacts.splice(i, 1)
+                            this[t] = null
+                        }
+                    } else {
+                        if(c.body1._topEntity.level >= val) {
+                            let i = c.body2._higherContacts.indexOf(c)
+                            c.body2._higherContacts.splice(i, 1)
+                            this[t] = null
+                        }
                     }
                 }
             }
         }
+        this._level = val
     }
 
     // POSITIONNING
@@ -161,19 +166,105 @@ export class Entity {
     get x(): number { return this._x }
     get y(): number { return this._y }
     set x(val: number) {
-        this._x = val 
-        // TODO update all contacts
+        if(this._x != val) {
+            if(this._leftLower) {
+                if(this._leftLower.body1._topEntity == this) {
+                    let i = this._leftLower.body2._higherContacts.indexOf(this._leftLower)
+                    this._leftLower.body2._higherContacts.splice(i, 1)
+                } else {
+                    let i = this._leftLower.body1._higherContacts.indexOf(this._leftLower)
+                    this._leftLower.body1._higherContacts.splice(i, 1)
+                }
+                this._leftLower = null
+            }
+
+            if(this._rightLower) {
+                if(this._rightLower.body1._topEntity == this) {
+                    let i = this._rightLower.body2._higherContacts.indexOf(this._rightLower)
+                    this._rightLower.body2._higherContacts.splice(i, 1)
+                } else {
+                    let i = this._rightLower.body1._higherContacts.indexOf(this._rightLower)
+                    this._rightLower.body1._higherContacts.splice(i, 1)
+                }
+                this._rightLower = null
+            }
+            this.forBodies(b => {
+                let len = b._higherContacts.length,
+                    toremove = []
+
+                for(let i = 0; i < len; i++) {
+                    let c = b._higherContacts[i]
+                    if(c.body1 == b) {
+                        if(c.isHorizontal) {
+                            c.body2._topEntity._leftLower = null
+                            toremove.push(i)
+                        }
+                    } else {
+                        if(c.isHorizontal) {
+                            c.body1._topEntity._rightLower = null
+                            toremove.push(i)
+                        }
+                    }
+                }
+                _.pullAt(b._higherContacts, toremove)
+            })
+
+            this._x = val 
+        }
     }
     set y(val: number) { 
-        this._y = val
-        // TODO update all contacts
+        if(this._y != val) {
+            if(this._upLower) {
+                if(this._upLower.body1._topEntity == this) {
+                    let i = this._upLower.body2._higherContacts.indexOf(this._upLower)
+                    this._upLower.body2._higherContacts.splice(i, 1)
+                } else {
+                    let i = this._upLower.body1._higherContacts.indexOf(this._upLower)
+                    this._upLower.body1._higherContacts.splice(i, 1)
+                }
+                this._upLower = null
+            }
+
+            if(this._downLower) {
+                if(this._downLower.body1._topEntity == this) {
+                    let i = this._downLower.body2._higherContacts.indexOf(this._downLower)
+                    this._downLower.body2._higherContacts.splice(i, 1)
+                } else {
+                    let i = this._downLower.body1._higherContacts.indexOf(this._downLower)
+                    this._downLower.body1._higherContacts.splice(i, 1)
+                }
+                this._downLower = null
+            }
+            this.forBodies(b => {
+                let len = b._higherContacts.length,
+                    toremove = []
+
+                for(let i = 0; i < len; i++) {
+                    let c = b._higherContacts[i]
+                    if(c.body1 == b) {
+                        if(!c.isHorizontal) {
+                            c.body2._topEntity._upLower = null
+                            toremove.push(i)
+                        }
+                    } else {
+                        if(!c.isHorizontal) {
+                            c.body1._topEntity._downLower = null
+                            toremove.push(i)
+                        }
+                    }
+                }
+                _.pullAt(b._higherContacts, toremove)
+            })
+
+            this._y = val 
+        }
     }
 
-    get globalvx(): number { return this._vx + (this._parent != null  && this._parent.globalvx) }
-    get globalvy(): number { return this._vy + (this._parent && this._parent.globalvy) }
+    get globalvx(): number { return this._vx + (this._parent != null && this._parent.globalvx) }
+    get globalvy(): number { return this._vy + (this._parent != null && this._parent.globalvy) }
 
-    set globalvx(val: number) { this.vx = val - (this._parent != null  && this._parent.globalvx) }
-    set globalvy(val: number) { this.vy = val - (this._parent != null  && this._parent.globalvy) }
+    set globalvx(val: number) { this.vx = val - (this._parent != null && this._parent.globalvx) }
+    set globalvy(val: number) { this.vy = val - (this._parent != null && this._parent.globalvy) }
 
     get vx(): number { return this._vx }
     get vy(): number { return this._vy }
@@ -182,40 +273,60 @@ export class Entity {
     set vy(val: number) { this._vy = val }
 
     get contacts(): RelativeContact[] {
-        return this._higherContacts.concat([this._upLower, this._downLower, this._leftLower, this._rightLower]).map(c => { 
-            let entityHasBody1 = c.body1._entity == this
-            return {
-                body: entityHasBody1 ? c.body1 : c.body2,
-                otherBody: entityHasBody1 ? c.body2 : c.body1,
-                side: entityHasBody1 ? (c.isHorizontal ? "right" : "down") : (c.isHorizontal ? "up" : "left")
-            }
+        let res = [this.leftContact, this.downContact, this.rightContact, this.upContact]
+        this.forBodies(b => {
+            res.push.apply(res, b._higherContacts.map(c => {
+                let entityHasBody1 = c.body1._topEntity == this
+                return {
+                    body: entityHasBody1 ? c.body1 : c.body2,
+                    otherBody: entityHasBody1 ? c.body2 : c.body1,
+                    side: entityHasBody1 ? (c.isHorizontal ? "right" : "down") : (c.isHorizontal ? "up" : "left")
+                }
+            }))
         })
+        return res
     }
     get leftContact(): RelativeContact {
-        return this._leftLower && {
+        return this._leftLower && this._leftLower.body1._topEntity == this ? {
+            body: this._leftLower.body1,
+            otherBody: this._leftLower.body2,
+            side: "left"
+        } : {
             body: this._leftLower.body2,
             otherBody: this._leftLower.body1,
             side: "left"
         }
     }
     get rightContact(): RelativeContact {
-        return this._rightLower && {
+        return this._rightLower && this._rightLower.body1._topEntity == this ? {
             body: this._rightLower.body1,
             otherBody: this._rightLower.body2,
+            side: "right"
+        } : {
+            body: this._rightLower.body2,
+            otherBody: this._rightLower.body1,
             side: "right"
         }
     }
     get upContact(): RelativeContact {
-        return this._upLower && {
+        return this._upLower && this._upLower.body1._topEntity == this ? {
+            body: this._upLower.body1,
+            otherBody: this._upLower.body2,
+            side: "up"
+        } : {
             body: this._upLower.body2,
             otherBody: this._upLower.body1,
             side: "up"
         }
     }
     get downContact(): RelativeContact {
-        return this._downLower && {
+        return this._downLower && this._downLower.body1._topEntity == this ? {
             body: this._downLower.body1,
             otherBody: this._downLower.body2,
+            side: "down"
+        } : {
+            body: this._downLower.body2,
+            otherBody: this._downLower.body1,
             side: "down"
         }
     }
@@ -226,9 +337,12 @@ export class Entity {
         this._x = args.x
         this._y = args.y
 
-        this._level = args.level
+        this._vx = 0
+        this._vy = 0
 
-        switch(args.type){
+        this._level = args.level || 0
+
+        switch(args.type) {
             case null: {
                 let a = args as PureEntityArgs
                 if(a.body) {
@@ -292,39 +406,42 @@ export class Entity {
         } else {
             this._bodies.remove(body)
         }
-        for(let t in ["down", "up", "left", "right"]) {
-            let c = this["_" + t + "Lower"]
-            if(c.body1 == body) {
-                let i = c.body2._entity._higherContacts.indexOf(c)
-                c.body2._entity._higherContacts.splice(i, 1)
-                this["_" + t + "Lower"] = null
-            } else if(c.body2 == body) {
-                let i = c.body1._entity._higherContacts.indexOf(c)
-                c.body1._entity._higherContacts.splice(i, 1)
-                this["_" + t + "Lower"] = null
-            }
+
+        let topEntity = this._topEntity
+        if(topEntity._allBodies) {
+            topEntity._allBodies.remove(body)
         }
-        let toremove = [],
-            len = this._higherContacts.length
+
+        let len = body._higherContacts.length
         for(let i = 0; i < len; i++) {
-            let c = this._higherContacts[i]
+            let c: Contact = body._higherContacts[i]
             if(c.body1 == body) {
                 if(c.isHorizontal) {
-                    c.body2._entity._leftLower = null
+                    c.body2._topEntity._leftLower = null
                 } else {
-                    c.body2._entity._downLower = null
+                    c.body2._topEntity._downLower = null
                 }
-                toremove.push(i)
-            } else if(c.body2 == body) {
+            } else {
                 if(c.isHorizontal) {
-                    c.body1._entity._rightLower = null
+                    c.body1._topEntity._rightLower = null
                 } else {
-                    c.body1._entity._upLower = null
+                    c.body1._topEntity._upLower = null
                 }
-                toremove.push(i)
             }
         }
-        _.pullAt(this._higherContacts, toremove)
+
+        for(let t in ["_downLower", "_upLower", "_leftLower", "_rightLower"]) {
+            let c: Contact = this[t]
+            if(c.body1 == body) {
+                let i = c.body2._higherContacts.indexOf(c)
+                c.body2._higherContacts.splice(i, 1)
+                this[t] = null
+            } else if(c.body2 == body) {
+                let i = c.body1._higherContacts.indexOf(c)
+                c.body1._higherContacts.splice(i, 1)
+                this[t] = null
+            }
+        }
     }
     _createBody(args: RectArgs | LineArgs | GridArgs) {
         if((args as any).width != null) {
@@ -346,6 +463,22 @@ export class Entity {
         } else {
             this._bodies = body
         }
+
+        let topEntity = this._topEntity
+        if(topEntity._allBodies) {
+            topEntity._allBodies.insert(body)
+        }
+    }
+    forBodies(lambda: (b: Body) => void) {
+        if(this._allBodies) {
+            this._allBodies.forAll(lambda)
+        } else {
+            if(this._bodies instanceof Body) {
+                lambda(this._bodies)
+            } else {
+                this._bodies.forAll(lambda)
+            }
+        }
     }
 
     addChild(ent: Entity, parentType?: string) { // static | follow
@@ -355,10 +488,15 @@ export class Entity {
         ent._setParent(null, 0)
     }
     setParent(parent: Entity, parentType?: string) {
-        this._setParent(parent, parentType && parentType == "static" ? 0 : 1)
+        this._setParent(parent, !parentType || parentType == "static" ? 0 : 1)
     }
 
     _setParent(parent: Entity, parentType: number, keepPosition?: boolean) {
+        // TO FIX: 
+        // -- when unparenting/parenting: all child of the unparented must also have their bodies be updated
+        // -- need to set the allBodies to the correct value
+        // -- allBodies should be added on the new parent
+
         if(keepPosition == null) {
             keepPosition = true
         }
