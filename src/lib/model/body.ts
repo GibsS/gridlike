@@ -690,7 +690,71 @@ export class Grid extends Body {
         }
     }
     _setTiles(x: number, y: number, width: number, height: number, info: (x: number, y: number, shape: number, data?) => ({ shape: number, data? } | number)) {
-        // TODO
+        if(this._subGrids instanceof SubGrid) {
+            this._setTilesInSubGrid(
+                x, x + width,
+                y, y + height ,
+                this._subGrids,
+                (x, y, shape, data?) => info(x + this._xdownLeft, y + this._ydownLeft, shape, data)
+            )
+        } else {
+            let gridminx = Math.floor(x / this._gridSize),
+                gridminy = Math.floor(y / this._gridSize),
+                gridmaxx = Math.floor((x + width) / this._gridSize),
+                gridmaxy = Math.floor((y + height) / this._gridSize)
+
+            for(let gridx = gridminx; gridx < gridmaxx; gridx++) {
+                for(let gridy = gridminy; gridy < gridmaxy; gridy++) {
+                    let xoff = gridx * this._gridSize, yoff = gridy * this._gridSize
+
+                    let xoff2 = xoff + this._xdownLeft, yoff2 = yoff + this._ydownLeft
+
+                    this._setTilesInSubGrid(
+                        Math.max(0, x - xoff),
+                        Math.min(this._gridSize, x + width - xoff),
+                        Math.max(0, y - yoff),
+                        Math.min(this._gridSize, y + height - yoff),
+                        this._subGrids[gridx][gridy],
+                        (x, y, shape, data?) => info(x + xoff2, y + yoff2, shape, data)
+                    )
+                }
+            }
+        }
+    }
+    _setTilesInSubGrid(minx: number, maxx: number, miny: number, maxy: number, subgrid: SubGrid, 
+                        info: (x: number, y: number, shape: number, data?) => ({ shape: number, data? } | number)) {
+        for(let i = minx; i < maxx; i++) {
+            let list = subgrid.info[i]
+
+            if(list == null) {
+                list = [{ length: this._gridSize, shape: 0, data: null }]
+                subgrid.info[i] = list
+            }
+
+            let currentInfoInd = 0,
+                topHeight = 0
+                
+            while(miny >= topHeight) {
+                topHeight += list[currentInfoInd].length
+                currentInfoInd++
+            }
+
+            currentInfoInd--
+            let current = list[currentInfoInd]
+            for(let j = miny; j < maxy; j++) {
+                if(j < topHeight) {
+                    currentInfoInd++
+                    topHeight += list[currentInfoInd].length
+                    current = list[currentInfoInd]
+                }
+                let next = info(i, j, current.shape, current.data)
+                if(typeof next === "number") {
+
+                } else {
+                    
+                }
+            }
+        }            
     }
     _expandGrid(minx: number, miny: number, maxx: number, maxy: number) {
         if(minx < 0 || miny < 0 || maxx >= this._gridSize * this._width || maxy >= this._gridSize * this._height) {
