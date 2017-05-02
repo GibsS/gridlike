@@ -33,8 +33,9 @@ export interface GridArgs extends BodyArgs {
     height?: number
     tileSize?: number
 }
-export type TileArgs = { x: number, y: number, shape: number, data?: any }[]
-                     | { x: number, y: number, info: { shape: number, data?: any }[][] }
+type TileList = { x: number, y: number, shape: number, data?: any }[]
+type TileGrid = { x: number, y: number, info: ({ shape: number, data?: any } | number)[][] }
+export type TileArgs = TileList | TileGrid
 
 export abstract class Body {
 
@@ -390,7 +391,7 @@ export class Grid extends Body {
         // GET MIN AND MAX
         let minx, maxx, miny, maxy
         if(args.tiles != null) {
-            if((args.tiles as any[]).length) {
+            if((args.tiles as TileList).length != null) {
                 minx = args.tiles[0].x
                 miny = args.tiles[0].y
                 maxx = args.tiles[0].x
@@ -403,7 +404,7 @@ export class Grid extends Body {
                     maxy = Math.max(maxy, tile.y)
                 }
             } else {
-                let t = args.tiles as { x: number, y: number, info: { shape: number, data: any }[][] } 
+                let t: TileGrid = args.tiles as TileGrid
                 minx = t.x
                 miny = t.y
                 maxx = t.info.length - t.x
@@ -443,13 +444,19 @@ export class Grid extends Body {
         }
 
         if(args.tiles != null) {
-            if((args.tiles as any[]).length) {
-                let len = (args.tiles as any[]).length
-                for(let t of args.tiles as any[]) {
+            if((args.tiles as TileList).length) {
+                let len = (args.tiles as TileList).length
+                for(let t of args.tiles as TileList) {
                     this._setTile(t.x, t.y, t.shape, t.data)
                 }
             } else {
-                this._setTiles((args.tiles as any).x, (args.tiles as any).y, (args.tiles as any).info)
+                this._setTiles(
+                    (args.tiles as TileGrid).x, 
+                    (args.tiles as TileGrid).y, 
+                    (args.tiles as TileGrid).info.length, 
+                    (args.tiles as TileGrid).info[0].length, 
+                    (x, y) => (args.tiles as TileGrid).info[x][y]
+                )
             }
         }
     }
@@ -504,6 +511,7 @@ export class Grid extends Body {
     clearTile(x: number, y: number) {
         x -= this._xdownLeft
         y -= this._ydownLeft
+
         if(x >= 0 && y >= 0 && x < this._gridSize * this._width && y < this._gridSize * this._height) {
             this._setTile(x, y, 0, null)
         }
@@ -511,9 +519,9 @@ export class Grid extends Body {
 
     setTiles(args: TileArgs) {
         let minx, maxx, miny, maxy,
-            list = (args as any).length != null
+            list = (args as TileList).length != null
         if(list) {
-            let t = args as { x: number, y: number, shape: number, data }[]
+            let t = args as TileList
             minx = t[0].x
             miny = t[0].y
             maxx = t[0].x
@@ -526,7 +534,7 @@ export class Grid extends Body {
                 maxy = Math.max(maxy, tile.y)
             }
         } else {
-            let t = args as { x: number, y: number, info: any[][] }
+            let t = args as TileGrid
             minx = 0
             maxx = t.info.length
             miny = 0
@@ -541,24 +549,21 @@ export class Grid extends Body {
         this._expandGrid(minx, maxx, miny, maxy)
 
         if(list) {
-            for(let t of args as any[]) {
+            for(let t of args as TileList) {
                 this._setTile(t.x, t.y, t.shape, t.data)
             }
         } else {
-            this._setTiles(minx, miny, (args as any).info)
+            this._setTiles(minx, miny, (args as any).info.length, (args as TileGrid).info[0].length, (x, y) => (args as TileGrid).info[x][y])
         }
     }
     clearTiles(args: { x: number, y: number, width: number, height: number } | { x: number, y: number }[]) {
-        if((args as any).length != null) {
-
-        } else {
-            
-        }
+        this._clearTiles(args, { shape: 0, data: null })
     }
     forTiles(x: number, y: number, width: number, height: number, lambda: (x: number, y: number, shape: number, data) => { shape: number, data }) {
+        this._expandGrid(x - this._xdownLeft, y - this._ydownLeft, x + width - this._xdownLeft, y + height - this._ydownLeft)
 
+        this._setTiles(x - this._xdownLeft, y - this._ydownLeft, width, height, lambda)
     }
-
 
     getTileShape(x: number, y: number): number {
         return this.getTile(x, y).shape
@@ -567,17 +572,20 @@ export class Grid extends Body {
         this._setTile(x, y, shape)
     }
     clearTileShape(x: number, y: number) {
-        this._setTile(x, y, 0)
+        x -= this._xdownLeft
+        y -= this._ydownLeft
+        if(x >= 0 && y >= 0 && x < this._width * this._gridSize && y < this._height * this._gridSize) {
+            this._setTile(x, y, 0)
+        }
     }
 
-    setTilesShape(arg: any[] | { x: number, y: number, shapes: number[][]}) {
-        
-    }
     clearTileShapes(args: { x: number, y: number }[] | { x: number, y: number, width: number, height: number }) {
-        
+        this._clearTiles(args, 0)
     }
     forTileShapes(x: number, y: number, width: number, height: number, lambda: (x: number, y: number, shape: number) => number) {
+        this._expandGrid(x - this._xdownLeft, y - this._ydownLeft, x + width - this._xdownLeft, y + height - this._ydownLeft)
 
+        this._setTiles(x - this._xdownLeft, y - this._ydownLeft, width, height, lambda)
     }
 
     _setTile(x: number, y: number, shape: number, data?) {
@@ -659,10 +667,31 @@ export class Grid extends Body {
             }
         }
     }
-    _setTiles(x: number, y: number, info: { shape: number, data}[][]) {
+    _clearTiles(args: { x: number, y: number }[] | { x: number, y: number, width: number, height: number }, zero: number | { shape: number, data? }) {
+        if((args as any).length != null) {
+            if(typeof zero === "number") {
+                for(let t of args as any[]) {
+                    this.clearTileShape(t.x, t.y)
+                }
+            } else {
+                for(let t of args as any[]) {
+                    this.clearTile(t.x, t.y)
+                }
+            }
+        } else {
+            let x = Math.max(0, (args as any).x - this._xdownLeft),
+                y = Math.max(0, (args as any).y - this._ydownLeft);
+            (args as any).width = Math.min(this._width * this._gridSize, (args as any).x + (args as any).width) - x;
+            (args as any).height = Math.min(this._height * this._gridSize, (args as any).y + (args as any).height) - y;
 
+            if((args as any).width > 0 && (args as any).height > 0) {
+                this._setTiles(x, y, (args as any).width, (args as any).height, (x, y) => zero)
+            }
+        }
     }
-
+    _setTiles(x: number, y: number, width: number, height: number, info: (x: number, y: number, shape: number, data?) => ({ shape: number, data? } | number)) {
+        // TODO
+    }
     _expandGrid(minx: number, miny: number, maxx: number, maxy: number) {
         if(minx < 0 || miny < 0 || maxx >= this._gridSize * this._width || maxy >= this._gridSize * this._height) {
             let left = Math.max(Math.ceil(-minx / this._gridSize), 0),

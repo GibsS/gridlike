@@ -43,8 +43,9 @@ interface GridArgs extends BodyArgs {
     height?: number
     tileSize?: number
 }
-export type TileArgs = { x: number, y: number, shape: number, data?: any }[]
-                     | { x: number, y: number, info: { shape: number, data?: any }[][] }
+type TileList = { x: number, y: number, shape: number, data?: any }[]
+type TileGrid = { x: number, y: number, info: ({ shape: number, data?: any } | number)[][] }
+type TileArgs = TileList | TileGrid
 
 declare type EntityArgs = {
     x: number
