@@ -362,8 +362,8 @@ export class Line extends SmallBody {
     }
 }
 
-const subGridThreshold = 65
-const subGridSize = 80
+const subGridThreshold = 100
+const subGridSize = 120
 
 export class Grid extends Body {
 
@@ -785,15 +785,16 @@ export class Grid extends Body {
                     nextShape = current.shape
                     nextData = current.data
                 }
-                if(!next) {
-                    next = { length: 1, shape: nextShape, data: nextData }
-                } else {
+                
+                if(next) {
                     if(next.shape == nextShape && _.isEqual(next.data, nextData)) {
                         next.length++
                     } else {
                         newColumn.push(next)
                         next = { length: 1, shape: nextShape, data: nextData }
                     }
+                } else {
+                    next = { length: 1, shape: nextShape, data: nextData }
                 }
             }
             newColumn.push(next)
