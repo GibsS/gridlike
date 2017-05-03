@@ -28,21 +28,19 @@ export default function test() {
                     for(let i = 0; i < 50; i++) {
                         tiles[i] = new Array(50)
                         for(let j = 0; j < 50; j++) {
-                            tiles[i][j] = { shape: j, data: i }
+                            tiles[i][j] = { shape: j + 3, data: i + 3 }
                         }
                     }
                     grid = world.createGrid({
-                        x: 0,
-                        y: 0,
                         tiles: {
-                            x: 0,
-                            y: 0,
+                            x: 3,
+                            y: 3,
                             info: tiles
                         }
                     }).body as Grid
 
-                    for(let i = 0; i < 50; i++) {
-                        for(let j = 0; j < 50; j++) {
+                    for(let i = 3; i < 53; i++) {
+                        for(let j = 3; j < 53; j++) {
                             assertTileEqual(grid.getTile(i, j), j, i)
                         }
                     }
@@ -169,8 +167,8 @@ export default function test() {
                 world = new World()
                 
                 grid = world.createGrid({
-                    width: 50,
-                    height: 50
+                    width: 100,
+                    height: 100
                 }).body as Grid
             })
 
@@ -200,13 +198,8 @@ export default function test() {
                         return { shape: x + y, data: { x, y } }
                     })
 
-                    for(let i = -40; i < -15; i++) {
-                        console.log(i, grid.getTile(-29, i))
-                    }
-
                     for(let i = -30; i < -20; i++) {
                         for(let j = -30; j < -20; j++) {
-                            console.log(i, j)
                             assertTileEqual(grid.getTile(i, j), i + j, { x: i, y: j })
                         }
                     }
@@ -229,6 +222,22 @@ export default function test() {
                             }
                         }
                     }
+                })
+            })
+
+            describe('grid.clearTiles', function() {
+                it('should set shape to 0 and data to null', function() {
+                    grid.setTiles({
+                        x: 2, y: 2, 
+                        info: _.range(10).map(i => _.range(10).map(j => { return { shape: 3, data: { foo: "test" } }}))
+                    })
+                    grid.clearTiles({
+                        x: 3, y: 3, width: 8, height: 8
+                    })
+                    assertTileEqual(grid.getTile(2, 2), 3, { foo: "test" })
+                    assertTileEqual(grid.getTile(4, 4), 0, null)
+                    assertTileEqual(grid.getTile(11, 11), 3, { foo: "test" })
+                    assertTileEqual(grid.getTile(11, 2), 3, { foo: "test" })
                 })
             })
         })

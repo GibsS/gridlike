@@ -362,8 +362,8 @@ export class Line extends SmallBody {
     }
 }
 
-const subGridThreshold = 80
-const subGridSize = 100
+const subGridThreshold = 65
+const subGridSize = 80
 
 export class Grid extends Body {
 
@@ -530,6 +530,9 @@ export class Grid extends Body {
             list = (args as TileList).length != null
         if(list) {
             let t = args as TileList
+            if(!t.length) {
+                return
+            }
             minx = t[0].x
             miny = t[0].y
             maxx = t[0].x
@@ -716,8 +719,8 @@ export class Grid extends Body {
                 gridmaxx = Math.floor((x + width) / this._gridSize),
                 gridmaxy = Math.floor((y + height) / this._gridSize)
 
-            for(let gridx = gridminx; gridx < gridmaxx; gridx++) {
-                for(let gridy = gridminy; gridy < gridmaxy; gridy++) {
+            for(let gridx = gridminx; gridx <= gridmaxx; gridx++) {
+                for(let gridy = gridminy; gridy <= gridmaxy; gridy++) {
                     let xoff = gridx * this._gridSize, yoff = gridy * this._gridSize
                     let xoff2 = xoff + this._xdownLeft, yoff2 = yoff + this._ydownLeft
 
