@@ -193,7 +193,6 @@ export declare class Grid extends Body {
 
     setTilesShape(arg: any[] | { x: number, y: number, shapes: number[][]})
     clearTileShapes(args: { x: number, y: number }[] | { x: number, y: number, width: number, height: number })
-    forTilesShape(x: number, y: number, width: number, height: number, lambda: (x: number, y: number, shape: number) => number)
 }
 
 export declare class World {

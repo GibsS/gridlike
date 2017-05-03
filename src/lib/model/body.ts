@@ -582,11 +582,6 @@ export class Grid extends Body {
     clearTileShapes(args: { x: number, y: number }[] | { x: number, y: number, width: number, height: number }) {
         this._clearTiles(args, 0)
     }
-    forTileShapes(x: number, y: number, width: number, height: number, lambda: (x: number, y: number, shape: number) => number) {
-        this._expandGrid(x - this._xdownLeft, y - this._ydownLeft, x + width - this._xdownLeft, y + height - this._ydownLeft)
-
-        this._setTiles(x - this._xdownLeft, y - this._ydownLeft, width, height, lambda)
-    }
 
     _setTile(x: number, y: number, shape: number, data?) {
         let subgrid: SubGrid
@@ -681,8 +676,8 @@ export class Grid extends Body {
         } else {
             let x = Math.max(0, (args as any).x - this._xdownLeft),
                 y = Math.max(0, (args as any).y - this._ydownLeft);
-            (args as any).width = Math.min(this._width * this._gridSize, (args as any).x + (args as any).width) - x;
-            (args as any).height = Math.min(this._height * this._gridSize, (args as any).y + (args as any).height) - y;
+            (args as any).width = Math.min(this._width * this._gridSize, (args as any).x + (args as any).width) - x - this._xdownLeft;
+            (args as any).height = Math.min(this._height * this._gridSize, (args as any).y + (args as any).height) - y - this._ydownLeft;
 
             if((args as any).width > 0 && (args as any).height > 0) {
                 this._setTiles(x, y, (args as any).width, (args as any).height, (x, y) => zero)
@@ -723,37 +718,61 @@ export class Grid extends Body {
     }
     _setTilesInSubGrid(minx: number, maxx: number, miny: number, maxy: number, subgrid: SubGrid, 
                         info: (x: number, y: number, shape: number, data?) => ({ shape: number, data? } | number)) {
+        let oldColumn: any[],
+            newColumn: any[]
+
         for(let i = minx; i < maxx; i++) {
-            let list = subgrid.info[i]
+            oldColumn = subgrid.info[i]
+            newColumn = []
 
-            if(list == null) {
-                list = [{ length: this._gridSize, shape: 0, data: null }]
-                subgrid.info[i] = list
+            if(oldColumn == null) {
+                oldColumn = [{ length: this._gridSize, shape: 0, data: null }]
             }
+            let currentInd = 0,
+                current = _.clone(oldColumn[currentInd]),
+                currentHeight = current.length,
+                nextShape: number,
+                nextData,
+                next: { length: number, shape: number, data }
 
-            let currentInfoInd = 0,
-                topHeight = 0
-                
-            while(miny >= topHeight) {
-                topHeight += list[currentInfoInd].length
-                currentInfoInd++
-            }
-
-            currentInfoInd--
-            let current = list[currentInfoInd]
-            for(let j = miny; j < maxy; j++) {
-                if(j < topHeight) {
-                    currentInfoInd++
-                    topHeight += list[currentInfoInd].length
-                    current = list[currentInfoInd]
+            for(let j = 0; j < this._gridSize; j++) {
+                if(j >= currentHeight) {
+                    currentInd++
+                    current = oldColumn[currentInd]
+                    currentHeight += current.length
                 }
-                let next = info(i, j, current.shape, current.data)
-                if(typeof next === "number") {
-
+                if(j >= miny && j < maxy) {
+                    let res = info(i, j, current.shape, current.data)
+                    if(res != null) {
+                        if(typeof res === "number") {
+                            nextShape = res
+                            nextData = current.data
+                        } else {
+                            nextShape = res.shape
+                            nextData = res.data
+                        }
+                    } else {
+                        nextShape = current.shape
+                        nextData = current.data
+                    }
                 } else {
-                    
+                    nextShape = current.shape
+                    nextData = current.data
+                }
+                if(!next) {
+                    next = { length: 1, shape: nextShape, data: nextData }
+                } else {
+                    if(next.shape == nextShape && _.isEqual(next.data, nextData)) {
+                        next.length++
+                    } else {
+                        newColumn.push(next)
+                        next = { length: 1, shape: nextShape, data: nextData }
+                    }
                 }
             }
+            newColumn.push(next)
+
+            subgrid.info[i] = newColumn
         }            
     }
     _expandGrid(minx: number, miny: number, maxx: number, maxy: number) {
