@@ -34,12 +34,16 @@ export default function test() {
                     grid = world.createGrid({
                         x: 0,
                         y: 0,
-                        tiles
+                        tiles: {
+                            x: 0,
+                            y: 0,
+                            info: tiles
+                        }
                     }).body as Grid
 
                     for(let i = 0; i < 50; i++) {
                         for(let j = 0; j < 50; j++) {
-                            assertTileEqual(grid.getTile(i, j),j, i)
+                            assertTileEqual(grid.getTile(i, j), j, i)
                         }
                     }
                 })
@@ -47,13 +51,9 @@ export default function test() {
 
             describe('init by list', function() {
                 it('should create a grid where every tile match with the got counterpart', function() {
-                    var tiles 
-                    tiles = new Array(50)
+                    var tiles = []
                     for(let i = 0; i < 50; i++) {
-                        tiles[i] = new Array(50)
-                        for(let j = 0; j < 50; j++) {
-                            tiles[i][j] = { shape: j, data: i }
-                        }
+                        tiles.push({ x: i, y: 0, shape: i, data: { foo: "test" }})
                     }
                     grid = world.createGrid({
                         x: 0,
@@ -62,9 +62,7 @@ export default function test() {
                     }).body as Grid
 
                     for(let i = 0; i < 50; i++) {
-                        for(let j = 0; j < 50; j++) {
-                            assertTileEqual(grid.getTile(i, j),j, i)
-                        }
+                        assertTileEqual(grid.getTile(i, 0), i, { foo: "test" })
                     }
                 })
             })
@@ -84,9 +82,7 @@ export default function test() {
                         }
                     }
                 })
-            })
-
-            describe('init by dimension', function() {
+                
                 it('should create a grid where every tile match with the got counterpart /2', function() {
                     grid = world.createGrid({
                         x: 0,
@@ -201,12 +197,36 @@ export default function test() {
 
                 it('should allow the modification of the tiles it goes through', function() {
                     grid.forTiles(-30, -30, 10, 10, (x, y, shape, data) => {
-                        return { shape: (x + y) % 2 == 0 ? 1 : 0, data: { x, y } }
+                        return { shape: x + y, data: { x, y } }
                     })
+
+                    for(let i = -40; i < -15; i++) {
+                        console.log(i, grid.getTile(-29, i))
+                    }
 
                     for(let i = -30; i < -20; i++) {
                         for(let j = -30; j < -20; j++) {
-                            assertTileEqual(grid.getTile(i, j), (i + j) % 2 == 0 ? 1: 0, { x: i, y: j })
+                            console.log(i, j)
+                            assertTileEqual(grid.getTile(i, j), i + j, { x: i, y: j })
+                        }
+                    }
+                })
+            })
+
+            describe('grid.setTiles', function() {
+                it('should allow to set data on an array', function() {
+                    grid.setTiles({
+                        x: 1, y: 1,
+                        info: _.range(10).map(i => _.range(10).map(j => 3))
+                    })
+
+                    for(let i = -3; i < 13; i++) {
+                        for(let j = -4; j < 14; j++) {
+                            if(i >= 1 && j >= 1 && i < 11 && j < 11) {
+                                assertTileEqual(grid.getTile(i, j), 3, null)
+                            } else {
+                                assertTileEqual(grid.getTile(i, j), 0, null)
+                            }
                         }
                     }
                 })
