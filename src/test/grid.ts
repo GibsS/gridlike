@@ -7,7 +7,11 @@ import { World, Entity, Grid } from '../lib/index'
 
 function assertTileEqual(tile, shape, data) {
     assert.equal(tile.shape, shape)
-    assert.deepStrictEqual(tile.data, data)
+    if(typeof tile.data == "undefined") {
+        assert.equal(tile.data, undefined)
+    } else {
+        assert.deepStrictEqual(tile.data, data)
+    }
 }
 
 export default function test() {

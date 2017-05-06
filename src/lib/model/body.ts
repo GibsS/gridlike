@@ -334,7 +334,7 @@ export class Line extends SmallBody {
     }
 }
 
-const subGridThreshold = 100
+const subGridThreshold = 105
 const subGridSize = 120
 
 export class Grid extends Body {
@@ -383,9 +383,9 @@ export class Grid extends Body {
                 maxy = t.info[0].length + t.y
             }
         } else {
-            minx = -Math.floor(args.width/2)
+            minx = -Math.floor((args.width || (this._gridSize - 10))/2)
             maxx = minx + args.width
-            miny = -Math.floor(args.height/2)
+            miny = -Math.floor((args.height || (this._gridSize - 10))/2)
             maxy = miny + args.height
         }
 
@@ -463,21 +463,7 @@ export class Grid extends Body {
             }
         }
 
-        let list = subgrid.info[x]
-
-        if(list != null) {
-            let currentInfoInd = 0,
-                topHeight = 0
-
-            while(y >= topHeight) {
-                topHeight += list[currentInfoInd].length
-                currentInfoInd++
-            }
-
-            return list[currentInfoInd-1]
-        } else {
-            return { shape: 0, data: null }
-        }
+        return { shape: subgrid.shape[x][y], data: subgrid.data[x][y] }
     }
     setTile(x: number, y: number, shape: number, data) {
         this._expandGrid(x - this._xdownLeft, y - this._ydownLeft, x - this._xdownLeft, y - this._ydownLeft)
@@ -548,7 +534,7 @@ export class Grid extends Body {
     clearTiles(args: { x: number, y: number, width: number, height: number } | { x: number, y: number }[]) {
         this._clearTiles(args, { shape: 0, data: null })
     }
-    forTiles(x: number, y: number, width: number, height: number, lambda: (x: number, y: number, shape: number, data) => { shape: number, data }) {
+    forTiles(x: number, y: number, width: number, height: number, lambda: (x: number, y: number, shape: number, data) => ({ shape: number, data? } | number)) {
         this._expandGrid(x - this._xdownLeft, y - this._ydownLeft, x + width - this._xdownLeft, y + height - this._ydownLeft)
 
         this._setTiles(
@@ -591,69 +577,11 @@ export class Grid extends Body {
             x -= gridx * this._gridSize
             y -= gridy * this._gridSize
         }
-
-        let list = subgrid.info[x]
-
-        if(list != null) {
-            let currentInfoInd = 0,
-                topHeight = 0
-                
-            while(y >= topHeight) {
-                topHeight += list[currentInfoInd].length
-                currentInfoInd++
-            }
-
-            currentInfoInd--
-
-            let current = list[currentInfoInd],
-                lowHeight = topHeight - current.length
-
-            data = _.cloneDeep(typeof data == "undefined" ? current.data : data)
-            if(current.shape != shape || !_.isEqual(current.data, data)) {
-                if(y == lowHeight) {
-                    if(y > 0 && list[currentInfoInd - 1].shape == shape && _.isEqual(list[currentInfoInd - 1].data, data)) {
-                        list[currentInfoInd - 1].length += 1
-                        list[currentInfoInd].length -= 1
-                    } else {
-                        let newInfo = { length: 1, shape, data }
-                        list.splice(currentInfoInd, 0, newInfo)
-                    }
-                } else if(y == topHeight - 1) {
-                    if(y < this._gridSize - 1 && list[currentInfoInd + 1].shape == shape && _.isEqual(list[currentInfoInd + 1].data, data)) {
-                        list[currentInfoInd + 1].length += 1
-                        list[currentInfoInd].length -= 1
-                    } else {
-                        let newInfo = { length: 1, shape, data }
-                        list.splice(currentInfoInd + 1, 0, newInfo)
-                    }
-                } else {
-                    let newInfo = { length: 1, shape, data },
-                        nextInfo = { length: current.length - 1 - y + lowHeight, shape: current.shape, data: _.cloneDeep(current.data) }
-
-                    list.splice(currentInfoInd + 1, 0, newInfo, nextInfo)
-
-                    current.length = y - lowHeight
-                }
-            }
-        } else {
-            if(y == 0) {
-                subgrid.info[x] = [
-                    { length: 1, shape, data }, 
-                    { length: this._gridSize - 1, shape: 0, data: null}
-                ]
-            } else if(y == this._gridSize - 1) {
-                subgrid.info[x] = [
-                    { length: this._gridSize - 1, shape: 0, data: null},
-                    { length: 1, shape, data }
-                ]
-            } else {
-                subgrid.info[x] = [
-                    { length: y, shape: 0, data: null }, 
-                    { length: 1, shape, data }, 
-                    { length: this._gridSize - 1 - y, shape: 0, data: null}
-                ]
-            }
+        
+        if(typeof data != "undefined") {
+            subgrid.data[x][y] = _.cloneDeep(data)
         }
+        subgrid.shape[x][y] = shape
     }
     _clearTiles(args: { x: number, y: number }[] | { x: number, y: number, width: number, height: number }, zero: number | { shape: number, data? }) {
         if((args as any).length != null) {
@@ -716,62 +644,20 @@ export class Grid extends Body {
     }
     _setTilesInSubGrid(minx: number, maxx: number, miny: number, maxy: number, subgrid: SubGrid, 
                         info: (x: number, y: number, shape: number, data?) => ({ shape: number, data? } | number)) {
-        let oldColumn: any[],
-            newColumn: any[]
-
         for(let i = minx; i < maxx; i++) {
-            oldColumn = subgrid.info[i]
-            newColumn = []
-
-            if(oldColumn == null) {
-                oldColumn = [{ length: this._gridSize, shape: 0, data: null }]
-            }
-            let currentInd = 0,
-                current = _.clone(oldColumn[currentInd]),
-                currentHeight = current.length,
-                nextShape: number,
-                nextData,
-                next: { length: number, shape: number, data }
-
-            for(let j = 0; j < this._gridSize; j++) {
-                if(j >= currentHeight) {
-                    currentInd++
-                    current = oldColumn[currentInd]
-                    currentHeight += current.length
-                }
-                if(j >= miny && j < maxy) {
-                    let res = info(i, j, current.shape, current.data)
-                    if(res != null) {
-                        if(typeof res === "number") {
-                            nextShape = res
-                            nextData = current.data
-                        } else {
-                            nextShape = res.shape
-                            nextData = res.data
+            for(let j = miny; j < maxy; j++) {
+                let res = info(i, j, subgrid.shape[i][j], subgrid.data[i][j])
+                if(res) {
+                    if(typeof res == "number") {
+                        subgrid.shape[i][j] = res
+                    } else {
+                        subgrid.shape[i][j] = res.shape
+                        if(typeof res.data != "undefined") {
+                            subgrid.data[i][j] = res.data
                         }
-                    } else {
-                        nextShape = current.shape
-                        nextData = current.data
                     }
-                } else {
-                    nextShape = current.shape
-                    nextData = current.data
-                }
-                
-                if(next) {
-                    if(next.shape == nextShape && _.isEqual(next.data, nextData)) {
-                        next.length++
-                    } else {
-                        newColumn.push(next)
-                        next = { length: 1, shape: nextShape, data: nextData }
-                    }
-                } else {
-                    next = { length: 1, shape: nextShape, data: nextData }
                 }
             }
-            newColumn.push(next)
-
-            subgrid.info[i] = newColumn
         }            
     }
     _expandGrid(minx: number, miny: number, maxx: number, maxy: number) {
@@ -818,13 +704,19 @@ export class Grid extends Body {
 
 export class SubGrid {
 
-    info: { length: number, shape: number, data: any }[][] // stored in columns
-    rows: any[][] // row -> list of horizontal lines
-    columns: any[][] // line -> list of vertical lines
+    shape: number[][]
+    data: any[][]
 
     constructor(size: number) {
-        this.info = new Array(size)
-        this.rows = new Array(size + 1)
-        this.columns = new Array(size + 1)
+        this.shape = new Array(size)
+        this.data = new Array(size)
+        for(let i = 0; i < size; i++) {
+            this.shape[i] = new Array(size)
+
+            for(let j = 0; j < size; j++) {
+                this.shape[i][j] = 0
+            }
+            this.data[i] = new Array(size)
+        }
     }
 }

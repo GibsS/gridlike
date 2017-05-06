@@ -185,7 +185,7 @@ export declare class Grid extends Body {
 
     setTiles(arg: any[] | { x: number, y: number, info: { shape: number, data }[][]})
     clearTiles(args: { x: number, y: number }[] | { x: number, y: number, width: number, height: number })
-    forTiles(x: number, y: number, width: number, height: number, lambda: (x: number, y: number, shape: number, data) => { shape: number, data })
+    forTiles(x: number, y: number, width: number, height: number, lambda: (x: number, y: number, shape: number, data) => ({ shape: number, data? } | number))
     
     getTileShape(x: number, y: number): number
     setTileShape(x: number, y: number, shape: number)
