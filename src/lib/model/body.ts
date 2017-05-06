@@ -58,43 +58,7 @@ export abstract class Body {
     get enabled(): boolean { return this._enabled }
     set enabled(val: boolean) {
         if(val != this._enabled && !val) {
-            for(let t of ["_upLower", "_downLower", "_leftLower", "_rightLower"]) {
-                let c: Contact = this._topEntity[t]
-                if(c) {
-                    if(c.body1 == this) {
-                        let i = c.body2._higherContacts.indexOf(c)
-                        c.body2._higherContacts.splice(i, 1)
-                        this._topEntity[t] = null
-                    } else if(c.body2 == this) {
-                        let i = c.body1._higherContacts.indexOf(c)
-                        c.body1._higherContacts.splice(i, 1)
-                        this._topEntity[t] = null
-                    }
-                }
-            }
-
-            let len = this._higherContacts.length,
-                toremove = []
-            for(let i = 0; i < len; i++) {
-                let c = this._higherContacts[i]
-
-                if(c.body1 == this) {
-                    if(c.isHorizontal) {
-                        c.body2._topEntity._leftLower = null
-                    } else {
-                        c.body2._topEntity._upLower = null
-                    }
-                    toremove.push(i)
-                } else if(c.body2 == this) {
-                    if(c.isHorizontal) {
-                        c.body1._topEntity._rightLower = null
-                    } else {
-                        c.body1._topEntity._downLower = null
-                    }
-                    toremove.push(i)
-                }
-            }
-            _.pullAt(this._higherContacts, toremove)
+            this._clearContacts()
         }
         this._enabled = val
     }
@@ -159,7 +123,8 @@ export abstract class Body {
     }
 
     constructor(entity: Entity, args: BodyArgs) {
-        this._topEntity = entity
+        this._topEntity = entity._topEntity
+        this._entity = entity
         this._x = args.x || 0
         this._y = args.y || 0
         this._enabled = args.enabled || true
@@ -201,6 +166,7 @@ export abstract class Body {
     _clearContacts() {
         for(let t of ["_upLower", "_downLower", "_leftLower", "_rightLower"]) {
             let c: Contact = this._topEntity[t]
+
             if(c) {
                 if(c.body1 == this) {
                     let i = c.body2._higherContacts.indexOf(c)
@@ -214,30 +180,31 @@ export abstract class Body {
             }
         }
 
-        let len = this._higherContacts.length,
-            toremove = []
-        for(let i = 0; i < len; i++) {
-            let c = this._higherContacts[i]
+        if(this._higherContacts) {
+            let len = this._higherContacts.length,
+                toremove = []
 
-            if(c.body1 == this) {
-                if(c.isHorizontal) {
-                    c.body2._topEntity._leftLower = null
+            for(let i = 0; i < len; i++) {
+                let c = this._higherContacts[i]
+                
+                if(c.body1 == this) {
+                    if(c.isHorizontal) {
+                        c.body2._topEntity._leftLower = null
+                    } else {
+                        c.body2._topEntity._downLower = null
+                    }
                     toremove.push(i)
                 } else {
-                    c.body2._topEntity._upLower = null
-                    toremove.push(i)
-                }
-            } else {
-                if(c.isHorizontal) {
-                    c.body1._topEntity._rightLower = null
-                    toremove.push(i)
-                } else {
-                    c.body1._topEntity._downLower = null
+                    if(c.isHorizontal) {
+                        c.body1._topEntity._rightLower = null
+                    } else {
+                        c.body1._topEntity._upLower = null
+                    }
                     toremove.push(i)
                 }
             }
+            _.pullAt(this._higherContacts, toremove)
         }
-        _.pullAt(this._higherContacts, toremove)
     }
 }
 
@@ -260,12 +227,17 @@ export abstract class SmallBody extends Body {
         this._clearContacts()
     }
     set layer(val: string) {
-        this._layer = this._entity._world._getLayer(val)
-        this._clearContacts()
+        let l = this._entity._world._getLayer(val)
+        if(l != this._layer) {
+            this._layer = l
+            this._clearContacts()
+        }
     }
     set layerGroup(val: number) {
-        this._layerGroup = val
-        this._clearContacts()
+        if(val != this._layerGroup) {
+            this._layerGroup = val
+            this._clearContacts()
+        }
     }
 
     constructor(entity: Entity, args: SmallBodyArgs) {

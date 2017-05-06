@@ -116,7 +116,7 @@ export class Entity {
                             if(c.isHorizontal) {
                                 c.body2._topEntity._leftLower = null
                             } else {
-                                c.body2._topEntity._upLower = null
+                                c.body2._topEntity._downLower = null
                             }
                             remove.push(i)
                         }
@@ -125,7 +125,7 @@ export class Entity {
                             if(c.isHorizontal) {
                                 c.body1._topEntity._rightLower = null
                             } else {
-                                c.body1._topEntity._downLower = null
+                                c.body1._topEntity._upLower = null
                             }
                             remove.push(i)
                         }
@@ -167,6 +167,7 @@ export class Entity {
     get y(): number { return this._y }
     set x(val: number) {
         if(this._x != val) {
+            // TODO: check if vertical contact is lost
             if(this._leftLower) {
                 if(this._leftLower.body1._topEntity == this) {
                     let i = this._leftLower.body2._higherContacts.indexOf(this._leftLower)
@@ -214,6 +215,7 @@ export class Entity {
     }
     set y(val: number) { 
         if(this._y != val) {
+            // TODO: check if horizontal contact is lost
             if(this._upLower) {
                 if(this._upLower.body1._topEntity == this) {
                     let i = this._upLower.body2._higherContacts.indexOf(this._upLower)
@@ -240,15 +242,15 @@ export class Entity {
                     toremove = []
 
                 for(let i = 0; i < len; i++) {
-                    let c = b._higherContacts[i]
+                    let c: Contact = b._higherContacts[i]
                     if(c.body1 == b) {
                         if(!c.isHorizontal) {
-                            c.body2._topEntity._upLower = null
+                            c.body2._topEntity._downLower = null
                             toremove.push(i)
                         }
                     } else {
                         if(!c.isHorizontal) {
-                            c.body1._topEntity._downLower = null
+                            c.body1._topEntity._upLower = null
                             toremove.push(i)
                         }
                     }
@@ -273,58 +275,44 @@ export class Entity {
     set vy(val: number) { this._vy = val }
 
     get contacts(): RelativeContact[] {
-        let res = [this.leftContact, this.downContact, this.rightContact, this.upContact]
+        let res = [this.leftContact, this.downContact, this.rightContact, this.upContact].filter(c => c)
         this.forBodies(b => {
-            res.push.apply(res, b._higherContacts.map(c => {
-                let entityHasBody1 = c.body1._topEntity == this
-                return {
-                    body: entityHasBody1 ? c.body1 : c.body2,
-                    otherBody: entityHasBody1 ? c.body2 : c.body1,
-                    side: entityHasBody1 ? (c.isHorizontal ? "right" : "down") : (c.isHorizontal ? "up" : "left")
-                }
-            }))
+            if(b._higherContacts) {
+                res.push.apply(res, b._higherContacts.map(c => {
+                    let entityHasBody1 = c.body1._topEntity == this
+                    return {
+                        body: entityHasBody1 ? c.body1 : c.body2,
+                        otherBody: entityHasBody1 ? c.body2 : c.body1,
+                        side: entityHasBody1 ? (c.isHorizontal ? "right" : "up") : (c.isHorizontal ? "left" : "down")
+                    }
+                }))
+            }
         })
         return res
     }
     get leftContact(): RelativeContact {
-        return this._leftLower && this._leftLower.body1._topEntity == this ? {
-            body: this._leftLower.body1,
-            otherBody: this._leftLower.body2,
-            side: "left"
-        } : {
+        return this._leftLower && {
             body: this._leftLower.body2,
             otherBody: this._leftLower.body1,
             side: "left"
         }
     }
     get rightContact(): RelativeContact {
-        return this._rightLower && this._rightLower.body1._topEntity == this ? {
+        return this._rightLower && {
             body: this._rightLower.body1,
             otherBody: this._rightLower.body2,
-            side: "right"
-        } : {
-            body: this._rightLower.body2,
-            otherBody: this._rightLower.body1,
             side: "right"
         }
     }
     get upContact(): RelativeContact {
-        return this._upLower && this._upLower.body1._topEntity == this ? {
+        return this._upLower && {
             body: this._upLower.body1,
             otherBody: this._upLower.body2,
-            side: "up"
-        } : {
-            body: this._upLower.body2,
-            otherBody: this._upLower.body1,
             side: "up"
         }
     }
     get downContact(): RelativeContact {
-        return this._downLower && this._downLower.body1._topEntity == this ? {
-            body: this._downLower.body1,
-            otherBody: this._downLower.body2,
-            side: "down"
-        } : {
+        return this._downLower && {
             body: this._downLower.body2,
             otherBody: this._downLower.body1,
             side: "down"
@@ -602,15 +590,13 @@ export class Entity {
         return ent
     }
     destroyChild(ent: Entity) {
-        ent._setParent(null, 0)
-        let i = this._world._ents[ent.level].indexOf(ent)
-        if(i >= 0) {
-            this._world._ents[ent.level].splice(i, 1)
-        }
-        ent._delegate = null
+        ent.destroy()
     }
     destroy() {
         this._setParent(null, 0)
+        for(let c of this._childs) {
+            c._setParent(null, 0)
+        }
         let i = this._world._ents[this.level].indexOf(this)
         if(i >= 0) {
             this._world._ents[this.level].splice(i, 1)

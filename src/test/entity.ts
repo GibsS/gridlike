@@ -2,6 +2,8 @@ import * as assert from 'assert'
 import * as _ from 'lodash'
 import { nearEqual } from './helper'
 
+import invariant from './invariant'
+
 import { World, Entity } from '../lib/index'
 
 export default function test() {
@@ -11,20 +13,9 @@ export default function test() {
         beforeEach(function() {
             world = new World()
         })
-
-        describe('world', function() {
-            it('entity.world = world who created it', function() {
-                let entity = world.createEntity({
-                    x: 0,
-                    y: 0
-                })
-
-                assert.equal(entity.world, world, "entity.world should be equal to the world that created it")
-            })
-        })
-
-        describe('position', function() {
-            it('global points to the correct position for nested entity', function() {
+        
+        describe('Position', function() {
+            it('Correct global position for nested entity', function() {
                 let entity = world.createRect({
                     x: 10, y: -3,
                     width: 10, height: 10
@@ -38,7 +29,7 @@ export default function test() {
                 nearEqual(entity2.globalx, 11)
                 nearEqual(entity2.globaly, -2)
             })
-            it('global to local conversion /1', function() {
+            it('Correct global to local conversion /1', function() {
                 let entity = world.createRect({
                     x: 10, y: -3,
                     width: 10, height: 10
@@ -48,7 +39,7 @@ export default function test() {
                 nearEqual(p.x, -10, "global to local.x value")
                 nearEqual(p.y, 3, "global to local.y value")
             })
-            it('global to local conversion /2', function() {
+            it('Correct global to local conversion /2', function() {
                 let entity = world.createRect({
                     x: 10, y: -3,
                     width: 10, height: 10
@@ -62,6 +53,46 @@ export default function test() {
                 let p = entity2.globalToLocal(0, 0)
                 nearEqual(p.x, -11, "global to local.x value")
                 nearEqual(p.y, 2, "global to local.y value")
+            })
+        })
+
+        describe('Parenting', function() {
+            let entity1: Entity, entity2: Entity, entity3: Entity
+            beforeEach(function() {
+                entity1 = world.createRect({
+                    x: 0, y: 0,
+                    width: 10,
+                    height: 10
+                })
+
+                entity2 = world.createRect({
+                    x: 0, y: 0,
+                    width: 10,
+                    height: 10
+                })
+                entity3 = world.createRect({
+                    x: 0, y: 0,
+                    width: 10,
+                    height: 10
+                })
+            })
+            it('Adding parent keeps invariant and sets Entity.parent to the correct value', function() {
+                entity1.setParent(entity2)
+                entity2.setParent(entity3)
+
+                assert(entity1.parent == entity2, 'entity1 has entity2 as a parent')
+                assert(entity2.parent == entity3, 'entity2 has entity3 as a parent')
+                invariant(world)
+            })
+            it('Removing an entity with parent and childs is performed correctly', function() {
+                entity1.setParent(entity2)
+                entity2.setParent(entity3)
+
+                entity2.destroy()
+
+                assert(entity1.parent == null, 'entity1 has no parent')
+                assert(entity3.childs.length == 0, 'entity3 has no child')
+                invariant(world)
             })
         })
     })

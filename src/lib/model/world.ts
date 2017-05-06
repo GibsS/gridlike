@@ -71,6 +71,7 @@ export class World {
         }
     }
     setLayerRule(layer1: string, layer2: string, rule: string) {
+        // TODO CLEAR ALL CONTACTS THAT DON'T FIT THE NEW RULE
         if(!this._layerIds[layer1]) {
             this.addLayer(layer1)
         }
