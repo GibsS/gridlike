@@ -169,10 +169,11 @@ export class World {
         return entity
     }
     _addEntity(entity: Entity) {
-        if(!this._ents[entity._level]) {
-            this._ents[entity._level] = []
+        if(this._ents[entity._level]) {
+            this._ents[entity._level].push(entity)
+        } else {
+            this._ents[entity._level] = [entity]
         }
-        this._ents[entity._level].push(entity)
     }
     destroyEntity(entity: Entity) {
         entity.destroy()

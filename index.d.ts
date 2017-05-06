@@ -75,7 +75,7 @@ export declare class Entity {
 
     // HIERARCHY
     parent: Entity // a rect of higher level
-    parentType: number // 0: static, 1: follow
+    parentType: string // 0: static, 1: follow
     readonly childs: Entity[]
     
     body: Body

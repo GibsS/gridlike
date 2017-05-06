@@ -84,7 +84,7 @@ export default function test() {
                 assert(entity2.parent == entity3, 'entity2 has entity3 as a parent')
                 invariant(world)
             })
-            it('Removing an entity with parent and childs is performed correctly', function() {
+            it('Removing an entity with parent and childs maintains invariants', function() {
                 entity1.setParent(entity2)
                 entity2.setParent(entity3)
 
@@ -93,6 +93,34 @@ export default function test() {
                 assert(entity1.parent == null, 'entity1 has no parent')
                 assert(entity3.childs.length == 0, 'entity3 has no child')
                 invariant(world)
+            })
+            it('Removing an entity with parent and childs maintains invariants', function() {
+                entity1.parent = entity2
+                entity2.parent = entity3
+
+                entity2.parent = null
+
+                entity2.parent = entity3
+
+                assert(entity1.parent == entity2)
+                assert(entity2.parent == entity3)
+                invariant(world)
+            })
+            it('Changing parent type from follow to static maintains invariants', function() {
+                entity1.setParent(entity2)
+                entity2.setParent(entity3)
+
+                entity2.parentType = "follow"
+                assert.equal(entity2.parentType, "follow")
+                // invariant(world)
+            })
+            it('Changing parent type from static to follow maintains invariants', function() {
+                entity1.setParent(entity2)
+                entity2.setParent(entity3, "follow")
+
+                entity2.parentType = "static"
+                assert.equal(entity2.parentType, "static")
+                // invariant(world)
             })
         })
     })

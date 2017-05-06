@@ -1,4 +1,5 @@
 import * as assert from 'assert'
+import * as util from 'util'
 
 import { World, Grid } from '../lib'
 
@@ -27,6 +28,9 @@ export default function invariant(world: World) {
             let topEntity = ent
             while(topEntity._parent && topEntity._parentType == 0) {
                 topEntity = topEntity._parent
+            }
+            if(topEntity != ent && ent._allBodies) {
+                assert(ent._allBodies.all().length == 0, "not top entity has no body in all body")
             }
             for(let body of ent.bodies) {
                 assert.equal(ent, body._entity, "entity.bodies._entity == entity")
@@ -67,8 +71,13 @@ export default function invariant(world: World) {
                                 contact.body1._entity._upLower, contact.body1._entity._rightLower, contact.body1._entity._leftLower, contact.body1._entity._downLower
                             ].indexOf(contact) >= 0, "in a higher contact, the other body must also own the contact")
                         }
+
+                        assert((contact.body1._topEntity == topEntity && contact.body2._topEntity.level >= contact.body1._topEntity.level)
+                            || (contact.body2._topEntity == topEntity && contact.body1._topEntity.level >= contact.body2._topEntity.level), 
+                        "in a lower contact, the other body is of a higher level")
                     }
                 }
+
             }
 
             if(topEntity != ent) {
@@ -84,9 +93,6 @@ export default function invariant(world: World) {
                     } else {
                         assert.notEqual(lower.body1._higherContacts.indexOf(lower), -1, "in a lower contact, the other body must also own the contact")
                     }
-
-                    assert(lower.body1._entity == ent && lower.body2._entity.level >= lower.body1._entity.level, "in a lower contact, the other body is of a higher level")
-                    assert(lower.body2._entity == ent && lower.body1._entity.level >= lower.body2._entity.level, "in a lower contact, the other body is of a higher level")
                 }
             }
 

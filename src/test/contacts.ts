@@ -24,7 +24,7 @@ export default function test() {
             ent1 = world.createRect({
                 x: 0,
                 y: 0,
-                level: 0,
+                level: 1,
                 layer: "l3",
                 layerGroup: 1,
                 width: 1,
@@ -34,7 +34,7 @@ export default function test() {
             ent2 = world.createLine({
                 x: 0,
                 y: 1,
-                level: 1,
+                level: 0,
                 layer: "l1",
                 layerGroup: 1,
                 size: 1,
@@ -44,7 +44,7 @@ export default function test() {
             ent3 = world.createRect({
                 x: 1,
                 y: 1,
-                level: 0,
+                level: 1,
                 width: 1,
                 height: 1
             })
@@ -52,7 +52,7 @@ export default function test() {
             ent4 = world.createRect({
                 x: 1,
                 y: 0,
-                level: 1,
+                level: 0,
                 width: 1,
                 height: 1
             })
@@ -149,6 +149,19 @@ export default function test() {
                 assert(ent2.contacts.length == 2, "ent2's contact are all present")
                 assert(ent3.contacts.length == 2, "ent3's contact are all present")
                 assert(ent4.contacts.length == 2, "ent4's contact are all present")
+            })
+        })
+
+        describe('Contacts and level', function() {
+            it('Changing the level of an entity will adapt the contact correctly /1', function() {
+                ent1.level = 3
+                invariant(world)
+                assert(ent1.contacts.length == 2)
+            })
+            it('Changing the level of an entity will adapt the contact correctly /2', function() {
+                ent2.level = 0
+                invariant(world)
+                assert(ent2.contacts.length == 2)
             })
         })
     })

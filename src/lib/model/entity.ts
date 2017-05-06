@@ -79,12 +79,12 @@ export class Entity {
         }
         return topParent
     }
-    get parentType(): number { return this._parentType }
-    set parentType(val: number) {
+    get parentType(): string { return this._parentType == 0 ? "static" : "follow" }
+    set parentType(val: string) {
         if(this._parent != null) {
-            this._setParent(this._parent, val)
+            this._setParent(this._parent, val == "static" ? 0 : 1)
         } else {
-            this._parentType = val
+            this._parentType = val == "static" ? 0 : 1
         }
     }
     get childs(): Entity[] { return _.clone(this._childs) }
@@ -105,32 +105,34 @@ export class Entity {
     set level(val: number) { 
         if(val > this._level) {
             this.forBodies(b => {
-                let len = b._higherContacts.length,
-                    remove = []
+                if(b._higherContacts) {
+                    let len = b._higherContacts.length,
+                        remove = []
 
-                for(let i = 0; i < len; i++) {
-                    let c = b._higherContacts[i]
+                    for(let i = 0; i < len; i++) {
+                        let c = b._higherContacts[i]
 
-                    if(c.body1._topEntity == this) {
-                        if(c.body2._topEntity._level <= val) {
-                            if(c.isHorizontal) {
-                                c.body2._topEntity._leftLower = null
-                            } else {
-                                c.body2._topEntity._downLower = null
+                        if(c.body1._topEntity == this) {
+                            if(c.body2._topEntity._level <= val) {
+                                if(c.isHorizontal) {
+                                    c.body2._topEntity._leftLower = null
+                                } else {
+                                    c.body2._topEntity._downLower = null
+                                }
+                                remove.push(i)
                             }
-                            remove.push(i)
-                        }
-                    } else {
-                        if(c.body1._topEntity._level <= val) {
-                            if(c.isHorizontal) {
-                                c.body1._topEntity._rightLower = null
-                            } else {
-                                c.body1._topEntity._upLower = null
+                        } else {
+                            if(c.body1._topEntity._level <= val) {
+                                if(c.isHorizontal) {
+                                    c.body1._topEntity._rightLower = null
+                                } else {
+                                    c.body1._topEntity._upLower = null
+                                }
+                                remove.push(i)
                             }
-                            remove.push(i)
                         }
+                        _.pullAt(b._higherContacts, remove)
                     }
-                    _.pullAt(b._higherContacts, remove)
                 }
             })
         } else if(val < this._level) {
@@ -153,7 +155,13 @@ export class Entity {
                 }
             }
         }
+        this._world._ents[this._level].splice(this._world._ents[this._level].indexOf(this), 1)
         this._level = val
+        if(this._world._ents[val]) {
+            this._world._ents[val].push(this)
+        } else {
+            this._world._ents[val] = [this]
+        }
     }
 
     // POSITIONNING
@@ -476,29 +484,28 @@ export class Entity {
         ent._setParent(null, 0)
     }
     setParent(parent: Entity, parentType?: string) {
-        this._setParent(parent, !parentType || parentType == "static" ? 0 : 1)
+        this._setParent(parent, parentType && parentType == "follow" ? 1 : 0)
     }
 
     _setParent(parent: Entity, parentType: number, keepPosition?: boolean) {
-        // TO FIX: 
-        // -- when unparenting/parenting: all child of the unparented must also have their bodies be updated
-        // -- need to set the allBodies to the correct value
-        // -- allBodies should be added on the new parent
-
         if(keepPosition == null) {
             keepPosition = true
         }
         if(this._parent != parent) {
+            // IF HAS A PARENT, REMOVE IT
             if(this._parent) {
+                // REPOSITION
                 if(keepPosition) {
                     this._x += this._parent.globalx
                     this._y += this._parent.globaly
                 }
 
+                // ADAPT SPEED
                 this._vx += this._parent.globalvx
                 this._vy += this._parent.globalvy
 
                 if(this._parentType == 0) {
+                    // CALCULATE TOP ENTITY + ENTITY POSITION WITHIN THE TOP ENTITY
                     let topEntity = this._parent,
                         x = this._x,
                         y = this._y
@@ -508,13 +515,34 @@ export class Entity {
                         topEntity = topEntity._parent
                     }
 
-                    for(let b of this.bodies) {
-                        b._x -= x
-                        b._y -= y
-                        b._topEntity = this
+                    // IF HAS STATIC CHILD, NEEDS A VBH
+                    if(this._childs && this.childs.filter(c => c._parentType == 0).length && !this._allBodies) {
+                        this._allBodies = new SimpleVBH<Body>()
+                        this._allBodies.bulkInsert(this.bodies)
+                    }
+
+                    // MOVE CHILDS
+                    let childs = []
+                    let child = this
+
+                    while(child) {
+                        child.bodies.forEach(b => {
+                            topEntity._allBodies.remove(b)
+                            if(this._allBodies) {
+                                this._allBodies.insert(b)
+                            }
+                            b._x -= x
+                            b._y -= y
+                            b._topEntity = this
+                        })
+                        if(child._childs) {
+                            childs.push.apply(childs, child.childs.filter(c => c._parentType == 0))
+                        }
+                        child = childs.pop()
                     }
                 }
 
+                this._parent._childs.splice(this._parent._childs.indexOf(this), 1)
                 this._parent = null
             }
 
@@ -542,9 +570,31 @@ export class Entity {
                         b._y += y
                         b._topEntity = topEntity
                     }
+
+                    // IF HAS STATIC CHILD, NEEDS A VBH
+                    if(!topEntity._allBodies) {
+                        topEntity._allBodies = new SimpleVBH<Body>()
+                        topEntity._allBodies.bulkInsert(topEntity.bodies)
+                    }
+
+                    // MOVE CHILDS
+                    for(let b of this._allBodies ? this._allBodies.all() : this.bodies) {
+                        if(this._allBodies) {
+                            this._allBodies.remove(b)
+                        }
+                        topEntity._allBodies.insert(b)
+                        b._x += x
+                        b._y += y
+                        b._topEntity = topEntity
+                    }
                 }
 
                 this._parent = parent
+                if(!parent._childs) {
+                    parent._childs = [this]
+                } else {
+                    parent._childs.push(this)
+                }
                 this._parentType = parentType
             }
         } else if(parent && parentType != this._parentType) {
@@ -559,7 +609,17 @@ export class Entity {
                     topEntity = topEntity._parent
                 }
 
-                for(let b of this.bodies) {
+                if(!topEntity._allBodies) {
+                    topEntity._allBodies = new SimpleVBH<Body>()
+                    topEntity._allBodies.bulkInsert(topEntity.bodies)
+                }
+
+                // MOVE CHILDS
+                for(let b of this._allBodies ? this._allBodies.all() : this.bodies) {
+                    if(this._allBodies) {
+                        this._allBodies.remove(b)
+                    }
+                    topEntity._allBodies.insert(b)
                     b._x += x
                     b._y += y
                     b._topEntity = topEntity
@@ -575,18 +635,40 @@ export class Entity {
                     topEntity = topEntity._parent
                 }
 
-                for(let b of this.bodies) {
-                    b._x -= x
-                    b._y -= y
-                    b._topEntity = this
+                // IF HAS STATIC CHILD, NEEDS A VBH
+                if(this._childs && this.childs.filter(c => c._parentType == 0).length && !this._allBodies) {
+                    this._allBodies = new SimpleVBH<Body>()
+                    this._allBodies.bulkInsert(this.bodies)
+                }
+
+                // MOVE CHILDS
+                let childs = []
+                let child = this
+
+                while(child) {
+                    child.bodies.forEach(b => {
+                        topEntity._allBodies.remove(b)
+                        if(this._allBodies) {
+                            this._allBodies.insert(b)
+                        }
+                        b._x -= x
+                        b._y -= y
+                        b._topEntity = this
+                    })
+                    if(child._childs) {
+                        childs.push.apply(childs, child.childs.filter(c => c._parentType == 0))
+                    }
+                    child = childs.pop()
                 }
             }
+            this._parentType = parentType
         }
     }
 
     createChild(args: EntityArgs, parentType?: string): Entity {
         let ent = new Entity(this._world, args)
-        ent._setParent(this, parentType && parentType == "static" ? 0 : 1, false)
+        this._world._addEntity(ent)
+        ent._setParent(this, parentType && parentType == "follow" ? 1 : 0, false)
         return ent
     }
     destroyChild(ent: Entity) {
@@ -594,7 +676,7 @@ export class Entity {
     }
     destroy() {
         this._setParent(null, 0)
-        for(let c of this._childs) {
+        for(let c of _.clone(this._childs)) {
             c._setParent(null, 0)
         }
         let i = this._world._ents[this.level].indexOf(this)
