@@ -494,6 +494,9 @@ export class Entity {
         if(this._parent != parent) {
             // IF HAS A PARENT, REMOVE IT
             if(this._parent) {
+                // #################################
+                // REMOVE PARENT - START
+                // #################################
                 // REPOSITION
                 if(keepPosition) {
                     this._x += this._parent.globalx
@@ -526,6 +529,7 @@ export class Entity {
                     let child = this
 
                     while(child) {
+                        // MODIFY BODY FIELDS
                         child.bodies.forEach(b => {
                             topEntity._allBodies.remove(b)
                             if(this._allBodies) {
@@ -535,6 +539,17 @@ export class Entity {
                             b._y -= y
                             b._topEntity = this
                         })
+
+                        // CHANGE OWNERSHIP OF CONTACTS
+                        for(let lower in ["_upLower", "_downLower", "_leftLower", "_rightLower"]) {
+                            let c = topEntity[lower]
+                            if(c && (c.body1._entity == child || c.body2._entity == child)) {
+                                this[lower] = c
+                                topEntity[lower] = null
+                            }
+                        }
+
+                        // CONTINUE TO THE NEXT
                         if(child._childs) {
                             childs.push.apply(childs, child.childs.filter(c => c._parentType == 0))
                         }
@@ -544,9 +559,16 @@ export class Entity {
 
                 this._parent._childs.splice(this._parent._childs.indexOf(this), 1)
                 this._parent = null
+
+                // #################################
+                // REMOVE PARENT - END
+                // #################################
             }
 
             if(parent) {
+                // #################################
+                // SET PARENT - START
+                // #################################
                 if(keepPosition) {
                     this._x -= parent.globalx
                     this._y -= parent.globaly
@@ -587,6 +609,17 @@ export class Entity {
                         b._y += y
                         b._topEntity = topEntity
                     }
+
+                    // CHANGE OWNERSHIP OF CONTACTS
+                    for(let lower in ["_upLower", "_downLower", "_leftLower", "_rightLower"]) {
+                        if(!topEntity[lower]) {
+                            let c = this[lower]
+                            if(c) {
+                                topEntity[lower] = c
+                                this[lower] = null
+                            }
+                        }
+                    }
                 }
 
                 this._parent = parent
@@ -596,6 +629,10 @@ export class Entity {
                     parent._childs.push(this)
                 }
                 this._parentType = parentType
+
+                // #################################
+                // SET PARENT - END
+                // #################################
             }
         } else if(parent && parentType != this._parentType) {
             if(parentType == 0) {
@@ -623,6 +660,17 @@ export class Entity {
                     b._x += x
                     b._y += y
                     b._topEntity = topEntity
+                }
+
+                // CHANGE OWNERSHIP OF CONTACTS
+                for(let lower in ["_upLower", "_downLower", "_leftLower", "_rightLower"]) {
+                    if(!topEntity[lower]) {
+                        let c = this[lower]
+                        if(c) {
+                            topEntity[lower] = c
+                            this[lower] = null
+                        }
+                    }
                 }
             } else {
                 let topEntity = parent,
@@ -655,6 +703,16 @@ export class Entity {
                         b._y -= y
                         b._topEntity = this
                     })
+
+                    // CHANGE OWNERSHIP OF CONTACTS
+                    for(let lower in ["_upLower", "_downLower", "_leftLower", "_rightLower"]) {
+                        let c = topEntity[lower]
+                        if(c && (c.body1._entity == child || c.body2._entity == child)) {
+                            this[lower] = c
+                            topEntity[lower] = null
+                        }
+                    }
+
                     if(child._childs) {
                         childs.push.apply(childs, child.childs.filter(c => c._parentType == 0))
                     }
