@@ -24,10 +24,22 @@ export type EntityArgs = PureEntityArgs
 | (LineArgs & { level?: number, type: "line" }) 
 | (GridArgs & { level?: number, type: "grid" })
 
-export interface EntityDelegate {
+export interface EntityListener {
 
-    contactStart(body: Body, otherBody: Body, side: string)
-    contactEnd(body: Body, otherBody: Body, side: string)
+    crushStart?()
+    crushEnd?()
+
+    contactStart?(body: Body, otherBody: Body, side: string)
+    contactEnd?(body: Body, otherBody: Body, side: string)
+
+    overlapStart?(body: Body, otherBody: Body)
+    overlapEnd?(body: Body, otherBody: Body)
+
+    gridContactStart?(body: Body, grid: Grid, x: number, y: number, side: string)
+    gridContactEnd?(body: Body, grid: Grid, x: number, y: number, side: string)
+
+    gridOverlapStart?(body: Body, grid: Grid, x: number, y: number, side: string)
+    gridOverlapEnd?(body: Body, grid: Grid, x: number, y: number, side: string)
 }
 
 export class Entity {
@@ -40,7 +52,7 @@ export class Entity {
 
     _world: World
 
-    _delegate: EntityDelegate
+    _listener: EntityListener
 
     _parent: Entity // a rect of higher level
     _parentType: number // 0: static, 1: follow
@@ -65,8 +77,8 @@ export class Entity {
     get world(): World { return this._world }
     set world(val: World) { console.log("[ERROR] can't set Entity.world") }
 
-    get delegate(): EntityDelegate { return this._delegate }
-    set delegate(val: EntityDelegate) { this._delegate = val }
+    get listener(): EntityListener { return this._listener }
+    set listener(val: EntityListener) { this._listener = val }
 
     // HIERARCHY
     get parent(): Entity { return this._parent }
@@ -325,6 +337,10 @@ export class Entity {
             otherBody: this._downLower.body1,
             side: "down"
         }
+    }
+
+    get isCrushed(): boolean {
+        return false
     }
 
     constructor(world: World, args: EntityArgs) {
@@ -741,7 +757,7 @@ export class Entity {
         if(i >= 0) {
             this._world._ents[this.level].splice(i, 1)
         }
-        this._delegate = null
+        this._listener = null
     }
 
     move(dx: number, dy: number) {

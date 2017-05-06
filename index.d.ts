@@ -61,17 +61,29 @@ declare type EntityArgs = {
 | (GridArgs & { level?: number, type: "grid" })
 
 
-export declare interface EntityDelegate {
+export declare interface EntityListener {
 
-    contactStart(body: Body, otherBody: Body, side: string)
-    contactEnd(body: Body, otherBody: Body, side: string)
+    crushStart?()
+    crushEnd?()
+
+    contactStart?(body: Body, otherBody: Body, side: string)
+    contactEnd?(body: Body, otherBody: Body, side: string)
+
+    overlapStart?(body: Body, otherBody: Body)
+    overlapEnd?(body: Body, otherBody: Body)
+
+    gridContactStart?(body: Body, grid: Grid, x: number, y: number, side: string)
+    gridContactEnd?(body: Body, grid: Grid, x: number, y: number, side: string)
+
+    gridOverlapStart?(body: Body, grid: Grid, x: number, y: number, side: string)
+    gridOverlapEnd?(body: Body, grid: Grid, x: number, y: number, side: string)
 }
 
 export declare class Entity {
 
     world: World 
 
-    delegate: EntityDelegate
+    listener: EntityListener
 
     // HIERARCHY
     parent: Entity // a rect of higher level
@@ -101,6 +113,8 @@ export declare class Entity {
     readonly rightContact: Contact
     readonly upContact: Contact
     readonly downContact: Contact
+
+    readonly isCrushed: boolean
 
     // HIERARCHY
     createRect(args: RectArgs): Rect
@@ -171,7 +185,18 @@ export declare class Line extends SmallBody {
     side: string
 }
 
+export declare interface GridListener {
+
+    contactStart?(body: Body, x: number, y: number, side: string)
+    contactEnd?(body: Body, x: number, y: number, side: string)
+
+    overlapStart?(body: Body, x: number, y: number, side: string)
+    overlapEnd?(body: Body, x: number, y: number, side: string)
+}
+
 export declare class Grid extends Body {
+
+    listener: GridListener
 
     readonly minx: number
     readonly maxx: number

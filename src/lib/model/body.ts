@@ -337,9 +337,19 @@ export class Line extends SmallBody {
 const subGridThreshold = 105
 const subGridSize = 120
 
+interface GridListener {
+    gridContactStart?(body: Body, grid: Grid, x: number, y: number, side: string)
+    gridContactEnd?(body: Body, grid: Grid, x: number, y: number, side: string)
+
+    gridOverlapStart?(body: Body, grid: Grid, x: number, y: number, side: string)
+    gridOverlapEnd?(body: Body, grid: Grid, x: number, y: number, side: string)
+}
+
 export class Grid extends Body {
 
     type = BodyType.GRID
+
+    _listener: GridListener
 
     _tileSize: number
     _gridSize: number
@@ -350,7 +360,10 @@ export class Grid extends Body {
 
     _width: number
     _height: number
-    
+
+    get listener(): GridListener { return this._listener }
+    set listener(val: GridListener) { this._listener = val }
+
     get tileSize(): number { return this._tileSize }
     set tileSize(val: number) { console.log("[ERROR] can't set Grid.tileSize") }
 
