@@ -424,34 +424,38 @@ export class Entity {
             topEntity._allBodies.remove(body)
         }
 
-        let len = body._higherContacts.length
-        for(let i = 0; i < len; i++) {
-            let c: Contact = body._higherContacts[i]
-            if(c.body1 == body) {
-                if(c.isHorizontal) {
-                    c.body2._topEntity._leftLower = null
+        if(body._higherContacts) {
+            let len = body._higherContacts.length
+            for(let i = 0; i < len; i++) {
+                let c: Contact = body._higherContacts[i]
+                if(c.body1 == body) {
+                    if(c.isHorizontal) {
+                        c.body2._topEntity._leftLower = null
+                    } else {
+                        c.body2._topEntity._downLower = null
+                    }
                 } else {
-                    c.body2._topEntity._downLower = null
-                }
-            } else {
-                if(c.isHorizontal) {
-                    c.body1._topEntity._rightLower = null
-                } else {
-                    c.body1._topEntity._upLower = null
+                    if(c.isHorizontal) {
+                        c.body1._topEntity._rightLower = null
+                    } else {
+                        c.body1._topEntity._upLower = null
+                    }
                 }
             }
         }
 
         for(let t in ["_downLower", "_upLower", "_leftLower", "_rightLower"]) {
             let c: Contact = this[t]
-            if(c.body1 == body) {
-                let i = c.body2._higherContacts.indexOf(c)
-                c.body2._higherContacts.splice(i, 1)
-                this[t] = null
-            } else if(c.body2 == body) {
-                let i = c.body1._higherContacts.indexOf(c)
-                c.body1._higherContacts.splice(i, 1)
-                this[t] = null
+            if(c) {
+                if(c.body1 == body) {
+                    let i = c.body2._higherContacts.indexOf(c)
+                    c.body2._higherContacts.splice(i, 1)
+                    this[t] = null
+                } else if(c.body2 == body) {
+                    let i = c.body1._higherContacts.indexOf(c)
+                    c.body1._higherContacts.splice(i, 1)
+                    this[t] = null
+                }
             }
         }
     }

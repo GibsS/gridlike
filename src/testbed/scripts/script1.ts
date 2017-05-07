@@ -1,11 +1,13 @@
 import { Script } from '../script'
 import { Testbed } from '../'
-import { Entity } from '../../lib'
+import { Entity, Grid } from '../../lib'
 
 class TestScript extends Script {
 
     rect: Entity
     line: Entity
+
+    grid: Entity
 
     init() {
         this.rect = this.world.createRect({

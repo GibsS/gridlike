@@ -284,7 +284,7 @@ export class Line extends SmallBody {
 
     _isHorizontal: boolean
 
-    _oneway: number // 0: no, 1: down/right, 2: up/left
+    _oneway: number // 0: no, 1: up/right, 2: down/left
 
     get size(): number { return this._size }
     set size(val: number) {
@@ -299,16 +299,16 @@ export class Line extends SmallBody {
 
     get side(): string { 
         return this._oneway == 0 ? "all" : 
-            (this._isHorizontal ? (this._oneway == 1 ? "down" : "up") : (this._oneway == 1 ? "right" : "left")) 
+            (this._isHorizontal ? (this._oneway == 1 ? "up" : "down") : (this._oneway == 1 ? "right" : "left")) 
     }
     set side(val: string) { 
         if(this.isHorizontal) {
             if(val == "all") {
                 this._oneway = 0
             } else if(val == "down") {
-                this._oneway = 1
-            } else if(val == "up") {
                 this._oneway = 2
+            } else if(val == "up") {
+                this._oneway = 1
             }
         } else {
             if(val == "all") {
@@ -360,6 +360,14 @@ export class Grid extends Body {
 
     _width: number
     _height: number
+
+    _leftInfo: { line: number } = { line: 0 } // 0: nothing, 1: oneway right, 2: oneway left, 3: solid
+    _rightInfo: { line: number } = { line: 0 } // 0: nothing, 1: oneway left, 2: oneway right, 3: solid
+    _upInfo: { line: number } = { line: 0 } // 0: nothing, 1: oneway down, 2: oneway up, 3: solid
+    _downInfo: { line: number } = { line: 0 } // 0: nothing, 1: oneway up, 2: oneway down, 3: solid
+
+    _newBodies: Body[]
+    _oldBodies: Body[]
 
     get listener(): GridListener { return this._listener }
     set listener(val: GridListener) { this._listener = val }
@@ -560,6 +568,11 @@ export class Grid extends Body {
         return this.getTile(x, y).shape
     }
     setTileShape(x: number, y: number, shape: number) {
+        this._expandGrid(x - this._xdownLeft, y - this._ydownLeft, x - this._xdownLeft, y - this._ydownLeft)
+
+        x -= this._xdownLeft
+        y -= this._ydownLeft
+
         this._setTile(x, y, shape)
     }
     clearTileShape(x: number, y: number) {
@@ -572,29 +585,6 @@ export class Grid extends Body {
 
     clearTileShapes(args: { x: number, y: number }[] | { x: number, y: number, width: number, height: number }) {
         this._clearTiles(args, 0)
-    }
-
-    _setTile(x: number, y: number, shape: number, data?) {
-        let subgrid: SubGrid
-
-        if(this._subGrids instanceof SubGrid) {
-            subgrid = this._subGrids
-        } else {
-            let gridx = Math.floor(x / this._gridSize), gridy = Math.floor(y / this._gridSize)
-
-            subgrid = this._subGrids[gridx][gridy]
-            if(subgrid == null) {
-                subgrid = new SubGrid(this._gridSize)
-                this._subGrids[gridx][gridy] = subgrid
-            }
-            x -= gridx * this._gridSize
-            y -= gridy * this._gridSize
-        }
-        
-        if(typeof data != "undefined") {
-            subgrid.data[x][y] = _.cloneDeep(data)
-        }
-        subgrid.shape[x][y] = shape
     }
     _clearTiles(args: { x: number, y: number }[] | { x: number, y: number, width: number, height: number }, zero: number | { shape: number, data? }) {
         if((args as any).length != null) {
@@ -617,6 +607,317 @@ export class Grid extends Body {
                 this._setTiles(x, y, (args as any).width, (args as any).height, (x, y) => zero)
             }
         }
+    }
+    _getInfo(shape: number, data, otherShape: number, topData, refInfo) {
+        if(shape == 0) {
+            if(otherShape == 0) {
+                refInfo.line = 0
+            } else {
+                refInfo.line = 1
+            }
+        } else {
+            if(otherShape == 0) {
+                refInfo.line = 2
+            } else {
+                refInfo.line = 0
+            }
+        }
+    }
+    _clearOneBodyColumn(x: number, y: number, column) {
+        let body: Line = column[y]
+
+        if(body) {
+            let rely = (y + this._ydownLeft) - body._y + body._size/2
+
+            if(rely == 0) {
+                body._size -= 1
+
+                if(body._size == 0) {
+                    let i = this._newBodies.indexOf(body)
+                    if(i >= 0) {
+                        this._newBodies.splice(i, 1)
+                    } else {
+                        this._oldBodies.push(body)
+                    }
+                } else {
+                    body._y += 0.5
+                }
+            } else if(rely == body._size-1) {
+                body._size -= 1
+                if(body._size == 0) {
+                    let i = this._newBodies.indexOf(body)
+                    if(i >= 0) {
+                        this._newBodies.splice(i, 1)
+                    } else {
+                        this._oldBodies.push(body)
+                    }
+                } else {
+                    body._y -= 0.5
+                }
+            } else {
+                let newBody = new Line(this._entity, {
+                    x: x + this._xdownLeft, y: rely/2 + body._y - body._size/2, size: rely, 
+                    isHorizontal: false, side: body.side
+                })
+                this._newBodies.push(newBody)
+                for(let i = body._y - body._size/2 - this._ydownLeft; i < y; i++) {
+                    column[i] = newBody
+                }
+
+                body._y += (body._size - rely)/2
+                body._size -= (rely + 1)
+            }
+            column[y] = null
+        }
+    }
+    _clearOneBodyRow(x: number, y: number, row) {
+        let body: Line = row[x]
+        
+        if(body) {
+            let relx = (x + this._xdownLeft) - body._x + body._size/2
+            
+            if(relx == 0) {
+                body._size -= 1
+
+                if(body._size == 0) {
+                    let i = this._newBodies.indexOf(body)
+                    if(i >= 0) {
+                        this._newBodies.splice(i, 1)
+                    } else {
+                        this._oldBodies.push(body)
+                    }
+                } else {
+                    body._x += 0.5
+                }
+            } else if(relx == body._size-1) {
+                body._size -= 1
+
+                if(body._size == 0) {
+                    let i = this._newBodies.indexOf(body)
+                    if(i >= 0) {
+                        this._newBodies.splice(i, 1)
+                    } else {
+                        this._oldBodies.push(body)
+                    }
+                } else {
+                    body._x -= 0.5
+                }
+            } else {
+                let newBody = new Line(this._entity, {
+                    y: y + this._ydownLeft, x: relx/2 + body._x - body._size/2, size: relx, 
+                    isHorizontal: true, side: body.side
+                })
+                
+                this._newBodies.push(newBody)
+                for(let i = body._x - body._size/2 - this._xdownLeft; i < x; i++) {
+                    row[i] = newBody
+                }
+
+                body._x += (body._size - relx)/2
+                body._size -= (relx + 1)
+            }
+            row[x] = null
+        }
+    }
+    _addOneBodyColumn(x: number, y: number, column, left: boolean) {
+        let upGrow = false,
+            upBody: Line
+        if(y < this._gridSize-1) {
+            upBody = column[y+1]
+
+            if(upBody && (left && upBody._oneway == 2 || !left && upBody._oneway == 1)) {
+                upBody._size += 1
+                upBody._y -= 0.5
+                column[y] = upBody
+                upGrow = true
+            }
+        }
+
+        if(y > 0) {
+            let downBody: Line = column[y-1]
+            if(downBody && (left && downBody._oneway == 2 || !left && downBody._oneway == 1)) {
+                if(upGrow) {
+                    let i = this._newBodies.indexOf(downBody)
+                    if(i >= 0) {
+                        this._newBodies.splice(i, 1)
+                    } else {
+                        this._oldBodies.push(downBody)
+                    }
+
+                    upBody._size += downBody._size
+                    upBody._y -= downBody._size/2
+
+                    for(let i = y - downBody._size; i < y; i++) {
+                        column[i] = upBody
+                    }
+                } else {
+                    downBody._size += 1
+                    downBody._y += 0.5
+                    column[y] = downBody
+                }
+                return
+            }
+        }
+        if(!upGrow) {
+            let newBody = new Line(this._entity, {
+                x: x + this._xdownLeft, y: y + 0.5 + this._ydownLeft, size: 1,
+                isHorizontal: false, side: left ? "left" : "right"
+            })
+            this._newBodies.push(newBody)
+            column[y] = newBody
+        }
+    }
+    _addOneBodyRow(x: number, y: number, row, down: boolean) {
+        let upGrow = false,
+            upBody: Line
+
+        if(x < this._gridSize-1) {
+            upBody = row[x+1]
+
+            if(upBody && (down && upBody._oneway == 1 || !down && upBody._oneway == 2)) {
+                upBody._size += 1
+                upBody._x -= 0.5
+                row[x] = upBody
+                upGrow = true
+            }
+        }
+
+        if(x > 0) {
+            let downBody: Line = row[x-1]
+            if(downBody && (down && downBody._oneway == 1 || !down && downBody._oneway == 2)) {
+                if(upGrow) {
+                    let i = this._newBodies.indexOf(downBody)
+                    if(i >= 0) {
+                        this._newBodies.splice(i, 1)
+                    } else {
+                        this._oldBodies.push(downBody)
+                    }
+
+                    upBody._size += downBody._size
+                    upBody._x -= downBody._size/2
+
+                    for(let i = x - downBody._size; i < x; i++) {
+                        row[i] = upBody
+                    }
+                } else {
+                    downBody._size += 1
+                    downBody._x += 0.5
+                    row[x] = downBody
+                }
+                return
+            }
+        }
+        if(!upGrow) {
+            let newBody = new Line(this._entity, {
+                y: y + this._ydownLeft, x: x + 0.5 + this._xdownLeft, size: 1,
+                isHorizontal: true, side: down ? "down" : "up"
+            })
+            this._newBodies.push(newBody)
+            row[x] = newBody
+        }
+    }
+
+    _setTile(x: number, y: number, shape: number, data?) {
+        let subgrid: SubGrid,
+            leftShape: number, rightShape: number, upShape: number, downShape: number
+
+        if(this._subGrids instanceof SubGrid) {
+            subgrid = this._subGrids
+
+            // BODY MODIFICATION
+            this._oldBodies = []
+            this._newBodies = []
+
+            // ADJACENT SHAPE CALCULATION
+            if(x == 0) { leftShape = 0 } 
+            else { leftShape = subgrid.shape[x-1][y] }
+
+            if(x == this._gridSize-1) { rightShape = 0 } 
+            else { rightShape = subgrid.shape[x+1][y] }
+
+            if(y == 0) { downShape = 0 } 
+            else { downShape = subgrid.shape[x][y-1] }
+
+            if(y == this._gridSize-1) { upShape = 0 } 
+            else { upShape = subgrid.shape[x][y+1] }
+
+            this._getInfo(shape, null, leftShape, null, this._leftInfo)
+            this._getInfo(shape, null, rightShape, null, this._rightInfo)
+            this._getInfo(shape, null, upShape, null, this._upInfo)
+            this._getInfo(shape, null, downShape, null, this._downInfo)
+
+            // let oneway = (subgrid.columns[x][y] && (subgrid.columns[x][y] as Line)._oneway) || 0
+            // if(this._leftInfo.line != oneway) {
+                this._clearOneBodyColumn(x, y, subgrid.columns[x])
+                if(this._leftInfo.line != 0) { this._addOneBodyColumn(x, y, subgrid.columns[x], this._leftInfo.line == 2) }
+            // }
+
+            // oneway = (subgrid.columns[x+1][y] && (subgrid.columns[x+1][y] as Line)._oneway) || 0
+            // if(this._rightInfo.line != oneway) {
+                this._clearOneBodyColumn(x+1, y, subgrid.columns[x+1])
+                if(this._rightInfo.line != 0) { this._addOneBodyColumn(x+1, y, subgrid.columns[x+1], this._rightInfo.line == 1) }
+            // }
+
+            // oneway = (subgrid.rows[x][y] && (subgrid.rows[x][y] as Line)._oneway) || 0
+            // if(this._downInfo.line != oneway) {
+                this._clearOneBodyRow(x, y, subgrid.rows[y])
+                if(this._downInfo.line != 0) { this._addOneBodyRow(x, y, subgrid.rows[y], this._downInfo.line == 2) }
+            // }
+
+            // oneway = (subgrid.rows[x][y+1] && (subgrid.rows[x][y+1] as Line)._oneway) || 0
+            // if(this._upInfo.line != oneway) {
+                this._clearOneBodyRow(x, y+1, subgrid.rows[y+1])
+                if(this._upInfo.line != 0) { this._addOneBodyRow(x, y+1, subgrid.rows[y+1], this._upInfo.line == 1) }
+            // }
+
+            for(let b of this._oldBodies) { this._entity.removeBody(b) }
+            for(let b of this._newBodies) { this._entity._addBody(b) }
+        } else {
+            let gridx = Math.floor(x / this._gridSize), gridy = Math.floor(y / this._gridSize)
+
+            subgrid = this._subGrids[gridx][gridy]
+            if(subgrid == null) {
+                subgrid = new SubGrid(this._gridSize)
+                this._subGrids[gridx][gridy] = subgrid
+            }
+            x -= gridx * this._gridSize
+            y -= gridy * this._gridSize
+
+            // ADJACENT SHAPE CALCULATION
+            // if(x == 0) {
+            //     if(gridx == 0) { leftShape = 0 } 
+            //     else { leftShape = this._subGrids[gridx-1][gridy].shape[this._gridSize-1][y] }
+            // } else {
+            //     leftShape = subgrid.shape[x-1][y]
+            // }
+
+            // if(x == this._gridSize-1) {
+            //     if(gridx == this._width-1) { rightShape = 0 } 
+            //     else { rightShape = this._subGrids[gridx + 1][gridy].shape[0][y] }
+            // } else {
+            //     rightShape = subgrid.shape[x+1][y]
+            // }
+
+            // if(y == 0) {
+            //     if(gridy == 0) { downShape = 0 } 
+            //     else { downShape = this._subGrids[gridx][gridy-1].shape[x][this._gridSize-1] }
+            // } else {
+            //     downShape = subgrid.shape[x][y-1]
+            // }
+
+            // if(y == this._gridSize-1) {
+            //     if(gridy == this._height-1) { upShape = 0 } 
+            //     else { upShape = this._subGrids[gridx][gridy+1].shape[x][0] }
+            // } else {
+            //     leftShape = subgrid.shape[x][y+1]
+            // }
+        }
+
+        // DATA MODIFICATION
+        if(typeof data != "undefined") {
+            subgrid.data[x][y] = _.cloneDeep(data)
+        }
+        subgrid.shape[x][y] = shape
     }
     _setTiles(x: number, y: number, width: number, height: number, info: (x: number, y: number, shape: number, data?) => ({ shape: number, data? } | number)) {
         if(this._subGrids instanceof SubGrid) {
@@ -720,16 +1021,27 @@ export class SubGrid {
     shape: number[][]
     data: any[][]
 
+    columns: Body[][]
+    rows: Body[][]
+
     constructor(size: number) {
         this.shape = new Array(size)
         this.data = new Array(size)
+        this.columns = new Array(size+1)
+        this.rows = new Array(size+1)
+
         for(let i = 0; i < size; i++) {
             this.shape[i] = new Array(size)
+            this.data[i] = new Array(size)
+            this.columns[i] = new Array(size)
+            this.rows[i] = new Array(size)
 
             for(let j = 0; j < size; j++) {
                 this.shape[i][j] = 0
             }
-            this.data[i] = new Array(size)
         }
+
+        this.columns[size] = new Array(size)
+        this.rows[size] = new Array(size)
     }
 }

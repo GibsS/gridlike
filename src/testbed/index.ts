@@ -2,6 +2,7 @@ import * as _ from 'lodash'
 
 import { Script } from './script'
 import TestScript from './scripts/script1'
+import GridScript1 from './scripts/gridScript1'
 
 import { World, Entity, Body, BodyType, Rect, Line, Grid } from '../lib'
 
@@ -121,4 +122,5 @@ export class Testbed {
 
 let testbed = new Testbed()
 testbed.addScript(TestScript.name, TestScript.script)
-testbed.start(TestScript.name)
+testbed.addScript(GridScript1.name, GridScript1.script)
+testbed.start(GridScript1.name)
