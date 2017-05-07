@@ -11,8 +11,8 @@ class TestScript extends Script {
 
     init() {
         let entity = this.world.createGrid({
-            x: 5,
-            y: 5,
+            x: 0,
+            y: 0,
             width: 10,
             height: 10
         })

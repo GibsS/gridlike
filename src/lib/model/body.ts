@@ -608,7 +608,37 @@ export class Grid extends Body {
             }
         }
     }
-    _getInfo(shape: number, data, otherShape: number, topData, refInfo) {
+    _getUpInfo(shape: number, data, otherShape: number, topData, refInfo) {
+        if(shape == 0) {
+            if(otherShape == 0) {
+                refInfo.line = 0
+            } else {
+                refInfo.line = 2
+            }
+        } else {
+            if(otherShape == 0) {
+                refInfo.line = 1
+            } else {
+                refInfo.line = 0
+            }
+        }
+    }
+    _getRightInfo(shape: number, data, otherShape: number, topData, refInfo) {
+        if(shape == 0) {
+            if(otherShape == 0) {
+                refInfo.line = 0
+            } else {
+                refInfo.line = 2
+            }
+        } else {
+            if(otherShape == 0) {
+                refInfo.line = 1
+            } else {
+                refInfo.line = 0
+            }
+        }
+    }
+    _getDownInfo(shape: number, data, otherShape: number, topData, refInfo) {
         if(shape == 0) {
             if(otherShape == 0) {
                 refInfo.line = 0
@@ -623,11 +653,26 @@ export class Grid extends Body {
             }
         }
     }
-    _clearOneBodyColumn(x: number, y: number, column) {
+    _getLeftInfo(shape: number, data, otherShape: number, topData, refInfo) {
+        if(shape == 0) {
+            if(otherShape == 0) {
+                refInfo.line = 0
+            } else {
+                refInfo.line = 1
+            }
+        } else {
+            if(otherShape == 0) {
+                refInfo.line = 2
+            } else {
+                refInfo.line = 0
+            }
+        }
+    }
+    _clearOneBodyColumn(x: number, y: number, xgridOffset: number, ygridOffset: number, column) {
         let body: Line = column[y]
 
         if(body) {
-            let rely = (y + this._ydownLeft) - body._y + body._size/2
+            let rely = (y + ygridOffset) - body._y + body._size/2
 
             if(rely == 0) {
                 body._size -= 1
@@ -642,7 +687,7 @@ export class Grid extends Body {
                 } else {
                     body._y += 0.5
                 }
-            } else if(rely == body._size-1) {
+            } else if(rely == body._size - 1) {
                 body._size -= 1
                 if(body._size == 0) {
                     let i = this._newBodies.indexOf(body)
@@ -656,11 +701,11 @@ export class Grid extends Body {
                 }
             } else {
                 let newBody = new Line(this._entity, {
-                    x: x + this._xdownLeft, y: rely/2 + body._y - body._size/2, size: rely, 
+                    x: x + xgridOffset, y: rely/2 + body._y - body._size/2, size: rely, 
                     isHorizontal: false, side: body.side
                 })
                 this._newBodies.push(newBody)
-                for(let i = body._y - body._size/2 - this._ydownLeft; i < y; i++) {
+                for(let i = body._y - body._size/2 - ygridOffset; i < y; i++) {
                     column[i] = newBody
                 }
 
@@ -670,11 +715,11 @@ export class Grid extends Body {
             column[y] = null
         }
     }
-    _clearOneBodyRow(x: number, y: number, row) {
+    _clearOneBodyRow(x: number, y: number, xgridOffset: number, ygridOffset: number, row) {
         let body: Line = row[x]
         
         if(body) {
-            let relx = (x + this._xdownLeft) - body._x + body._size/2
+            let relx = (x + xgridOffset) - body._x + body._size/2
             
             if(relx == 0) {
                 body._size -= 1
@@ -704,12 +749,12 @@ export class Grid extends Body {
                 }
             } else {
                 let newBody = new Line(this._entity, {
-                    y: y + this._ydownLeft, x: relx/2 + body._x - body._size/2, size: relx, 
+                    y: y + ygridOffset, x: relx/2 + body._x - body._size/2, size: relx, 
                     isHorizontal: true, side: body.side
                 })
                 
                 this._newBodies.push(newBody)
-                for(let i = body._x - body._size/2 - this._xdownLeft; i < x; i++) {
+                for(let i = body._x - body._size/2 - xgridOffset; i < x; i++) {
                     row[i] = newBody
                 }
 
@@ -719,7 +764,7 @@ export class Grid extends Body {
             row[x] = null
         }
     }
-    _addOneBodyColumn(x: number, y: number, column, left: boolean) {
+    _addOneBodyColumn(x: number, y: number, xgridOffset: number, ygridOffset: number, column, left: boolean) {
         let upGrow = false,
             upBody: Line
         if(y < this._gridSize-1) {
@@ -760,14 +805,14 @@ export class Grid extends Body {
         }
         if(!upGrow) {
             let newBody = new Line(this._entity, {
-                x: x + this._xdownLeft, y: y + 0.5 + this._ydownLeft, size: 1,
+                x: x + xgridOffset, y: y + 0.5 + ygridOffset, size: 1,
                 isHorizontal: false, side: left ? "left" : "right"
             })
             this._newBodies.push(newBody)
             column[y] = newBody
         }
     }
-    _addOneBodyRow(x: number, y: number, row, down: boolean) {
+    _addOneBodyRow(x: number, y: number, xgridOffset: number, ygridOffset: number, row, down: boolean) {
         let upGrow = false,
             upBody: Line
 
@@ -809,7 +854,7 @@ export class Grid extends Body {
         }
         if(!upGrow) {
             let newBody = new Line(this._entity, {
-                y: y + this._ydownLeft, x: x + 0.5 + this._xdownLeft, size: 1,
+                y: y + ygridOffset, x: x + 0.5 + xgridOffset, size: 1,
                 isHorizontal: true, side: down ? "down" : "up"
             })
             this._newBodies.push(newBody)
@@ -841,33 +886,33 @@ export class Grid extends Body {
             if(y == this._gridSize-1) { upShape = 0 } 
             else { upShape = subgrid.shape[x][y+1] }
 
-            this._getInfo(shape, null, leftShape, null, this._leftInfo)
-            this._getInfo(shape, null, rightShape, null, this._rightInfo)
-            this._getInfo(shape, null, upShape, null, this._upInfo)
-            this._getInfo(shape, null, downShape, null, this._downInfo)
+            this._getLeftInfo(shape, null, leftShape, null, this._leftInfo)
+            this._getRightInfo(shape, null, rightShape, null, this._rightInfo)
+            this._getUpInfo(shape, null, upShape, null, this._upInfo)
+            this._getDownInfo(shape, null, downShape, null, this._downInfo)
 
             // let oneway = (subgrid.columns[x][y] && (subgrid.columns[x][y] as Line)._oneway) || 0
             // if(this._leftInfo.line != oneway) {
-                this._clearOneBodyColumn(x, y, subgrid.columns[x])
-                if(this._leftInfo.line != 0) { this._addOneBodyColumn(x, y, subgrid.columns[x], this._leftInfo.line == 2) }
+                this._clearOneBodyColumn(x, y, this._xdownLeft, this._ydownLeft, subgrid.columns[x])
+                if(this._leftInfo.line != 0) { this._addOneBodyColumn(x, y, this._xdownLeft, this._ydownLeft, subgrid.columns[x], this._leftInfo.line == 2) }
             // }
 
             // oneway = (subgrid.columns[x+1][y] && (subgrid.columns[x+1][y] as Line)._oneway) || 0
             // if(this._rightInfo.line != oneway) {
-                this._clearOneBodyColumn(x+1, y, subgrid.columns[x+1])
-                if(this._rightInfo.line != 0) { this._addOneBodyColumn(x+1, y, subgrid.columns[x+1], this._rightInfo.line == 1) }
+                this._clearOneBodyColumn(x+1, y, this._xdownLeft, this._ydownLeft, subgrid.columns[x+1])
+                if(this._rightInfo.line != 0) { this._addOneBodyColumn(x+1, y, this._xdownLeft, this._ydownLeft, subgrid.columns[x+1], this._rightInfo.line == 2) }
             // }
 
             // oneway = (subgrid.rows[x][y] && (subgrid.rows[x][y] as Line)._oneway) || 0
             // if(this._downInfo.line != oneway) {
-                this._clearOneBodyRow(x, y, subgrid.rows[y])
-                if(this._downInfo.line != 0) { this._addOneBodyRow(x, y, subgrid.rows[y], this._downInfo.line == 2) }
+                this._clearOneBodyRow(x, y, this._xdownLeft, this._ydownLeft, subgrid.rows[y])
+                if(this._downInfo.line != 0) { this._addOneBodyRow(x, y, this._xdownLeft, this._ydownLeft, subgrid.rows[y], this._downInfo.line == 2) }
             // }
 
             // oneway = (subgrid.rows[x][y+1] && (subgrid.rows[x][y+1] as Line)._oneway) || 0
             // if(this._upInfo.line != oneway) {
-                this._clearOneBodyRow(x, y+1, subgrid.rows[y+1])
-                if(this._upInfo.line != 0) { this._addOneBodyRow(x, y+1, subgrid.rows[y+1], this._upInfo.line == 1) }
+                this._clearOneBodyRow(x, y+1, this._xdownLeft, this._ydownLeft, subgrid.rows[y+1])
+                if(this._upInfo.line != 0) { this._addOneBodyRow(x, y+1, this._xdownLeft, this._ydownLeft, subgrid.rows[y+1], this._upInfo.line == 2) }
             // }
 
             for(let b of this._oldBodies) { this._entity.removeBody(b) }
@@ -883,34 +928,66 @@ export class Grid extends Body {
             x -= gridx * this._gridSize
             y -= gridy * this._gridSize
 
+            // BODY MODIFICATION
+            this._oldBodies = []
+            this._newBodies = []
+
+            let leftColumn, rightColumn, upRow, downRow,
+                xoffset = this._xdownLeft + gridx * this._gridSize, yoffset = this._ydownLeft + gridy * this._gridSize
+
             // ADJACENT SHAPE CALCULATION
-            // if(x == 0) {
-            //     if(gridx == 0) { leftShape = 0 } 
-            //     else { leftShape = this._subGrids[gridx-1][gridy].shape[this._gridSize-1][y] }
-            // } else {
-            //     leftShape = subgrid.shape[x-1][y]
-            // }
+            if(x == 0) {
+                if(gridx == 0) { leftShape = 0 } 
+                else { leftShape = this._subGrids[gridx-1][gridy].shape[this._gridSize-1][y] }
+            } else {
+                leftShape = subgrid.shape[x-1][y]
+            }
+            leftColumn = subgrid.columns[x]
 
-            // if(x == this._gridSize-1) {
-            //     if(gridx == this._width-1) { rightShape = 0 } 
-            //     else { rightShape = this._subGrids[gridx + 1][gridy].shape[0][y] }
-            // } else {
-            //     rightShape = subgrid.shape[x+1][y]
-            // }
+            if(x == this._gridSize-1) {
+                if(gridx == this._width-1) { rightShape = 0; rightColumn = subgrid.columns[x+1] } 
+                else { rightShape = this._subGrids[gridx + 1][gridy].shape[0][y]; rightColumn = this._subGrids[gridx + 1][gridy].columns[0] }
+            } else {
+                rightShape = subgrid.shape[x+1][y]
+                rightColumn = subgrid.columns[x+1]
+            }
 
-            // if(y == 0) {
-            //     if(gridy == 0) { downShape = 0 } 
-            //     else { downShape = this._subGrids[gridx][gridy-1].shape[x][this._gridSize-1] }
-            // } else {
-            //     downShape = subgrid.shape[x][y-1]
-            // }
+            if(y == 0) {
+                if(gridy == 0) { downShape = 0 } 
+                else { downShape = this._subGrids[gridx][gridy-1].shape[x][this._gridSize-1] }
+            } else {
+                downShape = subgrid.shape[x][y-1]
+            }
+            downRow = subgrid.columns[y]
 
-            // if(y == this._gridSize-1) {
-            //     if(gridy == this._height-1) { upShape = 0 } 
-            //     else { upShape = this._subGrids[gridx][gridy+1].shape[x][0] }
-            // } else {
-            //     leftShape = subgrid.shape[x][y+1]
-            // }
+            if(y == this._gridSize-1) {
+                if(gridy == this._height-1) { upShape = 0; upRow = subgrid.rows[x+1] } 
+                else { upShape = this._subGrids[gridx][gridy+1].shape[x][0]; upRow = this._subGrids[gridx][gridy+1].rows[0] }
+            } else {
+                leftShape = subgrid.shape[x][y+1]
+                upRow = subgrid.rows[x+1]
+            }
+
+            this._getLeftInfo(shape, null, leftShape, null, this._leftInfo)
+            this._getRightInfo(shape, null, rightShape, null, this._rightInfo)
+            this._getUpInfo(shape, null, upShape, null, this._upInfo)
+            this._getDownInfo(shape, null, downShape, null, this._downInfo)
+            
+            this._clearOneBodyColumn(x, y, xoffset, yoffset, leftColumn)
+            if(this._leftInfo.line != 0) { this._addOneBodyColumn(x, y, xoffset, yoffset, leftColumn, this._leftInfo.line == 2) }
+            
+            this._clearOneBodyColumn(x+1, y, xoffset, yoffset, rightColumn)
+            if(this._rightInfo.line != 0) { this._addOneBodyColumn(x+1, y, xoffset, yoffset, rightColumn, this._rightInfo.line == 2) }
+            
+            this._clearOneBodyRow(x, y, xoffset, yoffset, downRow)
+            if(this._downInfo.line != 0) { this._addOneBodyRow(x, y, xoffset, yoffset, downRow, this._downInfo.line == 2) }
+            
+            this._clearOneBodyRow(x, y+1, xoffset, yoffset, upRow)
+            if(this._upInfo.line != 0) { this._addOneBodyRow(x, y+1, xoffset, yoffset, upRow, this._upInfo.line == 2) }
+                
+
+            for(let b of this._oldBodies) { this._entity.removeBody(b) }
+            for(let b of this._newBodies) { this._entity._addBody(b) }
         }
 
         // DATA MODIFICATION
@@ -992,6 +1069,12 @@ export class Grid extends Body {
                         grid[i] = new Array(newHeight)
                     }
                     grid[left][down] = this._subGrids
+
+                    // if(right > 0) {
+                    //     for(let i = down; i < down + this._width; i++) {
+                    //         grid[left+1][i].colums[0] = 
+                    //     }
+                    // }
                 } else {
                     newWidth = left + this._width + right
                     newHeight = down + this._height + up
