@@ -1,4 +1,4 @@
-import { World } from '../lib'
+import { World, Entity } from '../lib'
 import { Testbed } from './'
 
 export abstract class Script {
@@ -8,6 +8,8 @@ export abstract class Script {
 
     _testbed: Testbed
     get testbed(): Testbed { return this._testbed }
+
+    r(entity: Entity): Entity { return this._testbed.registerEntity(entity) }
 
     abstract init()
     abstract update(time: number, delta: number)

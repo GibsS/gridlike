@@ -22,7 +22,7 @@ export class Testbed {
     yCam: number
     zoom: number
 
-    bodies: Body[]
+    entities: Entity[]
 
     constructor() {
         this.canvas = document.getElementById("canvas") as HTMLCanvasElement
@@ -66,43 +66,76 @@ export class Testbed {
 
                 let bx = -this.xCam * this.zoom + this.canvas.width/2
                 let by = this.yCam * this.zoom + this.canvas.height/2
-                for(let body of this.bodies) {
-                    switch(body.type) {
-                        case BodyType.RECT: {
-                            this.ctx.fillRect(
-                                (body.globalx - (body as Rect).width/2) * this.zoom + bx,
-                                (-(body as Rect).height/2 - body.globaly) * this.zoom + by,
-                                (body as Rect).width * this.zoom,
-                                (body as Rect).height * this.zoom
-                            )
-                            break
-                        }
-                        case BodyType.LINE: {
-                            //console.log(body.globaly)
-                            if(body instanceof Line) {
-                                if(body.isHorizontal) {
-                                    this.ctx.beginPath()
-                                    this.ctx.moveTo((body.globalx - body.size/2) * this.zoom + bx,
-                                                    -body.globaly * this.zoom + by)
-                                    this.ctx.lineTo((body.globalx + body.size/2) * this.zoom + bx,
-                                                    -body.globaly * this.zoom + by)
-                                    this.ctx.stroke()
-                                } else {
-                                    this.ctx.beginPath()
-                                    this.ctx.moveTo(body.globalx * this.zoom + bx,
-                                                    (body.size/2 - body.globaly) * this.zoom + by)
-                                    this.ctx.lineTo(body.globalx * this.zoom + bx,
-                                                    (-body.size/2 - body.globaly ) * this.zoom + by)
-                                    this.ctx.stroke()
-                                }
+                for(let entity of this.entities) {
+                    entity._forBodies(body => {
+                        switch(body.type) {
+                            case BodyType.RECT: {
+                                this.ctx.fillRect(
+                                    (body.globalx - (body as Rect).width/2) * this.zoom + bx,
+                                    (-(body as Rect).height/2 - body.globaly) * this.zoom + by,
+                                    (body as Rect).width * this.zoom,
+                                    (body as Rect).height * this.zoom
+                                )
+                                break
                             }
-                            break
-                        }
-                        case BodyType.GRID: {
+                            case BodyType.LINE: {
+                                if(body instanceof Line) {
+                                    if(body.isHorizontal) {
+                                        this.ctx.beginPath()
+                                        this.ctx.moveTo((body.globalx - body.size/2) * this.zoom + bx,
+                                                        -body.globaly * this.zoom + by)
+                                        this.ctx.lineTo((body.globalx + body.size/2) * this.zoom + bx,
+                                                        -body.globaly * this.zoom + by)
+                                        this.ctx.stroke()
 
-                            break
+                                        if(body.side == "up") {
+                                            this.ctx.beginPath()
+                                            this.ctx.moveTo((body.globalx - body.size/2) * this.zoom + bx + 5,
+                                                            -body.globaly * this.zoom + by - 5)
+                                            this.ctx.lineTo((body.globalx + body.size/2) * this.zoom + bx - 5,
+                                                            -body.globaly * this.zoom + by - 5)
+                                            this.ctx.stroke()
+                                        } else if(body.side == "down") {
+                                            this.ctx.beginPath()
+                                            this.ctx.moveTo((body.globalx - body.size/2) * this.zoom + bx + 5,
+                                                            -body.globaly * this.zoom + by + 5)
+                                            this.ctx.lineTo((body.globalx + body.size/2) * this.zoom + bx - 5,
+                                                            -body.globaly * this.zoom + by + 5)
+                                            this.ctx.stroke()
+                                        }
+                                    } else {
+                                        this.ctx.beginPath()
+                                        this.ctx.moveTo(body.globalx * this.zoom + bx,
+                                                        (body.size/2 - body.globaly) * this.zoom + by)
+                                        this.ctx.lineTo(body.globalx * this.zoom + bx,
+                                                        (-body.size/2 - body.globaly ) * this.zoom + by)
+                                        this.ctx.stroke()
+
+                                        if(body.side == "left") {
+                                            this.ctx.beginPath()
+                                            this.ctx.moveTo(body.globalx * this.zoom + bx + 5,
+                                                            (body.size/2 - body.globaly) * this.zoom + by - 5)
+                                            this.ctx.lineTo(body.globalx * this.zoom + bx + 5,
+                                                            (-body.size/2 - body.globaly ) * this.zoom + by + 5)
+                                            this.ctx.stroke()
+                                        } else if(body.side == "right") {
+                                            this.ctx.beginPath()
+                                            this.ctx.moveTo(body.globalx * this.zoom + bx - 5,
+                                                            (body.size/2 - body.globaly) * this.zoom + by - 5)
+                                            this.ctx.lineTo(body.globalx * this.zoom + bx - 5,
+                                                            (-body.size/2 - body.globaly ) * this.zoom + by + 5)
+                                            this.ctx.stroke()
+                                        }
+                                    }
+                                }
+                                break
+                            }
+                            case BodyType.GRID: {
+
+                                break
+                            }
                         }
-                    }
+                    })
                 }
 
                 this._update()
@@ -112,15 +145,21 @@ export class Testbed {
     stop() {
         this.script = null
         this.world = null
-        this.bodies = []
+        this.entities = []
     }
 
-    registerEntity(entity: Entity) {
-        this.bodies = _.union(this.bodies, entity.bodies)
+    registerEntity(entity: Entity): Entity {
+        if(this.entities.indexOf(entity) < 0) {
+            this.entities.push(entity)
+        }
+        return entity
     }
 }
 
-let testbed = new Testbed()
-testbed.addScript(TestScript.name, TestScript.script)
-testbed.addScript(GridScript1.name, GridScript1.script)
-testbed.start(GridScript1.name)
+
+setTimeout(() => {
+    let testbed = new Testbed()
+    testbed.addScript(TestScript.name, TestScript.script)
+    testbed.addScript(GridScript1.name, GridScript1.script)
+    testbed.start(GridScript1.name)
+}, 3000)

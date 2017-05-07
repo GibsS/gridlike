@@ -44,12 +44,6 @@ export interface EntityListener {
 
 export class Entity {
 
-    // INV1.1: x._parent = y => y.childs contains x
-    // INV2.1: _bodies contains lower.body1 or lower.body2
-    // INV2.2: _bodies contains lower.body[1|2] => lower.body[2|1]._topEntity.level < this._level
-
-    // INV3.1: _lower != null => _lower.body1 and _lower.body2 are in contact && enabled && layers allowing
-
     _world: World
 
     _listener: EntityListener
@@ -108,7 +102,7 @@ export class Entity {
         if(this._bodies instanceof Body) {
             return [this._bodies]
         } else {
-            return this._bodies.all()
+            return this._bodies.all().filter(b => !b._grid)
         }
     }
     set bodies(val: Body[]) { console.log("[ERROR] can't set Entity.bodies") }
@@ -116,7 +110,7 @@ export class Entity {
     get level(): number { return this._level }
     set level(val: number) { 
         if(val > this._level) {
-            this.forBodies(b => {
+            this._forAllBodies(b => {
                 if(b._higherContacts) {
                     let len = b._higherContacts.length,
                         remove = []
@@ -209,7 +203,7 @@ export class Entity {
                 }
                 this._rightLower = null
             }
-            this.forBodies(b => {
+            this._forAllBodies(b => {
                 let len = b._higherContacts.length,
                     toremove = []
 
@@ -257,7 +251,7 @@ export class Entity {
                 }
                 this._downLower = null
             }
-            this.forBodies(b => {
+            this._forAllBodies(b => {
                 let len = b._higherContacts.length,
                     toremove = []
 
@@ -296,7 +290,7 @@ export class Entity {
 
     get contacts(): RelativeContact[] {
         let res = [this.leftContact, this.downContact, this.rightContact, this.upContact].filter(c => c)
-        this.forBodies(b => {
+        this._forAllBodies(b => {
             if(b._higherContacts) {
                 res.push.apply(res, b._higherContacts.map(c => {
                     let entityHasBody1 = c.body1._topEntity == this
@@ -485,7 +479,7 @@ export class Entity {
             topEntity._allBodies.insert(body)
         }
     }
-    forBodies(lambda: (b: Body) => void) {
+    _forAllBodies(lambda: (b: Body) => void) {
         if(this._allBodies) {
             this._allBodies.forAll(lambda)
         } else {
@@ -494,6 +488,20 @@ export class Entity {
             } else {
                 this._bodies.forAll(lambda)
             }
+        }
+    }
+    forBodies(lambda: (b: Body) => void) {
+        if(this._bodies instanceof Body) {
+            lambda(this._bodies)
+        } else {
+            this._bodies.forAll(b => { if(!b._grid) { lambda(b) } })
+        }
+    }
+    _forBodies(lambda: (b: Body) => void) {
+        if(this._bodies instanceof Body) {
+            lambda(this._bodies)
+        } else {
+            this._bodies.forAll(lambda)
         }
     }
 

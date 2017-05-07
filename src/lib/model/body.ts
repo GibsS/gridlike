@@ -41,6 +41,7 @@ export abstract class Body {
 
     type: number
 
+    _grid: Grid
     _entity: Entity
     _topEntity: Entity
 
@@ -704,6 +705,7 @@ export class Grid extends Body {
                     x: x + xgridOffset, y: rely/2 + body._y - body._size/2, size: rely, 
                     isHorizontal: false, side: body.side
                 })
+                newBody._grid = this
                 this._newBodies.push(newBody)
                 for(let i = body._y - body._size/2 - ygridOffset; i < y; i++) {
                     column[i] = newBody
@@ -752,6 +754,7 @@ export class Grid extends Body {
                     y: y + ygridOffset, x: relx/2 + body._x - body._size/2, size: relx, 
                     isHorizontal: true, side: body.side
                 })
+                newBody._grid = this
                 
                 this._newBodies.push(newBody)
                 for(let i = body._x - body._size/2 - xgridOffset; i < x; i++) {
@@ -808,6 +811,7 @@ export class Grid extends Body {
                 x: x + xgridOffset, y: y + 0.5 + ygridOffset, size: 1,
                 isHorizontal: false, side: left ? "left" : "right"
             })
+            newBody._grid = this
             this._newBodies.push(newBody)
             column[y] = newBody
         }
@@ -857,6 +861,7 @@ export class Grid extends Body {
                 y: y + ygridOffset, x: x + 0.5 + xgridOffset, size: 1,
                 isHorizontal: true, side: down ? "down" : "up"
             })
+            newBody._grid = this
             this._newBodies.push(newBody)
             row[x] = newBody
         }
@@ -1070,11 +1075,16 @@ export class Grid extends Body {
                     }
                     grid[left][down] = this._subGrids
 
-                    // if(right > 0) {
-                    //     for(let i = down; i < down + this._width; i++) {
-                    //         grid[left+1][i].colums[0] = 
-                    //     }
-                    // }
+                    if(right > 0) {
+                        for(let i = down; i < down + this._height; i++) {
+                            grid[left+this._width][i].colums[0] = grid[left - this._width - 1][i].colums[this._gridSize]
+                        }
+                    }
+                    if(up > 0) {
+                        for(let i = left; i < left + this._width; i++) {
+                            grid[i][down + this._height].rows[0] = grid[i][down + this._height - 1].rows[this._gridSize]
+                        }
+                    }
                 } else {
                     newWidth = left + this._width + right
                     newHeight = down + this._height + up
@@ -1086,6 +1096,17 @@ export class Grid extends Body {
                         for(let j = 0; j < this._height; j++) {
                             grid[i + left][j + down] = this._subGrids[i][j]
                         }
+                    }
+                }
+
+                if(right > 0) {
+                    for(let i = down; i < down + this._height; i++) {
+                        grid[left+this._width][i].colums[0] = grid[left - this._width - 1][i].colums[this._gridSize]
+                    }
+                }
+                if(up > 0) {
+                    for(let i = left; i < left + this._width; i++) {
+                        grid[i][down + this._height].rows[0] = grid[i][down + this._height - 1].rows[this._gridSize]
                     }
                 }
 
