@@ -711,7 +711,7 @@ export class Grid extends Body {
                     column[i] = newBody
                 }
 
-                body._y += (body._size - rely)/2
+                body._y += (rely + 1)/2
                 body._size -= (rely + 1)
             }
             column[y] = null
@@ -761,7 +761,7 @@ export class Grid extends Body {
                     row[i] = newBody
                 }
 
-                body._x += (body._size - relx)/2
+                body._x += (relx + 1)/2
                 body._size -= (relx + 1)
             }
             row[x] = null
@@ -823,7 +823,7 @@ export class Grid extends Body {
         if(x < this._gridSize-1) {
             upBody = row[x+1]
 
-            if(upBody && (down && upBody._oneway == 1 || !down && upBody._oneway == 2)) {
+            if(upBody && (down && upBody._oneway == 2 || !down && upBody._oneway == 1)) {
                 upBody._size += 1
                 upBody._x -= 0.5
                 row[x] = upBody
@@ -833,7 +833,8 @@ export class Grid extends Body {
 
         if(x > 0) {
             let downBody: Line = row[x-1]
-            if(downBody && (down && downBody._oneway == 1 || !down && downBody._oneway == 2)) {
+
+            if(downBody && (down && downBody._oneway == 2 || !down && downBody._oneway == 1)) {
                 if(upGrow) {
                     let i = this._newBodies.indexOf(downBody)
                     if(i >= 0) {
@@ -896,30 +897,18 @@ export class Grid extends Body {
             this._getUpInfo(shape, null, upShape, null, this._upInfo)
             this._getDownInfo(shape, null, downShape, null, this._downInfo)
 
-            // let oneway = (subgrid.columns[x][y] && (subgrid.columns[x][y] as Line)._oneway) || 0
-            // if(this._leftInfo.line != oneway) {
-                this._clearOneBodyColumn(x, y, this._xdownLeft, this._ydownLeft, subgrid.columns[x])
-                if(this._leftInfo.line != 0) { this._addOneBodyColumn(x, y, this._xdownLeft, this._ydownLeft, subgrid.columns[x], this._leftInfo.line == 2) }
-            // }
-
-            // oneway = (subgrid.columns[x+1][y] && (subgrid.columns[x+1][y] as Line)._oneway) || 0
-            // if(this._rightInfo.line != oneway) {
-                this._clearOneBodyColumn(x+1, y, this._xdownLeft, this._ydownLeft, subgrid.columns[x+1])
-                if(this._rightInfo.line != 0) { this._addOneBodyColumn(x+1, y, this._xdownLeft, this._ydownLeft, subgrid.columns[x+1], this._rightInfo.line == 2) }
-            // }
-
-            // oneway = (subgrid.rows[x][y] && (subgrid.rows[x][y] as Line)._oneway) || 0
-            // if(this._downInfo.line != oneway) {
-                this._clearOneBodyRow(x, y, this._xdownLeft, this._ydownLeft, subgrid.rows[y])
-                if(this._downInfo.line != 0) { this._addOneBodyRow(x, y, this._xdownLeft, this._ydownLeft, subgrid.rows[y], this._downInfo.line == 2) }
-            // }
-
-            // oneway = (subgrid.rows[x][y+1] && (subgrid.rows[x][y+1] as Line)._oneway) || 0
-            // if(this._upInfo.line != oneway) {
-                this._clearOneBodyRow(x, y+1, this._xdownLeft, this._ydownLeft, subgrid.rows[y+1])
-                if(this._upInfo.line != 0) { this._addOneBodyRow(x, y+1, this._xdownLeft, this._ydownLeft, subgrid.rows[y+1], this._upInfo.line == 2) }
-            // }
-
+            this._clearOneBodyColumn(x, y, this._xdownLeft, this._ydownLeft, subgrid.columns[x])
+            if(this._leftInfo.line != 0) { this._addOneBodyColumn(x, y, this._xdownLeft, this._ydownLeft, subgrid.columns[x], this._leftInfo.line == 2) }
+            
+            this._clearOneBodyColumn(x+1, y, this._xdownLeft, this._ydownLeft, subgrid.columns[x+1])
+            if(this._rightInfo.line != 0) { this._addOneBodyColumn(x+1, y, this._xdownLeft, this._ydownLeft, subgrid.columns[x+1], this._rightInfo.line == 2) }
+            
+            this._clearOneBodyRow(x, y, this._xdownLeft, this._ydownLeft, subgrid.rows[y])
+            if(this._downInfo.line != 0) { this._addOneBodyRow(x, y, this._xdownLeft, this._ydownLeft, subgrid.rows[y], this._downInfo.line == 2) }
+            
+            this._clearOneBodyRow(x, y+1, this._xdownLeft, this._ydownLeft, subgrid.rows[y+1])
+            if(this._upInfo.line != 0) { this._addOneBodyRow(x, y+1, this._xdownLeft, this._ydownLeft, subgrid.rows[y+1], this._upInfo.line == 2) }
+                
             for(let b of this._oldBodies) { this._entity.removeBody(b) }
             for(let b of this._newBodies) { this._entity._addBody(b) }
         } else {
@@ -990,7 +979,6 @@ export class Grid extends Body {
             this._clearOneBodyRow(x, y+1, xoffset, yoffset, upRow)
             if(this._upInfo.line != 0) { this._addOneBodyRow(x, y+1, xoffset, yoffset, upRow, this._upInfo.line == 2) }
                 
-
             for(let b of this._oldBodies) { this._entity.removeBody(b) }
             for(let b of this._newBodies) { this._entity._addBody(b) }
         }

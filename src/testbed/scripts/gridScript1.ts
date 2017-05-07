@@ -11,8 +11,8 @@ class TestScript extends Script {
 
     init() {
         let entity = this.r(this.world.createGrid({
-            x: 0,
-            y: 0,
+            x: 5,
+            y: 5,
             width: 10,
             height: 10
         }))
@@ -42,7 +42,7 @@ class TestScript extends Script {
         }
         console.timeEnd("grid3")
         
-        console.time("grid4")
+        // console.time("grid4")
         this.grid.setTileShape(-3, 0, 1)
         this.grid.setTileShape(-3, 1, 1)
         this.grid.setTileShape(-2, 1, 1)
@@ -52,7 +52,7 @@ class TestScript extends Script {
 
         console.time("grid5")
         this.grid.setTileShape(-6, -1, 1)
-        console.timeEnd("grid5")
+        // console.timeEnd("grid5")
     }
     update(time: number, delta: number) {
         //console.log(this.line.globalx, this.line.globaly, this.rect.globalx, this.rect.globaly)

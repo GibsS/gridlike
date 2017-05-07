@@ -3,6 +3,7 @@ import * as _ from 'lodash'
 import { Script } from './script'
 import TestScript from './scripts/script1'
 import GridScript1 from './scripts/gridScript1'
+import GridScript2 from './scripts/gridScript2'
 
 import { World, Entity, Body, BodyType, Rect, Line, Grid } from '../lib'
 
@@ -91,16 +92,16 @@ export class Testbed {
                                         if(body.side == "up") {
                                             this.ctx.beginPath()
                                             this.ctx.moveTo((body.globalx - body.size/2) * this.zoom + bx + 5,
-                                                            -body.globaly * this.zoom + by - 5)
+                                                            -body.globaly * this.zoom + by + 5)
                                             this.ctx.lineTo((body.globalx + body.size/2) * this.zoom + bx - 5,
-                                                            -body.globaly * this.zoom + by - 5)
+                                                            -body.globaly * this.zoom + by + 5)
                                             this.ctx.stroke()
                                         } else if(body.side == "down") {
                                             this.ctx.beginPath()
                                             this.ctx.moveTo((body.globalx - body.size/2) * this.zoom + bx + 5,
-                                                            -body.globaly * this.zoom + by + 5)
+                                                            -body.globaly * this.zoom + by - 5)
                                             this.ctx.lineTo((body.globalx + body.size/2) * this.zoom + bx - 5,
-                                                            -body.globaly * this.zoom + by + 5)
+                                                            -body.globaly * this.zoom + by - 5)
                                             this.ctx.stroke()
                                         }
                                     } else {
@@ -156,10 +157,8 @@ export class Testbed {
     }
 }
 
-
-setTimeout(() => {
-    let testbed = new Testbed()
-    testbed.addScript(TestScript.name, TestScript.script)
-    testbed.addScript(GridScript1.name, GridScript1.script)
-    testbed.start(GridScript1.name)
-}, 3000)
+let testbed = new Testbed()
+testbed.addScript(TestScript.name, TestScript.script)
+testbed.addScript(GridScript1.name, GridScript1.script)
+testbed.addScript(GridScript2.name, GridScript2.script)
+testbed.start(GridScript1.name)
