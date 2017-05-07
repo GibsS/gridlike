@@ -13,8 +13,8 @@ class TestScript extends Script {
         let entity = this.r(this.world.createGrid({
             x: 5,
             y: 5,
-            width: 10,
-            height: 10
+            width: 200,
+            height: 200
         }))
         this.grid = entity.body as Grid
 

@@ -952,14 +952,14 @@ export class Grid extends Body {
             } else {
                 downShape = subgrid.shape[x][y-1]
             }
-            downRow = subgrid.columns[y]
+            downRow = subgrid.rows[y]
 
             if(y == this._gridSize-1) {
-                if(gridy == this._height-1) { upShape = 0; upRow = subgrid.rows[x+1] } 
+                if(gridy == this._height-1) { upShape = 0; upRow = subgrid.rows[y+1] } 
                 else { upShape = this._subGrids[gridx][gridy+1].shape[x][0]; upRow = this._subGrids[gridx][gridy+1].rows[0] }
             } else {
-                leftShape = subgrid.shape[x][y+1]
-                upRow = subgrid.rows[x+1]
+                upShape = subgrid.shape[x][y+1]
+                upRow = subgrid.rows[y+1]
             }
 
             this._getLeftInfo(shape, null, leftShape, null, this._leftInfo)
