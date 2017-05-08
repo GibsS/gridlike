@@ -861,7 +861,7 @@ export class Grid extends Body {
     }
 
     _setTile(x: number, y: number, shape: number, data?) {
-        let subgrid: SubGrid
+        let subgrid
 
         if(this._subGrids instanceof SubGrid) {
             subgrid = this._subGrids
@@ -908,10 +908,7 @@ export class Grid extends Body {
             let gridx = Math.floor(x / this._gridSize), gridy = Math.floor(y / this._gridSize)
 
             subgrid = this._subGrids[gridx][gridy]
-            if(subgrid == null) {
-                subgrid = new SubGrid(this._gridSize)
-                this._subGrids[gridx][gridy] = subgrid
-            }
+            
             x -= gridx * this._gridSize
             y -= gridy * this._gridSize
 
@@ -1063,9 +1060,13 @@ export class Grid extends Body {
                     for(let i = 0; i < newWidth; i++) {
                         grid[i] = new Array(newHeight)
                     }
-                    for(let i = 0; i < this._width; i++) {
-                        for(let j = 0; j < this._height; j++) {
-                            grid[i + left][j + down] = this._subGrids[i][j]
+                    for(let i = 0; i < newWidth; i++) {
+                        for(let j = 0; j < newHeight; j++) {
+                            if(i >= left && j >= down && i < left + this._width && j < down + this._height) {
+                                grid[i][j] = this._subGrids[i - left][j - down]
+                            } else {
+                                grid[i][j] = new SubGrid(this._gridSize)
+                            }
                         }
                     }
                 }

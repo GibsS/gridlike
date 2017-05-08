@@ -18,6 +18,8 @@ class TestScript extends Script {
         }))
         this.grid = entity.body as Grid
 
+        // this.grid.setTile(-200, 0, 1, null)
+
         this.grid.setTile(0, 0, 1, null)
         this.grid.setTile(0, 1, 1, null)
         this.grid.setTile(1, 1, 1, null)
