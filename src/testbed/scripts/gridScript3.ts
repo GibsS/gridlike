@@ -13,26 +13,20 @@ class TestScript extends Script {
         let entity = this.r(this.world.createGrid({
             x: 0,
             y: 0,
-            width: 300,
-            height: 300
+            width: 50,
+            height: 50
         }))
         this.grid = entity.body as Grid
 
-        console.time("grid1")
-        this.grid.setTileShape(0, 0, 1)
-        console.timeEnd("grid1")
-        console.time("grid1")
-        this.grid.setTileShape(0, 0, 1)
-        console.timeEnd("grid1")
-        console.time("grid1")
-        this.grid.setTileShape(0, 0, 1)
-        console.timeEnd("grid1")
-        console.time("grid1")
-        this.grid.setTileShape(0, 0, 1)
-        console.timeEnd("grid1")
-        console.time("grid1")
-        this.grid.setTileShape(0, 0, 1)
-        console.timeEnd("grid1")
+        var t0, t1
+        for(let i = 0; i < 40; i++) {
+            t0 = performance.now()
+
+            this.grid.setTileShape(40-i, 0, 1)
+
+            t1 = performance.now()
+            console.log((t1 - t0) + " milliseconds.")
+        }
     }
     update(time: number, delta: number) {
         //console.log(this.line.globalx, this.line.globaly, this.rect.globalx, this.rect.globaly)
