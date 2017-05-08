@@ -612,7 +612,7 @@ export class Grid extends Body {
     _getUpInfo(shape: number, data, otherShape: number, topData) {
         if(shape == 0) {
             if(otherShape == 0) {
-                this._upInfo.line = 0
+                this._upInfo.line = -1
             } else {
                 this._upInfo.line = 2
             }
@@ -620,7 +620,7 @@ export class Grid extends Body {
             if(otherShape == 0) {
                 this._upInfo.line = 1
             } else {
-                this._upInfo.line = 0
+                this._upInfo.line = -1
             }
         }
     }
@@ -861,8 +861,7 @@ export class Grid extends Body {
     }
 
     _setTile(x: number, y: number, shape: number, data?) {
-        let subgrid: SubGrid,
-            leftShape: number, rightShape: number, upShape: number, downShape: number
+        let subgrid: SubGrid
 
         if(this._subGrids instanceof SubGrid) {
             subgrid = this._subGrids
@@ -924,37 +923,37 @@ export class Grid extends Body {
                 xoffset = this._xdownLeft + gridx * this._gridSize, yoffset = this._ydownLeft + gridy * this._gridSize
 
             // ADJACENT SHAPE CALCULATION
-            if(x == 0) {
-                if(gridx == 0) { leftShape = 0 } 
-                else { leftShape = this._subGrids[gridx-1][gridy].shape[this._gridSize-1][y] }
-            } else {
-                leftShape = subgrid.shape[x-1][y]
-            }
-            leftColumn = subgrid.columns[x]
+            // if(x == 0) {
+            //     if(gridx == 0) { leftShape = 0 } 
+            //     else { leftShape = this._subGrids[gridx-1][gridy].shape[this._gridSize-1][y] }
+            // } else {
+            //     leftShape = subgrid.shape[x-1][y]
+            // }
+            // leftColumn = subgrid.columns[x]
 
-            if(x == this._gridSize-1) {
-                if(gridx == this._width-1) { rightShape = 0; rightColumn = subgrid.columns[x+1] } 
-                else { rightShape = this._subGrids[gridx + 1][gridy].shape[0][y]; rightColumn = this._subGrids[gridx + 1][gridy].columns[0] }
-            } else {
-                rightShape = subgrid.shape[x+1][y]
-                rightColumn = subgrid.columns[x+1]
-            }
+            // if(x == this._gridSize-1) {
+            //     if(gridx == this._width-1) { rightShape = 0; rightColumn = subgrid.columns[x+1] } 
+            //     else { rightShape = this._subGrids[gridx + 1][gridy].shape[0][y]; rightColumn = this._subGrids[gridx + 1][gridy].columns[0] }
+            // } else {
+            //     rightShape = subgrid.shape[x+1][y]
+            //     rightColumn = subgrid.columns[x+1]
+            // }
 
-            if(y == 0) {
-                if(gridy == 0) { downShape = 0 } 
-                else { downShape = this._subGrids[gridx][gridy-1].shape[x][this._gridSize-1] }
-            } else {
-                downShape = subgrid.shape[x][y-1]
-            }
-            downRow = subgrid.rows[y]
+            // if(y == 0) {
+            //     if(gridy == 0) { downShape = 0 } 
+            //     else { downShape = this._subGrids[gridx][gridy-1].shape[x][this._gridSize-1] }
+            // } else {
+            //     downShape = subgrid.shape[x][y-1]
+            // }
+            // downRow = subgrid.rows[y]
 
-            if(y == this._gridSize-1) {
-                if(gridy == this._height-1) { upShape = 0; upRow = subgrid.rows[y+1] } 
-                else { upShape = this._subGrids[gridx][gridy+1].shape[x][0]; upRow = this._subGrids[gridx][gridy+1].rows[0] }
-            } else {
-                upShape = subgrid.shape[x][y+1]
-                upRow = subgrid.rows[y+1]
-            }
+            // if(y == this._gridSize-1) {
+            //     if(gridy == this._height-1) { upShape = 0; upRow = subgrid.rows[y+1] } 
+            //     else { upShape = this._subGrids[gridx][gridy+1].shape[x][0]; upRow = this._subGrids[gridx][gridy+1].rows[0] }
+            // } else {
+            //     upShape = subgrid.shape[x][y+1]
+            //     upRow = subgrid.rows[y+1]
+            // }
             
             // this._getLeftInfo(shape, null, leftShape, null, this._leftInfo)
             // this._getRightInfo(shape, null, rightShape, null, this._rightInfo)
