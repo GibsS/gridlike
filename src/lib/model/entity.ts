@@ -146,7 +146,7 @@ export class Entity {
                 let c: Contact = this[t]
                 if(c) {
                     if(c.body1._topEntity == this) {
-                        if( c.body2._topEntity.level >= val) {
+                        if(c.body2._topEntity.level >= val) {
                             let i = c.body2._higherContacts.indexOf(c)
                             c.body2._higherContacts.splice(i, 1)
                             this[t] = null
