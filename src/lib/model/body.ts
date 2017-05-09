@@ -719,6 +719,7 @@ export class Grid extends Body {
             newBody._layerGroup = 0
             newBody._grid = this
             newBody._oneway = body._oneway
+            newBody._isSensor = false
             
             this._newBodies.push(newBody)
             for(let i = body._y - body._size/2 - ygridOffset; i < y; i++) {
@@ -773,6 +774,7 @@ export class Grid extends Body {
             newBody._layerGroup = 0
             newBody._grid = this
             newBody._oneway = body._oneway
+            newBody._isSensor = false
             
             this._newBodies.push(newBody)
             for(let i = body._x - body._size/2 - xgridOffset; i < x; i++) {
@@ -837,6 +839,7 @@ export class Grid extends Body {
             newBody._layer = 0
             newBody._layerGroup = 0
             newBody._grid = this
+            newBody._isSensor = false
 
             this._newBodies.push(newBody)
             column[y] = newBody
@@ -897,6 +900,7 @@ export class Grid extends Body {
             newBody._layer = 0
             newBody._layerGroup = 0
             newBody._grid = this
+            newBody._isSensor = false
             
             this._newBodies.push(newBody)
             row[x] = newBody
