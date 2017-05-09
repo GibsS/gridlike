@@ -370,10 +370,10 @@ export class Grid extends Body {
     _width: number
     _height: number
 
-    _leftInfo: { line: number } = { line: 0 } // 0: nothing, 1: oneway right, 2: oneway left, 3: solid
-    _rightInfo: { line: number } = { line: 0 } // 0: nothing, 1: oneway left, 2: oneway right, 3: solid
-    _upInfo: { line: number } = { line: 0 } // 0: nothing, 1: oneway down, 2: oneway up, 3: solid
-    _downInfo: { line: number } = { line: 0 } // 0: nothing, 1: oneway up, 2: oneway down, 3: solid
+    static _leftInfo: { line: number } = { line: 0 } // 0: nothing, 1: oneway right, 2: oneway left, 3: solid
+    static _rightInfo: { line: number } = { line: 0 } // 0: nothing, 1: oneway left, 2: oneway right, 3: solid
+    static _upInfo: { line: number } = { line: 0 } // 0: nothing, 1: oneway down, 2: oneway up, 3: solid
+    static _downInfo: { line: number } = { line: 0 } // 0: nothing, 1: oneway up, 2: oneway down, 3: solid
 
     _newBodies: Body[]
     _oldBodies: Body[]
@@ -620,60 +620,60 @@ export class Grid extends Body {
     _getUpInfo(shape: number, otherShape: number) {
         if(shape == 1 || shape == 4) {
             if(otherShape == 1 || otherShape == 2) {
-                this._upInfo.line = -1
+                Grid._upInfo.line = -1
             } else {
-                this._upInfo.line = 1
+                Grid._upInfo.line = 1
             }
         } else {
             if(otherShape == 1 || otherShape == 2) {
-                this._upInfo.line = 2
+                Grid._upInfo.line = 2
             } else {
-                this._upInfo.line = -1
+                Grid._upInfo.line = -1
             }
         }
     }
     _getRightInfo(shape: number, otherShape: number) {
         if(shape == 1 || shape == 5) {
             if(otherShape == 1 || otherShape == 3) {
-                this._rightInfo.line = -1
+                Grid._rightInfo.line = -1
             } else {
-                this._rightInfo.line = 1
+                Grid._rightInfo.line = 1
             }
         } else {
             if(otherShape == 1 || otherShape == 3) {
-                this._rightInfo.line = 2
+                Grid._rightInfo.line = 2
             } else {
-                this._rightInfo.line = -1
+                Grid._rightInfo.line = -1
             }
         }
     }
     _getDownInfo(shape: number, otherShape: number) {
         if(shape == 1 || shape == 2) {
             if(otherShape == 1 || otherShape == 4) {
-                this._downInfo.line = -1
+                Grid._downInfo.line = -1
             } else {
-                this._downInfo.line = 2
+                Grid._downInfo.line = 2
             }
         } else {
             if(otherShape == 1 || otherShape == 4) {
-                this._downInfo.line = 1
+                Grid._downInfo.line = 1
             } else {
-                this._downInfo.line = -1
+                Grid._downInfo.line = -1
             }
         }
     }
     _getLeftInfo(shape: number, otherShape: number) {
         if(shape == 1 || shape == 3) {
             if(otherShape == 1 || otherShape == 5) {
-                this._leftInfo.line = -1
+                Grid._leftInfo.line = -1
             } else {
-                this._leftInfo.line = 2
+                Grid._leftInfo.line = 2
             }
         } else {
             if(otherShape == 1 || otherShape == 5) {
-                this._leftInfo.line = 1
+                Grid._leftInfo.line = 1
             } else {
-                this._leftInfo.line = -1
+                Grid._leftInfo.line = -1
             }
         }
     }
@@ -908,7 +908,7 @@ export class Grid extends Body {
     }
 
     _setTile(x: number, y: number, shape: number, data?) {
-        let subgrid
+        let subgrid: SubGrid
 
         if(this._subGrids instanceof SubGrid) {
             subgrid = this._subGrids
@@ -920,33 +920,33 @@ export class Grid extends Body {
             if(x == 0) { this._getLeftInfo(shape, 0) }
             else { this._getLeftInfo(shape, subgrid.shape[x-1][y]) }
             let body = subgrid.columns[x][y] as Line
-            if(((body && body._oneway) || -1) != this._leftInfo.line) {
+            if(((body && body._oneway) || -1) != Grid._leftInfo.line) {
                 if(body) this._clearOneBodyColumn(x, y, this._xdownLeft, this._ydownLeft, subgrid.columns[x], body)
-                if(this._leftInfo.line != -1) { this._addOneBodyColumn(x, y, this._xdownLeft, this._ydownLeft, subgrid.columns[x], this._leftInfo) }
+                if(Grid._leftInfo.line != -1) { this._addOneBodyColumn(x, y, this._xdownLeft, this._ydownLeft, subgrid.columns[x], Grid._leftInfo) }
             }
             
             if(x == this._gridSize - 1) { this._getRightInfo(shape, 0) } 
             else { this._getRightInfo(shape, subgrid.shape[x+1][y]) }
             body = subgrid.columns[x+1][y] as Line
-            if(((body && body._oneway) || -1) != this._rightInfo.line) {
+            if(((body && body._oneway) || -1) != Grid._rightInfo.line) {
                 if(body) this._clearOneBodyColumn(x+1, y, this._xdownLeft, this._ydownLeft, subgrid.columns[x+1], body)
-                if(this._rightInfo.line != -1) { this._addOneBodyColumn(x+1, y, this._xdownLeft, this._ydownLeft, subgrid.columns[x+1], this._rightInfo) }
+                if(Grid._rightInfo.line != -1) { this._addOneBodyColumn(x+1, y, this._xdownLeft, this._ydownLeft, subgrid.columns[x+1], Grid._rightInfo) }
             }
             
             if(y == 0) { this._getDownInfo(shape, 0) } 
             else { this._getDownInfo(shape, subgrid.shape[x][y-1]) }
             body = subgrid.rows[y][x] as Line
-            if(((body && body._oneway) || -1) != this._downInfo.line) {
+            if(((body && body._oneway) || -1) != Grid._downInfo.line) {
                 if(body) this._clearOneBodyRow(x, y, this._xdownLeft, this._ydownLeft, subgrid.rows[y], body)
-                if(this._downInfo.line != -1) { this._addOneBodyRow(x, y, this._xdownLeft, this._ydownLeft, subgrid.rows[y], this._downInfo) }
+                if(Grid._downInfo.line != -1) { this._addOneBodyRow(x, y, this._xdownLeft, this._ydownLeft, subgrid.rows[y], Grid._downInfo) }
             }
             
             if(y == this._gridSize - 1) { this._getUpInfo(shape, 0) } 
             else { this._getUpInfo(shape, subgrid.shape[x][y+1]) }
             body = subgrid.rows[y+1][x] as Line
-            if(((body && body._oneway) || -1) != this._upInfo.line) {
+            if(((body && body._oneway) || -1) != Grid._upInfo.line) {
                 if(body) this._clearOneBodyRow(x, y+1, this._xdownLeft, this._ydownLeft, subgrid.rows[y+1], body)
-                if(this._upInfo.line != -1) { this._addOneBodyRow(x, y+1, this._xdownLeft, this._ydownLeft, subgrid.rows[y+1], this._upInfo) }
+                if(Grid._upInfo.line != -1) { this._addOneBodyRow(x, y+1, this._xdownLeft, this._ydownLeft, subgrid.rows[y+1], Grid._upInfo) }
             }
                 
             for(let b of this._oldBodies) { this._entity.removeBody(b) }
@@ -1144,8 +1144,8 @@ export class SubGrid {
     shape: number[][]
     data: any[][]
 
-    columns: Body[][]
-    rows: Body[][]
+    columns: Line[][]
+    rows: Line[][]
 
     constructor(size: number) {
         this.shape = new Array(size)
