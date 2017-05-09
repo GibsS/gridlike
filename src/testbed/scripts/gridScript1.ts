@@ -25,6 +25,7 @@ class TestScript extends Script {
         this.grid.setTile(1, 1, 1, null)
         this.grid.clearTile(0, 1)
         this.grid.setTile(1, 0, 1, null)
+        this.grid.setTileShape(2, 0, 2)
 
         for(let i = -10; i <= -1; i++) {
             for(let j = -10; j <= -1; j++) {
@@ -43,8 +44,8 @@ class TestScript extends Script {
         this.grid.setTileShape(-2, 1, 1)
         this.grid.clearTileShape(-3, 1)
         this.grid.setTileShape(-2, 0, 1)
-        
-        this.grid.setTileShape(-6, -1, 1)
+
+        this.grid.setTileShape(-5, 1, 2)
     }
     update(time: number, delta: number) {
         //console.log(this.line.globalx, this.line.globaly, this.rect.globalx, this.rect.globaly)

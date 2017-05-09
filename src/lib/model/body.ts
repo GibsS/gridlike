@@ -618,60 +618,60 @@ export class Grid extends Body {
         }
     }
     _getUpInfo(shape: number, otherShape: number) {
-        if(shape == 0) {
-            if(otherShape == 0) {
+        if(shape == 1 || shape == 4) {
+            if(otherShape == 1 || otherShape == 2) {
                 this._upInfo.line = -1
             } else {
-                this._upInfo.line = 2
+                this._upInfo.line = 1
             }
         } else {
-            if(otherShape == 0) {
-                this._upInfo.line = 1
+            if(otherShape == 1 || otherShape == 2) {
+                this._upInfo.line = 2
             } else {
                 this._upInfo.line = -1
             }
         }
     }
     _getRightInfo(shape: number, otherShape: number) {
-        if(shape == 0) {
-            if(otherShape == 0) {
+        if(shape == 1 || shape == 5) {
+            if(otherShape == 1 || otherShape == 3) {
                 this._rightInfo.line = -1
             } else {
-                this._rightInfo.line = 2
+                this._rightInfo.line = 1
             }
         } else {
-            if(otherShape == 0) {
-                this._rightInfo.line = 1
+            if(otherShape == 1 || otherShape == 3) {
+                this._rightInfo.line = 2
             } else {
                 this._rightInfo.line = -1
             }
         }
     }
     _getDownInfo(shape: number, otherShape: number) {
-        if(shape == 0) {
-            if(otherShape == 0) {
+        if(shape == 1 || shape == 2) {
+            if(otherShape == 1 || otherShape == 4) {
                 this._downInfo.line = -1
             } else {
-                this._downInfo.line = 1
+                this._downInfo.line = 2
             }
         } else {
-            if(otherShape == 0) {
-                this._downInfo.line = 2
+            if(otherShape == 1 || otherShape == 4) {
+                this._downInfo.line = 1
             } else {
                 this._downInfo.line = -1
             }
         }
     }
     _getLeftInfo(shape: number, otherShape: number) {
-        if(shape == 0) {
-            if(otherShape == 0) {
+        if(shape == 1 || shape == 3) {
+            if(otherShape == 1 || otherShape == 5) {
                 this._leftInfo.line = -1
             } else {
-                this._leftInfo.line = 1
+                this._leftInfo.line = 2
             }
         } else {
-            if(otherShape == 0) {
-                this._leftInfo.line = 2
+            if(otherShape == 1 || otherShape == 5) {
+                this._leftInfo.line = 1
             } else {
                 this._leftInfo.line = -1
             }
