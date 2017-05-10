@@ -158,7 +158,7 @@ import TestScript from './scripts/script1'
 import GridScript1 from './scripts/gridScript1'
 import GridScript2 from './scripts/gridScript2'
 import GridScript3 from './scripts/gridScript3'
-import { GridScript4 } from './scripts/gridScripts'
+import { GridScript4, GridScript5 } from './scripts/gridScripts'
 
 let testbed = new Testbed()
 testbed.addScript(TestScript.name, TestScript.script)
@@ -166,4 +166,5 @@ testbed.addScript(GridScript1.name, GridScript1.script)
 testbed.addScript(GridScript2.name, GridScript2.script)
 testbed.addScript(GridScript3.name, GridScript3.script)
 testbed.addScript(GridScript4.name, GridScript4.script)
-testbed.start(GridScript4.name)
+testbed.addScript(GridScript5.name, GridScript5.script)
+testbed.start(GridScript5.name)
