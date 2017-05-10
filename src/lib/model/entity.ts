@@ -96,7 +96,13 @@ export class Entity {
     get childs(): Entity[] { return _.clone(this._childs) }
     set childs(val: Entity[]) { console.log("[ERROR] can't set Entity.childs") }
 
-    get body(): Body { return (this._bodies as Body) }
+    get body(): Body {
+        if(this._bodies instanceof Body) {
+            return this._bodies
+        } else {
+            return this._bodies.all().find(b => b instanceof Grid)
+        }
+    }
     set body(val: Body) { console.log("[ERROR] can't set Entity.body") }
     get bodies(): Body[] {
         if(this._bodies instanceof Body) {

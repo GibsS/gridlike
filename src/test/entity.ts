@@ -2,7 +2,7 @@ import * as assert from 'assert'
 import * as _ from 'lodash'
 import { nearEqual } from './helper'
 
-import invariant from './invariant'
+import invariant from './invariant/worldInvariant'
 
 import { World, Entity } from '../lib/index'
 

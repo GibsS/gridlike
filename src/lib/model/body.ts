@@ -1117,7 +1117,15 @@ export class Grid extends Body {
                     for(let i = 0; i < newWidth; i++) {
                         grid[i] = new Array(newHeight)
                     }
-                    grid[left][down] = this._subGrids
+                    for(let i = 0; i < newWidth; i++) {
+                        for(let j = 0; j < newHeight; j++) {
+                            if(i == left && j == down) {
+                                grid[i][j] = this._subGrids
+                            } else {
+                                grid[i][j] = new SubGrid(this._gridSize)
+                            }
+                        }
+                    }
                 } else {
                     newWidth = left + this._width + right
                     newHeight = down + this._height + up
@@ -1138,7 +1146,7 @@ export class Grid extends Body {
 
                 if(right > 0) {
                     for(let i = down; i < down + this._height; i++) {
-                        grid[left+this._width][i].colums[0] = grid[left - this._width - 1][i].colums[this._gridSize]
+                        grid[left + this._width][i].columns[0] = grid[left + this._width - 1][i].columns[this._gridSize]
                     }
                 }
                 if(up > 0) {

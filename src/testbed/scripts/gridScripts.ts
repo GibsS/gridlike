@@ -13,7 +13,7 @@ class Script4 extends Script {
         let entity = this.r(this.world.createGrid({
             x: 5,
             y: 5,
-            width: 1000,
+            width: 20,
             height: 50
         }))
         this.grid = entity.body as Grid

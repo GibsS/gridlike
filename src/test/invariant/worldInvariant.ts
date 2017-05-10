@@ -1,7 +1,7 @@
 import * as assert from 'assert'
 import * as util from 'util'
 
-import { World, Grid } from '../lib'
+import { World, Grid } from '../../lib'
 
 export default function invariant(world: World) {
     for(let i in world._ents) {
