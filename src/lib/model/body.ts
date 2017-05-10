@@ -354,6 +354,14 @@ interface GridListener {
     gridOverlapEnd?(body: Body, grid: Grid, x: number, y: number, side: string)
 }
 
+// IF THIS IS MODIFIED, ALL OTHER REFERENCES MUST BE ADAPTED
+export const EMPTY = 0
+export const BLOCK_TILE = 1
+export const UP_ONEWAY = 4
+export const DOWN_ONEWAY = 2
+export const LEFT_ONEWAY = 3
+export const RIGHT_ONEWAY = 5
+
 export class Grid extends Body {
 
     type = BodyType.GRID
@@ -621,9 +629,17 @@ export class Grid extends Body {
         }
     }
     _getUpInfo(shape: number, otherShape: number) {
-        if(shape == 1 || shape == 4) {
-            if(otherShape == 1 || otherShape == 2) {
+        if(shape == 1) {
+            if(otherShape == 1) {
                 Grid._upInfo.line = -1
+            } else {
+                Grid._upInfo.line = 1
+            }
+        } else if(shape == 4) {
+            if(otherShape == 1) {
+                Grid._upInfo.line = 2
+            } else if(otherShape == 2) {
+                Grid._upInfo.line = 0
             } else {
                 Grid._upInfo.line = 1
             }
@@ -636,9 +652,17 @@ export class Grid extends Body {
         }
     }
     _getRightInfo(shape: number, otherShape: number) {
-        if(shape == 1 || shape == 5) {
-            if(otherShape == 1 || otherShape == 3) {
+        if(shape == 1) {
+            if(otherShape == 1) {
                 Grid._rightInfo.line = -1
+            } else {
+                Grid._rightInfo.line = 1
+            }
+        } else if(shape == 5) {
+            if(otherShape == 1) {
+                Grid._rightInfo.line = 2
+            } else if(otherShape == 3) {
+                Grid._rightInfo.line = 0
             } else {
                 Grid._rightInfo.line = 1
             }
@@ -651,9 +675,17 @@ export class Grid extends Body {
         }
     }
     _getDownInfo(shape: number, otherShape: number) {
-        if(shape == 1 || shape == 2) {
-            if(otherShape == 1 || otherShape == 4) {
+        if(shape == 1) {
+            if(otherShape == 1) {
                 Grid._downInfo.line = -1
+            } else {
+                Grid._downInfo.line = 2
+            }
+        } else if(shape == 2) {
+            if(otherShape == 1) {
+                Grid._downInfo.line = 1
+            } else if(otherShape == 4) {
+                Grid._downInfo.line = 0
             } else {
                 Grid._downInfo.line = 2
             }
@@ -666,9 +698,17 @@ export class Grid extends Body {
         }
     }
     _getLeftInfo(shape: number, otherShape: number) {
-        if(shape == 1 || shape == 3) {
-            if(otherShape == 1 || otherShape == 5) {
+        if(shape == 1) {
+            if(otherShape == 1) {
                 Grid._leftInfo.line = -1
+            } else {
+                Grid._leftInfo.line = 2
+            }
+        } else if(shape == 3) {
+            if(otherShape == 1) {
+                Grid._leftInfo.line = 1
+            } else if(otherShape == 5) {
+                Grid._leftInfo.line = 0
             } else {
                 Grid._leftInfo.line = 2
             }
@@ -1021,13 +1061,15 @@ export class Grid extends Body {
         if(this._subGrids instanceof SubGrid) {
             subgrid = this._subGrids
 
-            this._oldBodies = []
-            this._newBodies = []
+            if(shape != subgrid.shape[x][y]){
+                this._oldBodies = []
+                this._newBodies = []
 
-            this._updateTileBodyInSmallGrid(subgrid, x, y, shape)
-                
-            for(let b of this._oldBodies) { this._entity.removeBody(b) }
-            for(let b of this._newBodies) { this._entity._addBody(b) }
+                this._updateTileBodyInSmallGrid(subgrid, x, y, shape)
+
+                for(let b of this._oldBodies) { this._entity.removeBody(b) }
+                for(let b of this._newBodies) { this._entity._addBody(b) }
+            }
         } else {
             let gridx = Math.floor(x / this._gridSize), gridy = Math.floor(y / this._gridSize)
 
@@ -1036,13 +1078,15 @@ export class Grid extends Body {
             x -= gridx * this._gridSize
             y -= gridy * this._gridSize
 
-            this._oldBodies = []
-            this._newBodies = []
+            if(shape != subgrid.shape[x][y]) {
+                this._oldBodies = []
+                this._newBodies = []
 
-            this._updateTileBodyInBigGrid(subgrid, gridx, gridy, x, y, shape)
-            
-            for(let b of this._oldBodies) { this._entity.removeBody(b) }
-            for(let b of this._newBodies) { this._entity._addBody(b) }
+                this._updateTileBodyInBigGrid(subgrid, gridx, gridy, x, y, shape)
+
+                for(let b of this._oldBodies) { this._entity.removeBody(b) }
+                for(let b of this._newBodies) { this._entity._addBody(b) }
+            }
         }
 
         // DATA MODIFICATION
@@ -1106,17 +1150,20 @@ export class Grid extends Body {
                         info: (x: number, y: number, shape: number, data?) => ({ shape: number, data? } | number)) {
         for(let i = minx; i < maxx; i++) {
             for(let j = miny; j < maxy; j++) {
-                let res = info(i, j, subgrid.shape[i][j], subgrid.data[i][j])
+                let prevshape = subgrid.shape[i][j]
+                let res = info(i, j, prevshape, subgrid.data[i][j])
                 if(res) {
                     if(typeof res == "number") {
                         subgrid.shape[i][j] = res
-                        this._updateTileBodyInSmallGrid(subgrid, i, j, res)
+                        if(prevshape != res)
+                            this._updateTileBodyInSmallGrid(subgrid, i, j, res)
                     } else {
                         subgrid.shape[i][j] = res.shape
                         if(typeof res.data != "undefined") {
                             subgrid.data[i][j] = res.data
                         }
-                        this._updateTileBodyInSmallGrid(subgrid, i, j, res.shape)
+                        if(prevshape != res.shape)
+                            this._updateTileBodyInSmallGrid(subgrid, i, j, res.shape)
                     }
                 }
             }
@@ -1126,17 +1173,20 @@ export class Grid extends Body {
                         info: (x: number, y: number, shape: number, data?) => ({ shape: number, data? } | number)) {
         for(let i = minx; i < maxx; i++) {
             for(let j = miny; j < maxy; j++) {
-                let res = info(i, j, subgrid.shape[i][j], subgrid.data[i][j])
+                let prevshape = subgrid.shape[i][j]
+                let res = info(i, j, prevshape, subgrid.data[i][j])
                 if(res) {
                     if(typeof res == "number") {
                         subgrid.shape[i][j] = res
-                        this._updateTileBodyInBigGrid(subgrid, gridx, gridy, i, j, res)
+                        if(res != prevshape)
+                            this._updateTileBodyInBigGrid(subgrid, gridx, gridy, i, j, res)
                     } else {
                         subgrid.shape[i][j] = res.shape
                         if(typeof res.data != "undefined") {
                             subgrid.data[i][j] = res.data
                         }
-                        this._updateTileBodyInBigGrid(subgrid, gridx, gridy, i, j, res.shape)
+                        if(res.shape != prevshape)
+                            this._updateTileBodyInBigGrid(subgrid, gridx, gridy, i, j, res.shape)
                     }
                 }
             }

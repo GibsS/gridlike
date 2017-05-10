@@ -59,6 +59,9 @@ class Script5 extends Script {
 
         this.grid.setTileShape(0, 3, 4)
 
+        this.grid.setTileShape(0, 7, 3)
+        this.grid.setTileShape(-1, 7, 2)
+
         // for(let i = -300; i <= 300; i++) {
         //     if(i % 10 == 0) {
         //         this.grid.setTileShape(i, 1, 1)

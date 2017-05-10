@@ -194,6 +194,13 @@ export declare interface GridListener {
     overlapEnd?(body: Body, x: number, y: number, side: string)
 }
 
+export declare const BLOCK_TILE
+export declare const EMPTY
+export declare const LEFT_ONEWAY
+export declare const RIGHT_ONEWAY
+export declare const UP_ONEWAY
+export declare const DOWN_ONEWAY
+
 export declare class Grid extends Body {
 
     listener: GridListener
