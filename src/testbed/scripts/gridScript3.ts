@@ -23,11 +23,11 @@ class TestScript extends Script {
         
         var clearTotal = 0,
             total = 0,
-            it = 100
+            it = 100000
 
         t1 = performance.now()
         console.log("ref:", t1 - t0)
-        
+
         for(let i = 0; i < it; i++) {
             t0 = performance.now()
             this.grid.clearTile(0, 0)

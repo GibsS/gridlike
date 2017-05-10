@@ -1,10 +1,6 @@
 import * as _ from 'lodash'
 
 import { Script } from './script'
-import TestScript from './scripts/script1'
-import GridScript1 from './scripts/gridScript1'
-import GridScript2 from './scripts/gridScript2'
-import GridScript3 from './scripts/gridScript3'
 
 import { World, Entity, Body, BodyType, Rect, Line, Grid } from '../lib'
 
@@ -60,8 +56,8 @@ export class Testbed {
         if(this.script != null) {
             requestAnimationFrame(() => {
                 let time = new Date().getTime()
-                this.world.simulate(time - this.lastUpdate)
-                this.script.update(time, time - this.lastUpdate)
+                this.world.simulate((time - this.lastUpdate)/1000)
+                this.script.update(time, (time - this.lastUpdate)/1000)
                 this.lastUpdate = time
 
                 this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height)
@@ -158,9 +154,16 @@ export class Testbed {
     }
 }
 
+import TestScript from './scripts/script1'
+import GridScript1 from './scripts/gridScript1'
+import GridScript2 from './scripts/gridScript2'
+import GridScript3 from './scripts/gridScript3'
+import { GridScript4 } from './scripts/gridScripts'
+
 let testbed = new Testbed()
 testbed.addScript(TestScript.name, TestScript.script)
 testbed.addScript(GridScript1.name, GridScript1.script)
 testbed.addScript(GridScript2.name, GridScript2.script)
 testbed.addScript(GridScript3.name, GridScript3.script)
-testbed.start(GridScript1.name)
+testbed.addScript(GridScript4.name, GridScript4.script)
+testbed.start(GridScript4.name)
