@@ -1,5 +1,6 @@
 import * as _ from 'lodash'
 
+import { IAABB } from '../vbh/vbh'
 import { Entity } from './entity'
 import { RelativeContact, Contact, Overlap } from './contact'
 
@@ -37,8 +38,9 @@ type TileList = { x: number, y: number, shape: number, data?: any }[]
 type TileGrid = { x: number, y: number, info: ({ shape: number, data?: any } | number)[][] }
 export type TileArgs = TileList | TileGrid
 
+let resetminx = false, resetmaxx = false, resetminy = false, resetmaxy = false
 
-export abstract class Body {
+export abstract class Body implements IAABB {
 
     type: number
 
@@ -90,12 +92,16 @@ export abstract class Body {
         this._topy = val
     }
     set _topx(val: number) {
+        this._testResetBounds()
         this._x = val
         this._clearContacts()
+        this._resetBounds()
     }
     set _topy(val: number) {
+        this._testResetBounds()
         this._y = val
         this._clearContacts()
+        this._resetBounds()
     }
     set globalx(val: number) {
         this._topx = val - this._topEntity.globalx
@@ -123,6 +129,11 @@ export abstract class Body {
         let downContact = this._topEntity.downContact
         return downContact && downContact.body == this && downContact
     }
+
+    abstract minx: number
+    abstract miny: number
+    abstract maxx: number
+    abstract maxy: number
 
     constructor(entity: Entity, args?: BodyArgs) {
         if(args) {
@@ -211,6 +222,19 @@ export abstract class Body {
             _.pullAt(this._higherContacts, toremove)
         }
     }
+
+    _testResetBounds() {
+        resetminx = this._topEntity.minx == this.minx
+        resetmaxx = this._topEntity.maxx == this.maxx
+        resetminy = this._topEntity.miny == this.miny
+        resetmaxy = this._topEntity.maxy == this.maxy
+    }
+    _resetBounds() {
+        if(resetminx) { this._topEntity._resetMinx() }
+        if(resetmaxx) { this._topEntity._resetMaxx() }
+        if(resetminy) { this._topEntity._resetMiny() }
+        if(resetmaxy) { this._topEntity._resetMaxy() }
+    }
 }
 
 export abstract class SmallBody extends Body {
@@ -267,13 +291,22 @@ export class Rect extends SmallBody {
     get height(): number { return this._height }
 
     set width(val: number) { 
+        this._testResetBounds()
         this._width = val
+        this._resetBounds()
         this._clearContacts()
     }
     set height(val: number) { 
+        this._testResetBounds()
         this._height = val
+        this._resetBounds()
         this._clearContacts()
     }
+
+    get minx(): number { return this._x - this._width/2 }
+    get maxx(): number { return this._x + this._width/2 }
+    get miny(): number { return this._y - this._height/2 }
+    get maxy(): number { return this._y + this._height/2 }
 
     constructor(entity: Entity, args: RectArgs) {
         super(entity, args)
@@ -295,7 +328,9 @@ export class Line extends SmallBody {
 
     get size(): number { return this._size }
     set size(val: number) {
+        this._testResetBounds()
         this._size = val
+        this._resetBounds()
         this._clearContacts()
     }
 
@@ -327,6 +362,11 @@ export class Line extends SmallBody {
             }
         }
     }
+
+    get minx(): number { return this._x - (this._isHorizontal && this._size/2) }
+    get maxx(): number { return this._x + (this._isHorizontal && this._size/2) }
+    get miny(): number { return this._y - (!this._isHorizontal && this._size/2) }
+    get maxy(): number { return this._y + (!this._isHorizontal && this._size/2) }
 
     constructor(entity: Entity, args: LineArgs) {
         super(entity, args)
@@ -385,6 +425,11 @@ export class Grid extends Body {
 
     _newBodies: Body[]
     _oldBodies: Body[]
+    
+    get minx(): number { console.log('Grid.minx not implemented'); return 0 }
+    get maxx(): number { console.log('Grid.maxx not implemented'); return 0 }
+    get miny(): number { console.log('Grid.miny not implemented'); return 0 }
+    get maxy(): number { console.log('Grid.maxy not implemented'); return 0 }
 
     get listener(): GridListener { return this._listener }
     set listener(val: GridListener) { this._listener = val }
@@ -1094,6 +1139,11 @@ export class Grid extends Body {
             subgrid.data[x][y] = _.cloneDeep(data)
         }
         subgrid.shape[x][y] = shape
+
+        this._topEntity._resetMaxx()
+        this._topEntity._resetMinx()
+        this._topEntity._resetMaxy()
+        this._topEntity._resetMiny()
     }
     _setTiles(x: number, y: number, width: number, height: number, info: (x: number, y: number, shape: number, data?) => ({ shape: number, data? } | number)) {
         var small = this._subGrids instanceof SubGrid
@@ -1145,6 +1195,11 @@ export class Grid extends Body {
             for(let b of this._oldBodies) { this._entity.removeBody(b) }
             for(let b of this._newBodies) { this._entity._addBody(b) }
         }
+
+        this._topEntity._resetMaxx()
+        this._topEntity._resetMinx()
+        this._topEntity._resetMaxy()
+        this._topEntity._resetMiny()
     }
     _setTilesInSubGrid(minx: number, maxx: number, miny: number, maxy: number, subgrid: SubGrid, 
                         info: (x: number, y: number, shape: number, data?) => ({ shape: number, data? } | number)) {

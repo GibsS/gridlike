@@ -1,7 +1,10 @@
+import * as _ from 'lodash'
+
 import { Entity, EntityArgs } from './entity'
-import { RectArgs, LineArgs, GridArgs } from './body'
+import { Body, RectArgs, LineArgs, GridArgs } from './body'
 
 import { RaycastResult, QueryResult } from './query'
+import { VBH, SimpleVBH } from '../vbh/vbh'
 import { LayerCollision } from './enums'
 
 export const EPS = 0.001
@@ -15,6 +18,8 @@ export class World {
     _layers: number[]
 
     _ents: Entity[][]
+
+    _vbh: VBH<Entity>
 
     constructor() {
         this._time = 0
@@ -34,6 +39,8 @@ export class World {
         }
 
         this._ents = []
+
+        this._vbh = new SimpleVBH<Entity>()
     }
 
     // ##### TIME
@@ -174,9 +181,27 @@ export class World {
         } else {
             this._ents[entity._level] = [entity]
         }
+        this._addTopEntity(entity)
+    }
+    _addTopEntity(entity: Entity) {
+        this._vbh.insert(entity)
+    }
+    _removeTopEntity(entity: Entity) {
+        this._vbh.remove(entity)
     }
     destroyEntity(entity: Entity) {
-        entity.destroy()
+        if(entity == entity._topEntity) {
+            this._removeTopEntity(entity)
+        }
+        entity._setParent(null, 0)
+        for(let c of _.clone(entity._childs)) {
+            c._setParent(null, 0)
+        }
+        let i = this._ents[entity.level].indexOf(entity)
+        if(i >= 0) {
+            this._ents[entity.level].splice(i, 1)
+        }
+        entity._listener = null
     }
 
     // ##### QUERYING
@@ -190,8 +215,19 @@ export class World {
     // ##### SIMULATION
     simulate(delta: number) {
         this._time += delta
+
+        // I. CALCULATE MOVEMENT OF ALL ENTITIES 
+
+        // II. GET ALL POTENTIAL COLLISION, FILTERED OUT
+
+        // III. SOLVE MOVEMENT OF ALL ENTITIES: DEFINE NEW X, Y, VX, VY AND CONTACTS
     }
     _move(entity: Entity, dx: number, dy: number) {
 
+    }
+
+    // SIMULATION PROCEDURES
+    broadphase(): Body[][] {
+        return null
     }
 }

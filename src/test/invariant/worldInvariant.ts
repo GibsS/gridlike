@@ -32,6 +32,24 @@ export default function invariant(world: World) {
             if(topEntity != ent && ent._allBodies) {
                 assert(ent._allBodies.all().length == 0, "not top entity has no body in all body")
             }
+            if(topEntity == ent) {
+                let minx = topEntity.minx, maxx = topEntity.maxx, miny = topEntity.miny, maxy = topEntity.maxy
+                let aminx = Infinity, aminy = Infinity, amaxx = -Infinity, amaxy = -Infinity, 
+                    count = 0
+                
+                topEntity._forAllBodies(b => {
+                    aminx = Math.min(aminx, b.minx)
+                    aminy = Math.min(aminy, b.miny)
+                    amaxx = Math.max(amaxx, b.maxx)
+                    amaxy = Math.max(amaxy, b.maxy)
+                    count ++
+                })
+
+                assert(
+                    count == 0 || (minx == aminx && maxx == amaxx && miny == aminy && maxy == amaxy), 
+                    "the bounds of an entity must contain exactly the bounds of its bodies"
+                )
+            }
             for(let body of ent.bodies) {
                 assert.equal(ent, body._entity, "entity.bodies._entity == entity")
                 assert.equal(topEntity, body._topEntity, "body._topEntity == entity._topEntity")

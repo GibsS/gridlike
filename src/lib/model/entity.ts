@@ -1,6 +1,6 @@
 import * as _ from 'lodash'
 
-import { VBH, SimpleVBH } from '../vbh/vbh'
+import { VBH, SimpleVBH, IMoveAABB, IAABB } from '../vbh/vbh'
 
 import { Body, RectArgs, LineArgs, GridArgs } from './body'
 import { World } from './world'
@@ -42,7 +42,7 @@ export interface EntityListener {
     gridOverlapEnd?(body: Body, grid: Grid, x: number, y: number, side: string)
 }
 
-export class Entity {
+export class Entity implements IMoveAABB {
 
     _world: World
 
@@ -56,6 +56,7 @@ export class Entity {
 
     _bodies: Body | VBH<Body>
     _allBodies: VBH<Body>
+    _grids: Grid | Grid[]
     
     _x: number
     _y: number
@@ -67,6 +68,14 @@ export class Entity {
     _rightLower: Contact
     _upLower: Contact
     _downLower: Contact
+
+    _minx: number
+    _maxx: number
+    _miny: number
+    _maxy: number
+
+    // FOR VBH 
+    get enabled(): boolean { return true }
 
     get world(): World { return this._world }
     set world(val: World) { console.log("[ERROR] can't set Entity.world") }
@@ -100,15 +109,31 @@ export class Entity {
         if(this._bodies instanceof Body) {
             return this._bodies
         } else {
-            return this._bodies.all().find(b => b instanceof Grid)
+            if(this._grids && this._grids instanceof Grid) {
+                return this._grids
+            } else {
+                return this._bodies.all().find(b => b instanceof Grid)
+            }
         }
     }
     set body(val: Body) { console.log("[ERROR] can't set Entity.body") }
     get bodies(): Body[] {
-        if(this._bodies instanceof Body) {
-            return [this._bodies]
+        if(this._bodies) {
+            if(this._bodies instanceof Body) {
+                return [this._bodies]
+            } else {
+                if(this._grids) {
+                    if(this._grids instanceof Grid) {
+                        return this._bodies.all().filter(b => !b._grid).concat([this._grids])
+                    } else {
+                        return this._bodies.all().filter(b => !b._grid).concat(this._grids)
+                    }
+                } else {
+                    return this._bodies.all().filter(b => !b._grid)
+                }
+            }
         } else {
-            return this._bodies.all().filter(b => !b._grid)
+            return []
         }
     }
     set bodies(val: Body[]) { console.log("[ERROR] can't set Entity.bodies") }
@@ -230,7 +255,7 @@ export class Entity {
                 _.pullAt(b._higherContacts, toremove)
             })
 
-            this._x = val 
+            this._x = val
         }
     }
     set y(val: number) { 
@@ -278,7 +303,7 @@ export class Entity {
                 _.pullAt(b._higherContacts, toremove)
             })
 
-            this._y = val 
+            this._y = val
         }
     }
 
@@ -299,10 +324,15 @@ export class Entity {
         this._forAllBodies(b => {
             if(b._higherContacts) {
                 res.push.apply(res, b._higherContacts.map(c => {
-                    let entityHasBody1 = c.body1._topEntity == this
+                    let entityHasBody1 = c.body1._topEntity == this,
+                        body = entityHasBody1 ? c.body1 : c.body2,
+                        otherBody = entityHasBody1 ? c.body2 : c.body1
+
+                    if(body._grid) { body = body._grid }
+                    if(otherBody._grid) { otherBody = otherBody._grid }
+
                     return {
-                        body: entityHasBody1 ? c.body1 : c.body2,
-                        otherBody: entityHasBody1 ? c.body2 : c.body1,
+                        body, otherBody,
                         side: entityHasBody1 ? (c.isHorizontal ? "right" : "up") : (c.isHorizontal ? "left" : "down")
                     }
                 }))
@@ -312,35 +342,80 @@ export class Entity {
     }
     get leftContact(): RelativeContact {
         return this._leftLower && {
-            body: this._leftLower.body2,
-            otherBody: this._leftLower.body1,
+            body: this._leftLower.body2._grid || this._leftLower.body2,
+            otherBody: this._leftLower.body1._grid || this._leftLower.body1,
             side: "left"
         }
     }
     get rightContact(): RelativeContact {
         return this._rightLower && {
-            body: this._rightLower.body1,
-            otherBody: this._rightLower.body2,
+            body: this._rightLower.body1._grid || this._rightLower.body1,
+            otherBody: this._rightLower.body2._grid || this._rightLower.body2,
             side: "right"
         }
     }
     get upContact(): RelativeContact {
         return this._upLower && {
-            body: this._upLower.body1,
-            otherBody: this._upLower.body2,
+            body: this._upLower.body1._grid || this._upLower.body1,
+            otherBody: this._upLower.body2._grid || this._upLower.body2,
             side: "up"
         }
     }
     get downContact(): RelativeContact {
         return this._downLower && {
-            body: this._downLower.body2,
-            otherBody: this._downLower.body1,
+            body: this._downLower.body2._grid || this._downLower.body2,
+            otherBody: this._downLower.body1._grid || this._downLower.body1,
             side: "down"
         }
     }
 
     get isCrushed(): boolean {
         return false
+    }
+
+    get minx(): number {
+        if(this._minx != null) {
+            return this._minx
+        } else {
+            let tmp = Infinity
+            this._forAllBodies(b => {
+                tmp = Math.min(tmp, b.minx)
+            })
+            return tmp
+        }
+    }
+    get miny(): number {
+        if(this._miny != null) {
+            return this._miny
+        } else {
+            let tmp = Infinity
+            this._forAllBodies(b => {
+                tmp = Math.min(tmp, b.miny)
+            })
+            return tmp
+        }
+    }
+    get maxx(): number {
+        if(this._maxx != null) {
+            return this._maxx
+        } else {
+            let tmp = -Infinity
+            this._forAllBodies(b => {
+                tmp = Math.max(tmp, b.maxx)
+            })
+            return tmp
+        }
+    }
+    get maxy(): number {
+        if(this._maxy != null) {
+            return this._maxy
+        } else {
+            let tmp = -Infinity
+            this._forAllBodies(b => {
+                tmp = Math.max(tmp, b.maxy)
+            })
+            return tmp
+        }
     }
 
     constructor(world: World, args: EntityArgs) {
@@ -407,7 +482,13 @@ export class Entity {
     }
     createGrid(args: GridArgs): Grid {
         let body = new Grid(this, args)
-        this._addBody(body)
+        if(!this._grids) {
+            this._grids = body
+        } else if(this._grids instanceof Grid) {
+            this._grids = [body, this._grids]
+        } else {
+            this._grids.push(body)
+        }
         return body
     }
     removeBody(body: Body) {
@@ -423,6 +504,10 @@ export class Entity {
         if(topEntity._allBodies) {
             topEntity._allBodies.remove(body)
         }
+        if(topEntity._minx == body.minx) { topEntity._resetMinx() }
+        if(topEntity._maxx == body.maxx) { topEntity._resetMaxx() }
+        if(topEntity._miny == body.miny) { topEntity._resetMiny() }
+        if(topEntity._maxy == body.maxy) { topEntity._resetMaxy() }
 
         if(body._higherContacts) {
             let len = body._higherContacts.length
@@ -465,7 +550,13 @@ export class Entity {
         } else if((args as any).size != null) {
             this._addBody(new Line(this, args as LineArgs))
         } else {
-            this._addBody(new Grid(this, args as GridArgs))
+            if(!this._grids) {
+                this._grids = new Grid(this, args as GridArgs)
+            } else if(this._grids instanceof Grid) {
+                this._grids = [this._grids, new Grid(this, args as GridArgs)]
+            } else {
+                this._grids.push(new Grid(this, args as GridArgs))
+            }
         }
     }
     _addBody(body: Body) {
@@ -484,11 +575,18 @@ export class Entity {
         if(topEntity._allBodies) {
             topEntity._allBodies.insert(body)
         }
+
+        if(!(topEntity._bodies instanceof Body)) {
+            topEntity._minx = Math.min(topEntity._minx || Infinity, body.minx)
+            topEntity._maxx = Math.max(topEntity._maxx || -Infinity, body.maxx)
+            topEntity._miny = Math.min(topEntity._miny || Infinity, body.miny)
+            topEntity._maxy = Math.max(topEntity._maxy || -Infinity, body.maxy)
+        }
     }
     _forAllBodies(lambda: (b: Body) => void) {
         if(this._allBodies) {
             this._allBodies.forAll(lambda)
-        } else {
+        } else if(this._bodies) {
             if(this._bodies instanceof Body) {
                 lambda(this._bodies)
             } else {
@@ -497,17 +595,29 @@ export class Entity {
         }
     }
     forBodies(lambda: (b: Body) => void) {
-        if(this._bodies instanceof Body) {
-            lambda(this._bodies)
-        } else {
-            this._bodies.forAll(b => { if(!b._grid) { lambda(b) } })
+        if(this._bodies) {
+            if(this._bodies instanceof Body) {
+                lambda(this._bodies)
+            } else {
+                this._bodies.forAll(b => { if(!b._grid) { lambda(b) } })
+            }
+        }
+
+        if(this._grids) {
+            if(this._grids instanceof Grid) {
+                lambda(this._grids)
+            } else {
+                this._grids.forEach(g => lambda(g))
+            }
         }
     }
     _forBodies(lambda: (b: Body) => void) {
-        if(this._bodies instanceof Body) {
-            lambda(this._bodies)
-        } else {
-            this._bodies.forAll(lambda)
+        if(this._bodies) {
+            if(this._bodies instanceof Body) {
+                lambda(this._bodies)
+            } else {
+                this._bodies.forAll(lambda)
+            }
         }
     }
 
@@ -522,6 +632,7 @@ export class Entity {
     }
 
     _setParent(parent: Entity, parentType: number, keepPosition?: boolean) {
+        // TODO: update bounds
         if(keepPosition == null) {
             keepPosition = true
         }
@@ -562,6 +673,12 @@ export class Entity {
                     let childs = []
                     let child = this
 
+                    let resetminx = false, resetmaxx = false, resetmaxy = false, resetminy = false
+                    this._minx = Infinity
+                    this._maxx = -Infinity
+                    this._miny = Infinity
+                    this._maxy = -Infinity
+
                     while(child) {
                         // MODIFY BODY FIELDS
                         child.bodies.forEach(b => {
@@ -569,9 +686,18 @@ export class Entity {
                             if(this._allBodies) {
                                 this._allBodies.insert(b)
                             }
+                            resetminx = resetminx || topEntity.minx == b.minx
+                            resetmaxx = resetmaxx || topEntity.maxx == b.maxx
+                            resetminy = resetminy || topEntity.miny == b.maxy
+                            resetmaxy = resetmaxy || topEntity.maxy == b.maxy
+
                             b._x -= x
                             b._y -= y
                             b._topEntity = this
+                            this._minx = Math.min(this._minx, b.minx)
+                            this._maxx = Math.max(this._maxx, b.maxx)
+                            this._miny = Math.min(this._miny, b.miny)
+                            this._maxy = Math.max(this._maxy, b.maxy)
                         })
 
                         // CHANGE OWNERSHIP OF CONTACTS
@@ -589,6 +715,12 @@ export class Entity {
                         }
                         child = childs.pop()
                     }
+                    if(resetminx) { topEntity._resetMinx() }
+                    if(resetmaxx) { topEntity._resetMaxx() }
+                    if(resetminy) { topEntity._resetMiny() }
+                    if(resetmaxy) { topEntity._resetMaxy() }
+
+                    this._world._addTopEntity(this)
                 }
 
                 this._parent._childs.splice(this._parent._childs.indexOf(this), 1)
@@ -654,6 +786,7 @@ export class Entity {
                             }
                         }
                     }
+                    this._world._removeTopEntity(this)
                 }
 
                 this._parent = parent
@@ -706,6 +839,8 @@ export class Entity {
                         }
                     }
                 }
+
+                this._world._removeTopEntity(this)
             } else {
                 let topEntity = parent,
                     x = this._x,
@@ -752,6 +887,8 @@ export class Entity {
                     }
                     child = childs.pop()
                 }
+
+                this._world._addTopEntity(this)
             }
             this._parentType = parentType
         }
@@ -764,18 +901,10 @@ export class Entity {
         return ent
     }
     destroyChild(ent: Entity) {
-        ent.destroy()
+        this._world.destroyEntity(ent)
     }
     destroy() {
-        this._setParent(null, 0)
-        for(let c of _.clone(this._childs)) {
-            c._setParent(null, 0)
-        }
-        let i = this._world._ents[this.level].indexOf(this)
-        if(i >= 0) {
-            this._world._ents[this.level].splice(i, 1)
-        }
-        this._listener = null
+        this._world.destroyEntity(this)
     }
 
     move(dx: number, dy: number) {
@@ -809,5 +938,30 @@ export class Entity {
             x: x - this._x - (this._parent != null && this._parent.globalx),
             y: y - this._y - (this._parent != null && this._parent.globaly)
         }
+    }
+
+    _resetMinx() {
+        this._minx = Infinity
+        this._forAllBodies(b => {
+            this._minx = Math.min(this._minx, b.minx)
+        })
+    }
+    _resetMiny() {
+        this._miny = Infinity
+        this._forAllBodies(b => {
+            this._miny = Math.min(this._miny, b.miny)
+        })
+    }
+    _resetMaxx() {
+        this._maxx = -Infinity
+        this._forAllBodies(b => {
+            this._maxx = Math.max(this._maxx, b.maxx)
+        })
+    }
+    _resetMaxy() {
+        this._maxy = -Infinity
+        this._forAllBodies(b => {
+            this._maxy = Math.max(this._maxy, b.maxy)
+        })
     }
 }

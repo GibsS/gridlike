@@ -249,7 +249,7 @@ export declare class World {
 
     // ##### QUERYING
     raycast(x: number, y: number, dx: number, dy: number): RaycastResult
-    queryRect(x: number, y, number, w: number, h: number): QueryResult
+    queryRect(x: number, y, number, width: number, height: number): QueryResult
 
     simulate(delta: number)
 }
