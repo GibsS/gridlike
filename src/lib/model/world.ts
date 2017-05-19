@@ -205,11 +205,14 @@ export class World {
     }
 
     // ##### QUERYING
-    raycast(x: number, y: number, dx: number, dy: number): RaycastResult {
+    raycast(x: number, y: number, dx: number, dy: number): RaycastResult<Body> {
         return null
     }
-    queryRect(x: number, y, number, w: number, h: number): QueryResult {
+    queryRect(x: number, y: number, w: number, h: number): QueryResult<Body> {
         return null
+    }
+    queryPoint(x: number, y: number): QueryResult<Body> {
+        return this.queryRect(x, y, 0, 0)
     }
 
     // ##### SIMULATION

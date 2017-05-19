@@ -1,14 +1,15 @@
 import { Body } from './body'
 
-export interface RaycastResult {
+export interface RaycastResult<X> {
 
     x: number
     y: number
     normal: string
-    body: Body
+    body: X
+    dist: number
 }
 
-export interface QueryResult {
+export interface QueryResult<X> {
 
-    bodies: Body[]
+    bodies: X[]
 }

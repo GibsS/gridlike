@@ -225,6 +225,8 @@ export declare class Grid extends Body {
 
     setTilesShape(arg: any[] | { x: number, y: number, shapes: number[][]})
     clearTileShapes(args: { x: number, y: number }[] | { x: number, y: number, width: number, height: number })
+
+    globalToTile(x: number, y: number): { x: number, y: number }
 }
 
 export declare class World {
@@ -249,7 +251,8 @@ export declare class World {
 
     // ##### QUERYING
     raycast(x: number, y: number, dx: number, dy: number): RaycastResult
-    queryRect(x: number, y, number, width: number, height: number): QueryResult
+    queryRect(x: number, y: number, width: number, height: number): QueryResult
+    queryPoint(x: number, y: number): QueryResult
 
     simulate(delta: number)
 }

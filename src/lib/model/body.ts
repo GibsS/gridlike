@@ -524,6 +524,11 @@ export class Grid extends Body {
         }
     }
 
+
+    globalToTile(x: number, y: number): { x: number, y: number } {
+        return { x: Math.floor(x - this._x - this._xdownLeft), y: Math.floor(y - this._y - this._ydownLeft) }
+    }
+
     getTile(x: number, y: number): { shape: number, data: any } {
         x -= this._xdownLeft
         y -= this._ydownLeft
