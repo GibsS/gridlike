@@ -1,6 +1,12 @@
 import { World, Entity } from '../lib'
 import { Testbed } from './'
 
+export interface ScriptDescriptor {
+    id: string
+    name: string
+    script: () => Script
+}
+
 export abstract class Script {
 
     _world: World

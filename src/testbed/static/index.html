@@ -3,9 +3,54 @@
     <meta content="text/html;charset=utf-8" http-equiv="Content-Type">
     <meta content="utf-8" http-equiv="encoding">
     <title>Grid - Testbed</title>
+
+    <script src="testbed.js" type=""></script>
+    <style>
+        body {
+            overflow: hidden;
+        }
+        h1, h2, h3 {
+            margin: 5px;
+        }
+        #container {
+            display: flex;
+            flex-direction: row;
+            margin: 5px;
+            height: 100%;
+            width: 100%;
+        }
+        #canvas {
+            width: 70%;
+            margin-right: 5px;
+            border: 1px solid black; 
+        }
+        #params {
+            padding: 5px;
+            width: 30%;
+            border: 1px solid black; 
+            overflow-y: scroll;
+        }
+    </style>
 </head>
 <body>
-    <canvas id="canvas"></canvas>
-    <script src="testbed.js" type=""></script>
+    <div id="container">
+        <canvas id="canvas"></canvas>
+        <div id="params">
+            <h1>GRID - Testbed</h1>
+            <h2>Controls</h2>
+            <button id="play-btn">Play</button>
+            <button id="step-ntn">Step</button>
+            <button id="reset-btn">Reset</button> <br>
+
+            <input type="radio" id="show-entity-coord-radio">Show entity coordinates<br>
+            <input type="radio" id="show-body-coord-radio">Show body coordinates<br>
+            <input type="radio" id="show-contacts-radio">Show contacts <br>
+            <hr>
+            <h2>Scripts</h2>
+            <div id="scripts">
+
+            <div>
+        </div>
+    </div>
 </body>
 </html>

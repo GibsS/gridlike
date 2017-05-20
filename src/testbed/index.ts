@@ -1,6 +1,7 @@
 import * as _ from 'lodash'
+import * as mousetrap from 'mousetrap'
 
-import { Script } from './script'
+import { Script, ScriptDescriptor } from './script'
 
 import { World, Entity, Body, BodyType, Rect, Line, Grid } from '../lib'
 
@@ -22,17 +23,65 @@ export class Testbed {
 
     entities: Entity[]
 
+    _step: number
+    _frameStep: number
+    _lastUpdateTime: number
+
+    _displayTotal: number
+    _logicTotal: number
+    _physicsTotal: number
+
+    // STATS
+    _avgDisplayTime: number
+    _avgLogicTime: number
+    _avgPhysicTime: number
+    _fps: number
+
     constructor() {
         this.canvas = document.getElementById("canvas") as HTMLCanvasElement
-        this.canvas.width = 1000
-        this.canvas.height = 600
         this.ctx = this.canvas.getContext('2d')
 
+        let dpr = window.devicePixelRatio || 1,
+            bsr = (this.ctx as any).webkitBackingStorePixelRatio ||
+                  (this.ctx as any).mozBackingStorePixelRatio ||
+                  (this.ctx as any).msBackingStorePixelRatio ||
+                  (this.ctx as any).oBackingStorePixelRatio ||
+                  (this.ctx as any).backingStorePixelRatio || 1,
+            ratio = dpr/bsr
+        
+        this.canvas.width = this.canvas.offsetWidth
+        this.canvas.height = this.canvas.offsetHeight
+
         this.scripts = new Map<string, (() => Script)>()
+
+        window.onresize = (e) => {
+            this.canvas.width = this.canvas.offsetWidth
+            this.canvas.height = this.canvas.offsetHeight
+        }
+
+        mousetrap.bind('j', () => {
+            this.xCam -= 0.1
+        })
+        mousetrap.bind('l', () => {
+            this.xCam += 0.1
+        })
+        mousetrap.bind('k', () => {
+            this.yCam -= 0.1
+        })
+        mousetrap.bind('i', () => {
+            this.yCam += 0.1
+        })
+        mousetrap.bind('u', () => {
+            this.zoom += 2
+        })
+        mousetrap.bind('o', () => {
+            this.zoom = Math.max(0, this.zoom - 2)
+        })
     }
 
-    addScript(script: string, factory: () => Script) {
-        this.scripts.set(script, factory)
+    addScript(script: ScriptDescriptor) {
+        console.log(script)
+        this.scripts.set(script.id, script.script)
     }
     start(script: string) {
         if(script != null) {
@@ -49,16 +98,34 @@ export class Testbed {
         this.yCam = 0
         this.zoom = 40
 
+        this._step = 0
+        this._frameStep = 0
+        this._lastUpdateTime = 0
+
+        this._displayTotal = 0
+        this._logicTotal = 0
+        this._physicsTotal = 0
+
+        // STATS
+        this._avgDisplayTime = 0
+        this._avgLogicTime = 0
+        this._avgPhysicTime = 0
+        this._fps = 0
+
         this.script.init()
         this._update()
     }
     _update() {
         if(this.script != null) {
             requestAnimationFrame(() => {
+                let t0 = performance.now()
+                
                 let time = new Date().getTime()
                 this.world.simulate((time - this.lastUpdate)/1000)
                 this.script.update(time, (time - this.lastUpdate)/1000)
                 this.lastUpdate = time
+
+                let t1 = performance.now()
 
                 this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height)
 
@@ -128,15 +195,41 @@ export class Testbed {
                                 }
                                 break
                             }
-                            case BodyType.GRID: {
-
-                                break
-                            }
                         }
                     })
                 }
+                this.ctx.font="Arial 15px";
+                this.ctx.fillText("Physic (time/step): " + this._avgPhysicTime.toFixed(3), 10, this.canvas.offsetHeight - 10)
+                this.ctx.fillText("Display (time/step): " + this._avgDisplayTime.toFixed(3), 10, this.canvas.offsetHeight - 30)
+                this.ctx.fillText("Logic (time/step): " + this._avgLogicTime.toFixed(3), 10, this.canvas.offsetHeight - 50)
+                this.ctx.fillText("FPS: " + this._fps, 10, this.canvas.offsetHeight - 70)
+
+                let t2 = performance.now()
 
                 this._update()
+
+                let t3 = performance.now()
+
+                this._physicsTotal += t1 - t0
+                this._displayTotal += t2 - t1
+                this._logicTotal += t3 - t2
+
+                this._step += 1
+                this._frameStep += 1
+
+                if(this.world.time - this._lastUpdateTime > 1) {
+                    this._avgPhysicTime = (this._physicsTotal/this._frameStep)
+                    this._avgDisplayTime = (this._displayTotal/this._frameStep)
+                    this._avgLogicTime = (this._logicTotal/this._frameStep)
+
+                    this._physicsTotal = 0
+                    this._displayTotal = 0
+                    this._logicTotal = 0
+                    
+                    this._fps = this._frameStep
+                    this._frameStep = 0
+                    this._lastUpdateTime = this.world.time
+                }
             })
         }
     }
@@ -160,11 +253,15 @@ import GridScript2 from './scripts/gridScript2'
 import GridScript3 from './scripts/gridScript3'
 import { GridScript4, GridScript5 } from './scripts/gridScripts'
 
-let testbed = new Testbed()
-testbed.addScript(TestScript.name, TestScript.script)
-testbed.addScript(GridScript1.name, GridScript1.script)
-testbed.addScript(GridScript2.name, GridScript2.script)
-testbed.addScript(GridScript3.name, GridScript3.script)
-testbed.addScript(GridScript4.name, GridScript4.script)
-testbed.addScript(GridScript5.name, GridScript5.script)
-testbed.start(GridScript5.name)
+window.onload = () => {
+    let testbed = new Testbed()
+
+    testbed.addScript(TestScript)
+    testbed.addScript(GridScript1)
+    testbed.addScript(GridScript2)
+    testbed.addScript(GridScript3)
+    testbed.addScript(GridScript4)
+    testbed.addScript(GridScript5)
+
+    testbed.start(GridScript5.id)
+}

@@ -1,4 +1,4 @@
-import { Script } from '../script'
+import { Script, ScriptDescriptor } from '../script'
 import { Testbed } from '../'
 import { Entity, Grid } from '../../lib'
 
@@ -31,4 +31,4 @@ class TestScript extends Script {
     }
 }
 
-export default { name: "TestScript", script: () => new TestScript() }
+export default { id: "TestScript", name: "A small test script", script: () => new TestScript() } as ScriptDescriptor
