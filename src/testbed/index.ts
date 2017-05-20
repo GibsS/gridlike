@@ -146,6 +146,24 @@ export class Testbed {
                 this.zoom += 2
             }
         }, true)
+
+        this.canvas.onclick = (e) => {
+            if(this.zoom != 0 && this.world && this.script) {
+                let x = (e.clientX - this.canvas.width/2) / this.zoom + this.xCam
+                let y = -(e.clientY - this.canvas.height/2) / this.zoom + this.yCam
+                let query = this.world.queryPoint(x, y)
+
+                if(query) {
+                    if(query.bodies.length > 0) {
+                        this.script.click(x, y, query.bodies[0])
+                    } else {
+                        this.script.click(x, y, null)
+                    }
+                } else {
+                    this.script.click(x, y, null)
+                }
+            }
+        }
     }
 
     addScript(script: ScriptDescriptor) {

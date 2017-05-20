@@ -1,4 +1,4 @@
-import { World, Entity } from '../lib'
+import { World, Entity, Body } from '../lib'
 import { Testbed } from './'
 
 export interface ScriptDescriptor {
@@ -20,4 +20,5 @@ export abstract class Script {
 
     abstract init()
     abstract update(time: number, delta: number)
+    click(x: number, y: number, body: Body) { }
 }

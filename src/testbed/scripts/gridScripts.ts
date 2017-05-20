@@ -2,7 +2,7 @@ import * as _ from 'lodash'
 
 import { Script, ScriptDescriptor } from '../script'
 import { Testbed } from '../'
-import { Entity, Grid } from '../../lib'
+import { Entity, Grid, Body } from '../../lib'
 
 class Script4 extends Script {
 
@@ -90,6 +90,9 @@ class Script5 extends Script {
         //this.rect.x += delta * 1
         // this.testbed.xCam += delta * 10
         //console.log(this.line.globalx, this.line.globaly, this.rect.globalx, this.rect.globaly)
+    }
+    click(x: number, y: number, body: Body) {
+        console.log(x, y)
     }
 }
 
