@@ -74,6 +74,9 @@ export class Entity implements IMoveAABB {
     _miny: number
     _maxy: number
 
+    // TMP
+    name: string
+
     // FOR VBH 
     get enabled(): boolean { return true }
 
