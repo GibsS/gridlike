@@ -18,6 +18,7 @@ class Script4 extends Script {
             width: 20,
             height: 50
         }))
+        entity.name = "grid"
         this.grid = entity.body as Grid
         
         for(let i = -300; i <= 300; i++) {
@@ -50,6 +51,7 @@ class Script5 extends Script {
                 info: _.range(0, 10).map(i => _.range(0, 10).map(j => 1))
             }
         }))
+        entity.name = "grid"
         this.grid = entity.body as Grid
 
         this.grid.clearTiles({ x: -2, y: -2, width: 4, height: 4 })
@@ -62,6 +64,21 @@ class Script5 extends Script {
         this.grid.setTileShape(0, 7, 3)
         this.grid.setTileShape(-1, 7, 2)
 
+        this.rect = this.r(this.world.createRect({
+            x: 4,
+            y: 3,
+            width: 1,
+            height: 1
+        }))
+
+        let contact = {
+            body1: this.rect.body,
+            body2: this.grid,
+            isHorizontal: true
+        }
+        this.rect._leftLower = contact
+        this.grid._higherContacts = [contact]
+
         // for(let i = -300; i <= 300; i++) {
         //     if(i % 10 == 0) {
         //         this.grid.setTileShape(i, 1, 1)
@@ -70,6 +87,7 @@ class Script5 extends Script {
         // }
     }
     update(time: number, delta: number) {
+        //this.rect.x += delta * 1
         // this.testbed.xCam += delta * 10
         //console.log(this.line.globalx, this.line.globaly, this.rect.globalx, this.rect.globaly)
     }

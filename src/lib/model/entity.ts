@@ -238,24 +238,27 @@ export class Entity implements IMoveAABB {
                 this._rightLower = null
             }
             this._forAllBodies(b => {
-                let len = b._higherContacts.length,
-                    toremove = []
+                // TODO: move bodies in top parent
+                if(b._higherContacts) {
+                    let len = b._higherContacts.length,
+                        toremove = []
 
-                for(let i = 0; i < len; i++) {
-                    let c = b._higherContacts[i]
-                    if(c.body1 == b) {
-                        if(c.isHorizontal) {
-                            c.body2._topEntity._leftLower = null
-                            toremove.push(i)
-                        }
-                    } else {
-                        if(c.isHorizontal) {
-                            c.body1._topEntity._rightLower = null
-                            toremove.push(i)
+                    for(let i = 0; i < len; i++) {
+                        let c = b._higherContacts[i]
+                        if(c.body1 == b) {
+                            if(c.isHorizontal) {
+                                c.body2._topEntity._leftLower = null
+                                toremove.push(i)
+                            }
+                        } else {
+                            if(c.isHorizontal) {
+                                c.body1._topEntity._rightLower = null
+                                toremove.push(i)
+                            }
                         }
                     }
+                    _.pullAt(b._higherContacts, toremove)
                 }
-                _.pullAt(b._higherContacts, toremove)
             })
 
             this._x = val
