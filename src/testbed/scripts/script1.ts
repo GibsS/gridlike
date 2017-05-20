@@ -31,4 +31,4 @@ class TestScript extends Script {
     }
 }
 
-export default { id: "TestScript", name: "A small test script", script: () => new TestScript() } as ScriptDescriptor
+export default { id: "TestScript", name: "A small test script", description: "description", script: () => new TestScript() } as ScriptDescriptor

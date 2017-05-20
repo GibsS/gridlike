@@ -52,4 +52,4 @@ class TestScript extends Script {
     }
 }
 
-export default { id: "GridScript1", name: "Grid script 1", script: () => new TestScript() } as ScriptDescriptor
+export default { id: "GridScript1", name: "Grid script 1", description: "Some description", script: () => new TestScript() } as ScriptDescriptor

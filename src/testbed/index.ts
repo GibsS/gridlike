@@ -382,16 +382,43 @@ export class Testbed {
                 }
             })
         }
-        this.ctx.font="15px Arial";
+        this.ctx.font="15px Arial"
         this.ctx.fillText("Physic (time/step): " + this._avgPhysicTime.toFixed(3), 10, this.canvas.offsetHeight - 10)
-        this.ctx.fillText("Display (time/step): " + this._avgDisplayTime.toFixed(3), 10, this.canvas.offsetHeight - 30)
-        this.ctx.fillText("Logic (time/step): " + this._avgLogicTime.toFixed(3), 10, this.canvas.offsetHeight - 50)
-        this.ctx.fillText("FPS: " + this._fps, 10, this.canvas.offsetHeight - 70)
-        this.ctx.fillText("Step: " + this._step, 10, this.canvas.offsetHeight - 90)
-        this.ctx.fillText("World time: " + this.world.time.toFixed(1), 10, this.canvas.offsetHeight - 110)
+        this.ctx.fillText("Display (time/step): " + this._avgDisplayTime.toFixed(3), 10, this.canvas.offsetHeight - 25)
+        this.ctx.fillText("Logic (time/step): " + this._avgLogicTime.toFixed(3), 10, this.canvas.offsetHeight - 40)
+        this.ctx.fillText("FPS: " + this._fps, 10, this.canvas.offsetHeight - 55)
+        this.ctx.fillText("Step: " + this._step, 10, this.canvas.offsetHeight - 70)
+        this.ctx.fillText("World time: " + this.world.time.toFixed(1), 10, this.canvas.offsetHeight - 85)
 
-        this.ctx.font="25px Arial";
-        this.ctx.fillText(this.scriptDescriptor.name, 10, 20)
+        this.ctx.font="20px Arial"
+        this.ctx.fillText(this.scriptDescriptor.name, 10, 30)
+        this.ctx.font="15px Arial"
+        let d = this.scriptDescriptor.description,
+            begin = 0,
+            row = 0
+        if(d) {
+            while(begin != -1) {
+                let br = d.indexOf('\n', begin)
+                if(br == -1) {
+                    if(d.length - begin < 30) {
+                        this.ctx.fillText(d.substring(begin), 10, 55 + row * 15)
+                        begin = -1
+                    } else {
+                        this.ctx.fillText(d.substring(begin, begin + 30), 10, 55 + row * 15)
+                        begin += 30
+                    }
+                } else {
+                    if(br - begin < 30) {
+                        this.ctx.fillText(d.substring(begin, br), 10, 55 + row * 15)
+                        begin = br + 1
+                    } else {
+                        this.ctx.fillText(d.substring(begin, begin + 30), 10, 55 + row * 15)
+                        begin += 30
+                    }
+                }
+                row++
+            }
+        }
     }
 
     registerEntity(entity: Entity): Entity {

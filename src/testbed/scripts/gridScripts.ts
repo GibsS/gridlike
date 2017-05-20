@@ -93,5 +93,10 @@ class Script5 extends Script {
     }
 }
 
-export const GridScript4 = { id: "GridScript4", name: "Grid script 4", script: () => new Script4() } as ScriptDescriptor
-export const GridScript5 = { id: "GridScript5", name: "Grid script 5", script: () => new Script5() } as ScriptDescriptor
+export const GridScript4 = { id: "GridScript4", name: "Grid script 4", description: "Some description", script: () => new Script4() } as ScriptDescriptor
+export const GridScript5 = { 
+    id: "GridScript5",
+    name: "Grid script 5", 
+    description: "Some description\nA: Ok\nB: test\bntesttesttesttesttestesttestestestestestestestestestestestsetestestestse", 
+    script: () => new Script5() 
+} as ScriptDescriptor
