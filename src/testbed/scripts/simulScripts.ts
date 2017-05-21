@@ -17,7 +17,7 @@ class Script1 extends Script {
     init() {
         this.rect = this.r(this.world.createRect({
             x: 0,
-            y: 5,
+            y: 2,
             width: 1,
             height: 1
         }))

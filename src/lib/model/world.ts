@@ -219,9 +219,9 @@ export class World {
     simulate(delta: number) {
         this._time += delta
 
-        // I. CALCULATE MOVEMENT OF ALL ENTITIES 
+        // I. GET ALL POTENTIAL COLLISION, FILTERED OUT
 
-        // II. GET ALL POTENTIAL COLLISION, FILTERED OUT
+        // II. CALCULATE MOVEMENT OF ALL ENTITIES 
 
         // III. SOLVE MOVEMENT OF ALL ENTITIES: DEFINE NEW X, Y, VX, VY AND CONTACTS
     }
