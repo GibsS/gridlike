@@ -46,7 +46,6 @@ export abstract class Body implements IAABB {
 
     _grid: Grid
     _entity: Entity
-    _topEntity: Entity
 
     _enabled: boolean
 
@@ -58,6 +57,7 @@ export abstract class Body implements IAABB {
 
     get entity(): Entity { return this._entity }
     set entity(val: Entity) { console.log("[ERROR] can't set entity") }
+    get _topEntity(): Entity { return this._entity._topEntity }
 
     get enabled(): boolean { return this._enabled }
     set enabled(val: boolean) {
@@ -67,19 +67,11 @@ export abstract class Body implements IAABB {
         this._enabled = val
     }
 
-    get x(): number { 
-        let topParent = this._entity, x = this._x
-        while(topParent != this._topEntity) { x -= topParent._x }
-        return x 
-    }
-    get y(): number {  
-        let topParent = this._entity, y = this._y
-        while(topParent != this._topEntity) { y -= topParent._y }
-        return y
-    }
+    get x(): number { return this._x - this._topEntity._x + this._entity._x }
+    get y(): number { return this._y - this._topEntity._y + this._entity._y }
 
-    get globalx(): number { return this._x + this._topEntity.globalx }
-    get globaly(): number { return this._y + this._topEntity.globaly }
+    get globalx(): number { return this._x + this._topEntity._x }
+    get globaly(): number { return this._y + this._topEntity._y }
 
     set x(val: number) { 
         let x = this.x, topEntity = this._entity
@@ -137,7 +129,6 @@ export abstract class Body implements IAABB {
 
     constructor(entity: Entity, args?: BodyArgs) {
         if(args) {
-            this._topEntity = entity._topEntity
             this._entity = entity
 
             this._x = args.x || 0
@@ -801,7 +792,6 @@ export class Grid extends Body {
         } else {
             let newBody = new Line(null, null)
             newBody._entity = this._entity
-            newBody._topEntity = this._entity._topEntity
 
             newBody._x = x + xgridOffset
             newBody._y = rely/2 + body._y - body._size/2
@@ -856,7 +846,6 @@ export class Grid extends Body {
         } else {
             let newBody = new Line(null, null)
             newBody._entity = this._entity
-            newBody._topEntity = this._entity._topEntity
 
             newBody._x = relx/2 + body._x - body._size/2
             newBody._y = y + ygridOffset
@@ -921,7 +910,6 @@ export class Grid extends Body {
         if(!upGrow) {
             let newBody = new Line(null, null)
             newBody._entity = this._entity
-            newBody._topEntity = this._entity._topEntity
 
             newBody._x = x + xgridOffset
             newBody._y = y + 0.5 + ygridOffset
@@ -982,7 +970,6 @@ export class Grid extends Body {
         if(!upGrow) {
             let newBody = new Line(null, null)
             newBody._entity = this._entity
-            newBody._topEntity = this._entity._topEntity
 
             newBody._x = x + 0.5 + xgridOffset
             newBody._y = y + ygridOffset

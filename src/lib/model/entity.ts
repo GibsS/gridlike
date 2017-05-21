@@ -51,6 +51,7 @@ export class Entity implements IMoveAABB {
     _parent: Entity // a rect of higher level
     _parentType: number // 0: static, 1: follow
     _childs: Entity[]
+    _topEntity: Entity
 
     _level: number
 
@@ -90,13 +91,6 @@ export class Entity implements IMoveAABB {
     get parent(): Entity { return this._parent }
     set parent(val: Entity) { this._setParent(val, this._parentType) }
 
-    get _topEntity(): Entity {
-        let topParent: Entity = this
-        while(topParent._parent && topParent._parentType == 0) {
-            topParent = topParent._parent
-        }
-        return topParent
-    }
     get parentType(): string { return this._parentType == 0 ? "static" : "follow" }
     set parentType(val: string) {
         if(this._parent != null) {
@@ -205,15 +199,15 @@ export class Entity implements IMoveAABB {
     }
 
     // POSITIONNING
-    get globalx(): number { return this._x + (this._parent != null && this._parent.globalx) }
-    get globaly(): number { return this._y + (this._parent != null && this._parent.globaly) }
+    get x(): number { return this._x - (this._parent != null && this._parent.globalx) }
+    get y(): number { return this._y - (this._parent != null && this._parent.globaly) }
 
-    set globalx(val: number) { this.x = val - (this._parent != null && this._parent.globalx) }
-    set globaly(val: number) { this.y = val - (this._parent != null && this._parent.globaly) }
+    set x(val: number) { this.globalx = val + (this._parent != null && this._parent.globalx) }
+    set y(val: number) { this.globaly = val + (this._parent != null && this._parent.globaly) }
 
-    get x(): number { return this._x }
-    get y(): number { return this._y }
-    set x(val: number) {
+    get globalx(): number { return this._x }
+    get globaly(): number { return this._y }
+    set globalx(val: number) {
         if(this._x != val) {
             // TODO: check if vertical contact is lost
             if(this._leftLower) {
@@ -264,7 +258,7 @@ export class Entity implements IMoveAABB {
             this._x = val
         }
     }
-    set y(val: number) { 
+    set globaly(val: number) { 
         if(this._y != val) {
             // TODO: check if horizontal contact is lost
             if(this._upLower) {
@@ -426,6 +420,8 @@ export class Entity implements IMoveAABB {
 
     constructor(world: World, args: EntityArgs) {
         this._world = world
+
+        this._topEntity = this
 
         this._x = args.x
         this._y = args.y
@@ -649,9 +645,9 @@ export class Entity implements IMoveAABB {
                 // REMOVE PARENT - START
                 // #################################
                 // REPOSITION
-                if(keepPosition) {
-                    this._x += this._parent.globalx
-                    this._y += this._parent.globaly
+                if(!keepPosition) {
+                    this._x -= this._parent.globalx
+                    this._y -= this._parent.globaly
                 }
 
                 // ADAPT SPEED
@@ -686,6 +682,7 @@ export class Entity implements IMoveAABB {
                     this._maxy = -Infinity
 
                     while(child) {
+                        child._topEntity = this
                         // MODIFY BODY FIELDS
                         child.bodies.forEach(b => {
                             topEntity._allBodies.remove(b)
@@ -699,7 +696,6 @@ export class Entity implements IMoveAABB {
 
                             b._x -= x
                             b._y -= y
-                            b._topEntity = this
                             this._minx = Math.min(this._minx, b.minx)
                             this._maxx = Math.max(this._maxx, b.maxx)
                             this._miny = Math.min(this._miny, b.miny)
@@ -741,9 +737,9 @@ export class Entity implements IMoveAABB {
                 // #################################
                 // SET PARENT - START
                 // #################################
-                if(keepPosition) {
-                    this._x -= parent.globalx
-                    this._y -= parent.globaly
+                if(!keepPosition) {
+                    this._x += parent.globalx
+                    this._y += parent.globaly
                 }
 
                 this._vx -= parent.globalvx
@@ -762,7 +758,6 @@ export class Entity implements IMoveAABB {
                     for(let b of this.bodies) {
                         b._x += x
                         b._y += y
-                        b._topEntity = topEntity
                     }
 
                     // IF HAS STATIC CHILD, NEEDS A VBH
@@ -779,7 +774,7 @@ export class Entity implements IMoveAABB {
                         topEntity._allBodies.insert(b)
                         b._x += x
                         b._y += y
-                        b._topEntity = topEntity
+                        b._entity._topEntity = topEntity
                     }
 
                     // CHANGE OWNERSHIP OF CONTACTS
@@ -832,7 +827,7 @@ export class Entity implements IMoveAABB {
                     topEntity._allBodies.insert(b)
                     b._x += x
                     b._y += y
-                    b._topEntity = topEntity
+                    b._entity._topEntity = topEntity
                 }
 
                 // CHANGE OWNERSHIP OF CONTACTS
@@ -876,7 +871,7 @@ export class Entity implements IMoveAABB {
                         }
                         b._x -= x
                         b._y -= y
-                        b._topEntity = this
+                        b._entity._topEntity = this
                     })
 
                     // CHANGE OWNERSHIP OF CONTACTS
@@ -917,10 +912,10 @@ export class Entity implements IMoveAABB {
         this._world._move(this, dx, dy)
     }
     moveToGlobal(x: number, y: number) {
-        this.move(x - this.globalx, y - this.globaly)
+        this.move(x - this._x, y - this._y)
     }
     moveToLocal(x: number, y: number) {
-        this.move(x - this._x, y - this._y)
+        this.move(x - this.x, y - this.y)
     }
 
     localToGlobal(x: number | { x: number, y: number }, y?: number): { x: number, y: number } {
@@ -930,8 +925,8 @@ export class Entity implements IMoveAABB {
         }
 
         return {
-            x: x + this._x + (this._parent != null && this._parent.globalx),
-            y: y + this._y + (this._parent != null && this._parent.globaly)
+            x: x + this._x,
+            y: y + this._y
         }
     }
     globalToLocal(x: number | { x: number, y: number }, y?: number): { x: number, y: number } {
@@ -941,8 +936,8 @@ export class Entity implements IMoveAABB {
         }
         
         return {
-            x: x - this._x - (this._parent != null && this._parent.globalx),
-            y: y - this._y - (this._parent != null && this._parent.globaly)
+            x: x - this._x,
+            y: y - this._y
         }
     }
 
