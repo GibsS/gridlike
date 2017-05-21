@@ -20,5 +20,12 @@ export abstract class Script {
 
     abstract init()
     abstract update(time: number, delta: number)
+
     click(x: number, y: number, body: Body) { }
+    keyDown(keys: string, callback: () => void) {
+        this._testbed.bindKeys(keys, callback)
+    }
+    keyUp(keys: string, callback: () => void) {
+        this._testbed.bindKeysUp(keys, callback)
+    }
 }

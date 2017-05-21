@@ -74,24 +74,7 @@ export class Testbed {
         }
 
         // KEY INPUT
-        mousetrap.bind('j', () => {
-            this.xCam -= 5 / this.zoom
-        })
-        mousetrap.bind('l', () => {
-            this.xCam += 5 / this.zoom
-        })
-        mousetrap.bind('k', () => {
-            this.yCam -= 5 / this.zoom
-        })
-        mousetrap.bind('i', () => {
-            this.yCam += 5 / this.zoom
-        })
-        mousetrap.bind('u', () => {
-            this.zoom += 2
-        })
-        mousetrap.bind('o', () => {
-            this.zoom = Math.max(0, this.zoom - 2)
-        })
+        this.resetKeys()
 
         // BUTTONS 
         let playBtn = document.getElementById("play-btn"),
@@ -166,6 +149,34 @@ export class Testbed {
         }
     }
 
+    bindKeys(key: string, callback: () => void) {
+        mousetrap.bind(key, callback)
+    }
+    bindKeysUp(key: string, callback: () => void) {
+        mousetrap.bind(key, callback, 'keyup')
+    }
+    resetKeys() {
+        mousetrap.reset();
+        mousetrap.bind('j', () => {
+            this.xCam -= 5 / this.zoom
+        })
+        mousetrap.bind('l', () => {
+            this.xCam += 5 / this.zoom
+        })
+        mousetrap.bind('k', () => {
+            this.yCam -= 5 / this.zoom
+        })
+        mousetrap.bind('i', () => {
+            this.yCam += 5 / this.zoom
+        })
+        mousetrap.bind('u', () => {
+            this.zoom += 2
+        })
+        mousetrap.bind('o', () => {
+            this.zoom = Math.max(0, this.zoom - 2)
+        })
+    }
+
     addScript(script: ScriptDescriptor) {
         this.scripts.set(script.id, script)
         let a = document.createElement('button')
@@ -179,6 +190,7 @@ export class Testbed {
         if(script != null) {
             this.stop()
         }
+        this.resetKeys()
         document.getElementById("play-btn").innerText = "Pause"
         
         this.scriptDescriptor = this.scripts.get(script)
@@ -447,21 +459,18 @@ export class Testbed {
     }
 }
 
-import TestScript from './scripts/script1'
-import GridScript1 from './scripts/gridScript1'
-import GridScript2 from './scripts/gridScript2'
-import GridScript3 from './scripts/gridScript3'
-import { GridScript4, GridScript5 } from './scripts/gridScripts'
+import { GridScript1, GridScript2, GridScript3, GridScript4 } from './scripts/gridScripts'
+import { SimulScript1 } from './scripts/simulScripts'
 
 window.onload = () => {
     let testbed = new Testbed()
 
-    testbed.addScript(TestScript)
     testbed.addScript(GridScript1)
     testbed.addScript(GridScript2)
     testbed.addScript(GridScript3)
     testbed.addScript(GridScript4)
-    testbed.addScript(GridScript5)
 
-    testbed.start(GridScript5.id)
+    testbed.addScript(SimulScript1)
+
+    testbed.start(SimulScript1.id)
 }
