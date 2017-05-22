@@ -78,6 +78,11 @@ export class Entity implements IMoveAABB {
     // TMP
     name: string
 
+    // SIMULATION
+    _potContacts: Body[][] = []
+    _oldx: number
+    _oldy: number
+
     // FOR VBH 
     get enabled(): boolean { return true }
 

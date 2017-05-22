@@ -1,10 +1,10 @@
 import * as _ from 'lodash'
 
 import { Entity, EntityArgs } from './entity'
-import { Body, RectArgs, LineArgs, GridArgs } from './body'
+import { Body, SmallBody, RectArgs, LineArgs, GridArgs } from './body'
 
 import { RaycastResult, QueryResult } from './query'
-import { VBH, SimpleVBH } from '../vbh/vbh'
+import { MoveVBH, SimpleMoveVBH, VBH } from '../vbh/vbh'
 import { LayerCollision } from './enums'
 
 export const EPS = 0.001
@@ -19,7 +19,7 @@ export class World {
 
     _ents: Entity[][]
 
-    _vbh: VBH<Entity>
+    _vbh: MoveVBH<Entity>
 
     constructor() {
         this._time = 0
@@ -40,7 +40,7 @@ export class World {
 
         this._ents = []
 
-        this._vbh = new SimpleVBH<Entity>()
+        this._vbh = new SimpleMoveVBH<Entity>()
     }
 
     // ##### TIME
@@ -220,10 +220,112 @@ export class World {
         this._time += delta
 
         // I. GET ALL POTENTIAL COLLISION, FILTERED OUT
+        let overlaps = this._vbh.update(delta)
 
-        // II. CALCULATE MOVEMENT OF ALL ENTITIES 
+        let overlapBodies: SmallBody[][] = []
+        overlaps.forEach(pair => {
+            if(pair[0]._bodies instanceof SmallBody) {
+                if(pair[1]._bodies instanceof SmallBody) {
+                    overlapBodies.push([pair[0]._bodies as SmallBody, pair[1]._bodies as SmallBody])
+                } else {
+                    let vbh = pair[1]._allBodies || pair[1]._bodies as VBH<Body>
+                    overlapBodies.push.apply(overlapBodies, vbh.collideAABB(
+                        pair[0]._bodies as SmallBody,
+                        pair[1].globalx, pair[1].globaly, pair[1].globalvx, pair[1].globalvy,
+                        pair[0].globalx, pair[0].globaly, pair[0].globalvx, pair[0].globalvy
+                    ))
+                }
+            } else {
+                if(pair[1]._bodies instanceof Body) {
+                    let vbh = pair[0]._allBodies || pair[0]._bodies as VBH<Body>
+                    overlapBodies.push.apply(overlapBodies, vbh.collideAABB(
+                        pair[1]._bodies as SmallBody,
+                        pair[0].globalx, pair[0].globaly, pair[0].globalvx, pair[0].globalvy,
+                        pair[1].globalx, pair[1].globaly, pair[1].globalvx, pair[1].globalvy
+                    ))
+                } else {
+                    let vbh1 = pair[0]._allBodies || pair[0]._bodies as VBH<Body>,
+                        vbh2 = pair[1]._allBodies || pair[1]._bodies as VBH<Body>
+                    overlapBodies.push.apply(overlapBodies, vbh1.collideVBH(
+                        vbh2, 
+                        pair[0].globalx, pair[0].globaly, pair[0].globalvx, pair[0].globalvy,
+                        pair[1].globalx, pair[1].globaly, pair[1].globalvx, pair[1].globalvy
+                    ))
+                }
+            }
+        })
 
-        // III. SOLVE MOVEMENT OF ALL ENTITIES: DEFINE NEW X, Y, VX, VY AND CONTACTS
+        overlapBodies = overlapBodies.filter(pair => {
+            let r = this._getLayerRule(pair[0]._layer, pair[1]._layer)
+
+            switch(r) {
+                case 0x3: return true
+                case 0x2: return pair[0]._layerGroup == pair[1]._layerGroup
+                case 0x1: return pair[0]._layerGroup != pair[1]._layerGroup
+                case 0: return false
+            }
+        })
+
+        overlapBodies.forEach(pair => {
+            let ent1 = pair[0]._topEntity, ent2 = pair[1]._topEntity
+            if(ent1._level != ent2._level) {
+                if(ent1._level > ent2._level) {
+                    if ((!ent1._leftLower || (ent1._leftLower.body1 != pair[0] && ent1._leftLower.body2 != pair[0])) &&
+                        (!ent1._rightLower || (ent1._rightLower.body1 != pair[0] && ent1._rightLower.body2 != pair[0])) &&
+                        (!ent1._upLower || (ent1._upLower.body1 != pair[0] && ent1._upLower.body2 != pair[0])) &&
+                        (!ent1._downLower || (ent1._downLower.body1 != pair[0] && ent1._downLower.body2 != pair[0]))) {
+                        ent1._potContacts.push(pair)
+                    }
+                } else {
+                    if ((!ent2._leftLower || (ent2._leftLower.body1 != pair[1] && ent2._leftLower.body2 != pair[1])) &&
+                        (!ent2._rightLower || (ent2._rightLower.body1 != pair[1] && ent2._rightLower.body2 != pair[1])) &&
+                        (!ent2._upLower || (ent2._upLower.body1 != pair[1] && ent2._upLower.body2 != pair[1])) &&
+                        (!ent2._downLower || (ent2._downLower.body1 != pair[1] && ent2._downLower.body2 != pair[1]))) {
+                        ent2._potContacts.push(pair)
+                    }
+                }
+            }
+        })
+
+        // II. SOLVE MOVEMENT OF ALL ENTITIES: DEFINE NEW X, Y, VX, VY AND CONTACTS
+        for(let level in this._ents) {
+            let currentEnts = this._ents[level]
+
+            for(let ent of currentEnts) {
+                // PREPARE FOR NEXT LEVEL (at the beginning?)
+                ent._oldx = ent._x
+                ent._oldy = ent._y
+
+                // CALCULATE SPEED WITH PARENT
+                if(ent._parent) {
+                    ent._vx += (ent._parent._x - ent._parent._oldx) / delta
+                    ent._vy += (ent._parent._y - ent._parent._oldy) / delta
+                }
+
+                while(ent != null) {
+                    // ADJUST SPEED DUE TO LOWER CONTACTS
+
+                    // CALCULATE POTENTIAL COLLISION INFO
+
+                    // DECIDE BEHAVIOUR
+
+                    // DEFINE NEW CONTACTS DUE TO COLLISIONS
+
+                    // REMOVE CONTACTS DUE TO SLIDE OFF
+
+                    // CALCULATE NEW X, Y (END OF COURSE OR ON COLLISION)
+                }
+
+                // CORRECT SPEED FOR PARENT
+                if(ent._parent) {
+                    ent._vx -= (ent._parent._x - ent._parent._oldx) / delta
+                    ent._vy -= (ent._parent._y - ent._parent._oldy) / delta
+                }
+
+                // RESET POTENTIAL CONTACTS
+                ent._potContacts = []
+            }
+        }
     }
     _move(entity: Entity, dx: number, dy: number) {
 
