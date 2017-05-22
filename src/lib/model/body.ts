@@ -2,7 +2,7 @@ import * as _ from 'lodash'
 
 import { IAABB } from '../vbh/vbh'
 import { Entity } from './entity'
-import { RelativeContact, Contact, Overlap } from './contact'
+import { Contact, Overlap } from './contact'
 
 export enum BodyType {
     RECT, LINE, GRID
@@ -102,22 +102,22 @@ export abstract class Body implements IAABB {
         this._topy = val - this._topEntity.globaly
     }
 
-    get contacts(): RelativeContact[] {
+    get contacts(): Contact[] {
         return this._topEntity.contacts.filter(c => c.body == this)
     }
-    get leftContact(): RelativeContact {
+    get leftContact(): Contact {
         let leftContact = this._topEntity.leftContact
         return leftContact && leftContact.body == this && leftContact
     }
-    get rightContact(): RelativeContact {
+    get rightContact(): Contact {
         let rightContact = this._topEntity.rightContact
         return rightContact && rightContact.body == this && rightContact
     }
-    get upContact(): RelativeContact {
+    get upContact(): Contact {
         let upContact = this._topEntity.upContact
         return upContact && upContact.body == this && upContact
     }
-    get downContact(): RelativeContact {
+    get downContact(): Contact {
         let downContact = this._topEntity.downContact
         return downContact && downContact.body == this && downContact
     }
@@ -175,15 +175,9 @@ export abstract class Body implements IAABB {
             let c: Contact = this._topEntity[t]
 
             if(c) {
-                if(c.body1 == this) {
-                    let i = c.body2._higherContacts.indexOf(c)
-                    c.body2._higherContacts.splice(i, 1)
-                    this._topEntity[t] = null
-                } else if(c.body2 == this) {
-                    let i = c.body1._higherContacts.indexOf(c)
-                    c.body1._higherContacts.splice(i, 1)
-                    this._topEntity[t] = null
-                }
+                let i = c.otherBody._higherContacts.indexOf(c)
+                c.otherBody._higherContacts.splice(i, 1)
+                this._topEntity[t] = null
             }
         }
 
@@ -194,19 +188,17 @@ export abstract class Body implements IAABB {
             for(let i = 0; i < len; i++) {
                 let c = this._higherContacts[i]
                 
-                if(c.body1 == this) {
-                    if(c.isHorizontal) {
-                        c.body2._topEntity._leftLower = null
-                    } else {
-                        c.body2._topEntity._downLower = null
-                    }
+                if(c.side == "left") {
+                    c.otherBody._topEntity._rightLower = null
+                    toremove.push(i)
+                } else if(c.side == "right") {
+                    c.otherBody._topEntity._leftLower = null
+                    toremove.push(i)
+                } else if(c.side == "up") {
+                    c.otherBody._topEntity._downLower = null
                     toremove.push(i)
                 } else {
-                    if(c.isHorizontal) {
-                        c.body1._topEntity._rightLower = null
-                    } else {
-                        c.body1._topEntity._upLower = null
-                    }
+                    c.otherBody._topEntity._upLower = null
                     toremove.push(i)
                 }
             }

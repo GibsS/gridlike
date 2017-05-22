@@ -5,7 +5,7 @@ import { VBH, SimpleVBH, IMoveAABB, IAABB } from '../vbh/vbh'
 import { Body, RectArgs, LineArgs, GridArgs } from './body'
 import { World } from './world'
 import { Rect, Line, Grid } from './body'
-import { Contact, RelativeContact } from './contact'
+import { Contact } from './contact'
 
 import { ParentType } from './enums'
 
@@ -80,8 +80,8 @@ export class Entity implements IMoveAABB {
 
     // SIMULATION
     _potContacts: Body[][] = []
-    _oldx: number
-    _oldy: number
+    _simvx: number
+    _simvy: number
 
     // FOR VBH 
     get enabled(): boolean { return true }
@@ -151,24 +151,17 @@ export class Entity implements IMoveAABB {
                     for(let i = 0; i < len; i++) {
                         let c = b._higherContacts[i]
 
-                        if(c.body1._topEntity == this) {
-                            if(c.body2._topEntity._level <= val) {
-                                if(c.isHorizontal) {
-                                    c.body2._topEntity._leftLower = null
-                                } else {
-                                    c.body2._topEntity._downLower = null
-                                }
-                                remove.push(i)
+                        if(c.otherBody._topEntity._level <= val) {
+                            if(c.side == "right") {
+                                c.otherBody._topEntity._leftLower = null
+                            } else if(c.side == "up") {
+                                c.otherBody._topEntity._downLower = null
+                            } else if(c.side == "down") {
+                                c.otherBody._topEntity._upLower = null
+                            } else {
+                                c.otherBody._topEntity._rightLower = null
                             }
-                        } else {
-                            if(c.body1._topEntity._level <= val) {
-                                if(c.isHorizontal) {
-                                    c.body1._topEntity._rightLower = null
-                                } else {
-                                    c.body1._topEntity._upLower = null
-                                }
-                                remove.push(i)
-                            }
+                            remove.push(i)
                         }
                         _.pullAt(b._higherContacts, remove)
                     }
@@ -178,18 +171,10 @@ export class Entity implements IMoveAABB {
             for(let t of ["_upLower", "_downLower", "_leftLower", "_rightLower"]) {
                 let c: Contact = this[t]
                 if(c) {
-                    if(c.body1._topEntity == this) {
-                        if(c.body2._topEntity.level >= val) {
-                            let i = c.body2._higherContacts.indexOf(c)
-                            c.body2._higherContacts.splice(i, 1)
-                            this[t] = null
-                        }
-                    } else {
-                        if(c.body1._topEntity.level >= val) {
-                            let i = c.body2._higherContacts.indexOf(c)
-                            c.body2._higherContacts.splice(i, 1)
-                            this[t] = null
-                        }
+                    if(c.otherBody._topEntity.level >= val) {
+                        let i = c.otherBody._higherContacts.indexOf(c)
+                        c.otherBody._higherContacts.splice(i, 1)
+                        this[t] = null
                     }
                 }
             }
@@ -216,24 +201,14 @@ export class Entity implements IMoveAABB {
         if(this._x != val) {
             // TODO: check if vertical contact is lost
             if(this._leftLower) {
-                if(this._leftLower.body1._topEntity == this) {
-                    let i = this._leftLower.body2._higherContacts.indexOf(this._leftLower)
-                    this._leftLower.body2._higherContacts.splice(i, 1)
-                } else {
-                    let i = this._leftLower.body1._higherContacts.indexOf(this._leftLower)
-                    this._leftLower.body1._higherContacts.splice(i, 1)
-                }
+                let i = this._leftLower.otherBody._higherContacts.indexOf(this._leftLower)
+                this._leftLower.otherBody._higherContacts.splice(i, 1)
                 this._leftLower = null
             }
 
             if(this._rightLower) {
-                if(this._rightLower.body1._topEntity == this) {
-                    let i = this._rightLower.body2._higherContacts.indexOf(this._rightLower)
-                    this._rightLower.body2._higherContacts.splice(i, 1)
-                } else {
-                    let i = this._rightLower.body1._higherContacts.indexOf(this._rightLower)
-                    this._rightLower.body1._higherContacts.splice(i, 1)
-                }
+                let i = this._rightLower.otherBody._higherContacts.indexOf(this._rightLower)
+                this._rightLower.otherBody._higherContacts.splice(i, 1)
                 this._rightLower = null
             }
             this._forAllBodies(b => {
@@ -244,16 +219,12 @@ export class Entity implements IMoveAABB {
 
                     for(let i = 0; i < len; i++) {
                         let c = b._higherContacts[i]
-                        if(c.body1 == b) {
-                            if(c.isHorizontal) {
-                                c.body2._topEntity._leftLower = null
-                                toremove.push(i)
-                            }
-                        } else {
-                            if(c.isHorizontal) {
-                                c.body1._topEntity._rightLower = null
-                                toremove.push(i)
-                            }
+                        if(c.side == "right") {
+                            c.otherBody._topEntity._leftLower = null
+                            toremove.push(i)
+                        } else if(c.side == "left") {
+                            c.otherBody._topEntity._rightLower = null
+                            toremove.push(i)
                         }
                     }
                     _.pullAt(b._higherContacts, toremove)
@@ -267,24 +238,14 @@ export class Entity implements IMoveAABB {
         if(this._y != val) {
             // TODO: check if horizontal contact is lost
             if(this._upLower) {
-                if(this._upLower.body1._topEntity == this) {
-                    let i = this._upLower.body2._higherContacts.indexOf(this._upLower)
-                    this._upLower.body2._higherContacts.splice(i, 1)
-                } else {
-                    let i = this._upLower.body1._higherContacts.indexOf(this._upLower)
-                    this._upLower.body1._higherContacts.splice(i, 1)
-                }
+                let i = this._upLower.otherBody._higherContacts.indexOf(this._upLower)
+                this._upLower.otherBody._higherContacts.splice(i, 1)
                 this._upLower = null
             }
 
             if(this._downLower) {
-                if(this._downLower.body1._topEntity == this) {
-                    let i = this._downLower.body2._higherContacts.indexOf(this._downLower)
-                    this._downLower.body2._higherContacts.splice(i, 1)
-                } else {
-                    let i = this._downLower.body1._higherContacts.indexOf(this._downLower)
-                    this._downLower.body1._higherContacts.splice(i, 1)
-                }
+                let i = this._downLower.otherBody._higherContacts.indexOf(this._downLower)
+                this._downLower.otherBody._higherContacts.splice(i, 1)
                 this._downLower = null
             }
             this._forAllBodies(b => {
@@ -293,16 +254,12 @@ export class Entity implements IMoveAABB {
 
                 for(let i = 0; i < len; i++) {
                     let c: Contact = b._higherContacts[i]
-                    if(c.body1 == b) {
-                        if(!c.isHorizontal) {
-                            c.body2._topEntity._downLower = null
-                            toremove.push(i)
-                        }
-                    } else {
-                        if(!c.isHorizontal) {
-                            c.body1._topEntity._upLower = null
-                            toremove.push(i)
-                        }
+                    if(c.side == "up") {
+                        c.otherBody._topEntity._downLower = null
+                        toremove.push(i)
+                    } else if(c.side == "down") {
+                        c.otherBody._topEntity._upLower = null
+                        toremove.push(i)
                     }
                 }
                 _.pullAt(b._higherContacts, toremove)
@@ -324,52 +281,42 @@ export class Entity implements IMoveAABB {
     set vx(val: number) { this._vx = val }
     set vy(val: number) { this._vy = val }
 
-    get contacts(): RelativeContact[] {
+    get contacts(): Contact[] {
         let res = [this.leftContact, this.downContact, this.rightContact, this.upContact].filter(c => c)
         this._forAllBodies(b => {
-            if(b._higherContacts) {
-                res.push.apply(res, b._higherContacts.map(c => {
-                    let entityHasBody1 = c.body1._topEntity == this,
-                        body = entityHasBody1 ? c.body1 : c.body2,
-                        otherBody = entityHasBody1 ? c.body2 : c.body1
-
-                    if(body._grid) { body = body._grid }
-                    if(otherBody._grid) { otherBody = otherBody._grid }
-
-                    return {
-                        body, otherBody,
-                        side: entityHasBody1 ? (c.isHorizontal ? "right" : "up") : (c.isHorizontal ? "left" : "down")
-                    }
-                }))
-            }
+            if(b._higherContacts) { res.push.apply(res, b._higherContacts) }
         })
+        for(let c of res) {
+            c.body = c.body._grid || c.body
+            c.otherBody = c.otherBody._grid || c.otherBody
+        }
         return res
     }
-    get leftContact(): RelativeContact {
+    get leftContact(): Contact {
         return this._leftLower && {
-            body: this._leftLower.body2._grid || this._leftLower.body2,
-            otherBody: this._leftLower.body1._grid || this._leftLower.body1,
+            body: this._leftLower.body._grid || this._leftLower.body,
+            otherBody: this._leftLower.otherBody._grid || this._leftLower.otherBody,
             side: "left"
         }
     }
-    get rightContact(): RelativeContact {
+    get rightContact(): Contact {
         return this._rightLower && {
-            body: this._rightLower.body1._grid || this._rightLower.body1,
-            otherBody: this._rightLower.body2._grid || this._rightLower.body2,
+            body: this._rightLower.body._grid || this._rightLower.body,
+            otherBody: this._rightLower.otherBody._grid || this._rightLower.otherBody,
             side: "right"
         }
     }
-    get upContact(): RelativeContact {
+    get upContact(): Contact {
         return this._upLower && {
-            body: this._upLower.body1._grid || this._upLower.body1,
-            otherBody: this._upLower.body2._grid || this._upLower.body2,
+            body: this._upLower.body._grid || this._upLower.body,
+            otherBody: this._upLower.otherBody._grid || this._upLower.otherBody,
             side: "up"
         }
     }
-    get downContact(): RelativeContact {
+    get downContact(): Contact {
         return this._downLower && {
-            body: this._downLower.body2._grid || this._downLower.body2,
-            otherBody: this._downLower.body1._grid || this._downLower.body1,
+            body: this._downLower.body._grid || this._downLower.body,
+            otherBody: this._downLower.otherBody._grid || this._downLower.otherBody,
             side: "down"
         }
     }
@@ -520,18 +467,14 @@ export class Entity implements IMoveAABB {
             let len = body._higherContacts.length
             for(let i = 0; i < len; i++) {
                 let c: Contact = body._higherContacts[i]
-                if(c.body1 == body) {
-                    if(c.isHorizontal) {
-                        c.body2._topEntity._leftLower = null
-                    } else {
-                        c.body2._topEntity._downLower = null
-                    }
+                if(c.side == "left") {
+                    c.otherBody._topEntity._rightLower = null
+                } else if(c.side == "right") {
+                    c.otherBody._topEntity._leftLower = null
+                } else if(c.side == "up") {
+                    c.otherBody._topEntity._downLower = null
                 } else {
-                    if(c.isHorizontal) {
-                        c.body1._topEntity._rightLower = null
-                    } else {
-                        c.body1._topEntity._upLower = null
-                    }
+                    c.otherBody._topEntity._upLower = null
                 }
             }
         }
@@ -539,13 +482,9 @@ export class Entity implements IMoveAABB {
         for(let t in ["_downLower", "_upLower", "_leftLower", "_rightLower"]) {
             let c: Contact = this[t]
             if(c) {
-                if(c.body1 == body) {
-                    let i = c.body2._higherContacts.indexOf(c)
-                    c.body2._higherContacts.splice(i, 1)
-                    this[t] = null
-                } else if(c.body2 == body) {
-                    let i = c.body1._higherContacts.indexOf(c)
-                    c.body1._higherContacts.splice(i, 1)
+                if(c.body == body) {
+                    let i = c.otherBody._higherContacts.indexOf(c)
+                    c.otherBody._higherContacts.splice(i, 1)
                     this[t] = null
                 }
             }

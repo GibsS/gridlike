@@ -4,7 +4,7 @@ import * as wheel from 'mouse-wheel'
 
 import { Script, ScriptDescriptor } from './script'
 
-import { World, Entity, Body, BodyType, Rect, Line, Grid } from '../lib'
+import { World, Entity, Body, BodyType, Rect, Line, Grid, Contact } from '../lib'
 
 export class Testbed {
 
@@ -319,12 +319,12 @@ export class Testbed {
             if(this.showContact) {
                 this.ctx.strokeStyle="#FF0000";
                 for(let c of ["_upLower", "_downLower", "_rightLower", "_leftLower"]) {
-                    let contact = e[c]
+                    let contact = e[c] as Contact
 
                     if(contact) {
                         this.ctx.beginPath()
-                        this.ctx.moveTo(contact.body1.globalx * this.zoom + bx, -contact.body1.globaly * this.zoom + by)
-                        this.ctx.lineTo(contact.body2.globalx * this.zoom + bx, -contact.body2.globaly * this.zoom + by)
+                        this.ctx.moveTo(contact.body.globalx * this.zoom + bx, -contact.body.globaly * this.zoom + by)
+                        this.ctx.lineTo(contact.otherBody.globalx * this.zoom + bx, -contact.otherBody.globaly * this.zoom + by)
                         this.ctx.stroke()
                     }
                 }

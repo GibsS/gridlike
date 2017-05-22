@@ -1,7 +1,7 @@
 import * as _ from 'lodash'
 
 import { Entity, EntityArgs } from './entity'
-import { Body, SmallBody, RectArgs, LineArgs, GridArgs } from './body'
+import { Body, SmallBody, Rect, Line, RectArgs, LineArgs, GridArgs } from './body'
 
 import { RaycastResult, QueryResult } from './query'
 import { MoveVBH, SimpleMoveVBH, VBH } from '../vbh/vbh'
@@ -220,42 +220,221 @@ export class World {
         this._time += delta
 
         // I. GET ALL POTENTIAL COLLISION, FILTERED OUT
+        this._broadphase(delta)
+
+        // II. SOLVE MOVEMENT OF ALL ENTITIES: DEFINE NEW X, Y, VX, VY AND CONTACTS
+        for(let level in this._ents) {
+            let currentEnts = this._ents[level]
+
+            for(let ent of currentEnts) {
+                let oldx = ent._x, oldy = ent._y,
+                    time: number = 0
+
+                // CALCULATE SPEED WITH PARENT
+                if(ent._parent) {
+                    ent._vx += ent._parent._vx
+                    ent._vy += ent._parent._vy
+                }
+
+
+                let endOfCourse = false
+                while(!endOfCourse) {
+                    // ADJUST SPEED DUE TO LOWER CONTACTS + REMOVE LOST CONTACTS
+                    if(ent._leftLower) {
+                        let sub = ent._leftLower.otherBody._topEntity
+                        if(ent._vx > sub._simvx) {
+                            let i = ent._leftLower.otherBody._higherContacts.findIndex(c => c.otherBody == ent._leftLower.body)
+                            ent._leftLower.otherBody._higherContacts.splice(i, 1)
+                            ent._leftLower = null
+                        } else {
+                            ent._vx = sub._simvx
+                        }
+                    }
+                    if(ent._rightLower) {
+                        let sub = ent._rightLower.otherBody._topEntity
+                        if(ent._vx < sub._simvx) {
+                            let i = ent._rightLower.otherBody._higherContacts.findIndex(c => c.otherBody == ent._rightLower.body)
+                            ent._rightLower.otherBody._higherContacts.splice(i, 1)
+                            ent._rightLower = null
+                        } else {
+                            ent._vx = sub._simvx
+                        }
+                    }
+                    if(ent._downLower) {
+                        let sub = ent._downLower.otherBody._topEntity
+                        if(ent._vy > sub._simvy) {
+                            let i = ent._downLower.otherBody._higherContacts.findIndex(c => c.otherBody == ent._downLower.body)
+                            ent._downLower.otherBody._higherContacts.splice(i, 1)
+                            ent._downLower = null
+                        } else {
+                            ent._vy = sub._simvy
+                        }
+                    }
+                    if(ent._upLower) {
+                        let sub = ent._upLower.otherBody._topEntity
+                        if(ent._vx < sub._simvy) {
+                            let i = ent._upLower.otherBody._higherContacts.findIndex(c => c.otherBody == ent._upLower.body)
+                            ent._upLower.otherBody._higherContacts.splice(i, 1)
+                            ent._upLower = null
+                        } else {
+                            ent._vy = sub._simvy
+                        }
+                    }
+
+                    if(ent._potContacts.length > 0) {
+                        // CALCULATE POTENTIAL COLLISION INFO
+                        let narrows = ent._potContacts.map(pair => {
+                            return this._narrowPhase(pair[0] as Rect, pair[1] as Rect, 
+                                pair[0]._x + ent._x, pair[0]._y + ent._y, 
+                                pair[1]._y + pair[1]._topEntity._y + pair[1]._topEntity._simvx * time, 
+                                pair[1]._y + pair[1]._topEntity._y + pair[1]._topEntity._simvy * time,
+                                ent._vx, ent._vy,
+                                pair[1]._topEntity._simvx, pair[1]._topEntity._simvy,
+                                delta - time
+                            )
+                        }).filter(n => n)
+
+                        // DECIDE BEHAVIOUR
+                        if(narrows.length > 0) {
+                            // DEFINE NEW CONTACTS DUE TO COLLISIONS
+                            let firstTime = Infinity,
+                                first: NarrowResult
+                            narrows.forEach(n => {
+                                if(n.time < firstTime) {
+                                    firstTime = n.time
+                                    first = n
+                                }
+                            })
+                            
+                            // UPDATE X, Y, TIME
+                            ent._x += first.x - first.body._x
+                            ent._y += first.y - first.body._y
+                            time += first.time
+                        } else {
+                            endOfCourse = true
+                        }
+                    } else {
+                        endOfCourse = true
+                    }
+
+                    if (endOfCourse) {
+                        ent._x = (delta - time) * ent._vx
+                        ent._y = (delta - time) * ent._vy
+                    }
+
+                    // REMOVE CONTACTS DUE TO SLIDE OFF
+                    if (ent._leftLower) {
+                        if(ent._leftLower.body instanceof Rect) {
+                            if(ent._leftLower.otherBody instanceof Rect) {
+                                if(Math.abs(ent._leftLower.body._y + ent._y - ent._leftLower.otherBody._y - ent._leftLower.otherBody._topEntity._y) * 2 
+                                    > ent._leftLower.body._height + ent._leftLower.otherBody._height) {
+                                    let i = ent._leftLower.otherBody._higherContacts.findIndex(c => c.otherBody == ent._leftLower.body)
+                                    ent._leftLower.otherBody._higherContacts.splice(i, 1)
+                                    ent._leftLower = null
+                                }
+                            }
+                        }
+                    }
+                    if (ent._rightLower) {
+                        if(ent._rightLower.body instanceof Rect) {
+                            if(ent._rightLower.otherBody instanceof Rect) {
+                                if(Math.abs(ent._rightLower.body._y + ent._y - ent._rightLower.otherBody._y - ent._rightLower.otherBody._topEntity._y) * 2 
+                                    > ent._rightLower.body._height + ent._rightLower.otherBody._height) {
+                                    let i = ent._rightLower.otherBody._higherContacts.findIndex(c => c.otherBody == ent._rightLower.body)
+                                    ent._rightLower.otherBody._higherContacts.splice(i, 1)
+                                    ent._rightLower = null
+                                }
+                            }
+                        }
+                    }
+                    if (ent._upLower) {
+                        if(ent._upLower.body instanceof Rect) {
+                            if(ent._upLower.otherBody instanceof Rect) {
+                                if(Math.abs(ent._upLower.body._x + ent._x - ent._upLower.otherBody._x - ent._upLower.otherBody._topEntity._x) * 2 
+                                    > ent._upLower.body._width + ent._upLower.otherBody._width) {
+                                    let i = ent._upLower.otherBody._higherContacts.findIndex(c => c.otherBody == ent._upLower.body)
+                                    ent._upLower.otherBody._higherContacts.splice(i, 1)
+                                    ent._upLower = null
+                                }
+                            }
+                        }
+                    }
+                    if (ent._downLower) {
+                        if(ent._downLower.body instanceof Rect) {
+                            if(ent._downLower.otherBody instanceof Rect) {
+                                if(Math.abs(ent._downLower.body._x + ent._x - ent._downLower.otherBody._x - ent._downLower.otherBody._topEntity._x) * 2 
+                                    > ent._downLower.body._width + ent._downLower.otherBody._width) {
+                                    let i = ent._downLower.otherBody._higherContacts.findIndex(c => c.otherBody == ent._downLower.body)
+                                    ent._downLower.otherBody._higherContacts.splice(i, 1)
+                                    ent._downLower = null
+                                }
+                            }
+                        }
+                    }
+                }
+
+                // CORRECT SPEED FOR PARENT
+                if(ent._parent) {
+                    ent._vx -= ent._parent._simvx
+                    ent._vy -= ent._parent._simvy
+                }
+
+                // RESET POTENTIAL CONTACTS
+                ent._potContacts = []
+
+                // PREPARE FOR NEXT LEVEL
+                ent._simvx = (ent._x - oldx) / delta
+                ent._simvy = (ent._y - oldy) / delta
+            }
+        }
+    }
+    _move(entity: Entity, dx: number, dy: number) {
+
+    }
+
+    // SIMULATION PROCEDURES
+    _broadphase(delta: number) {      
         let overlaps = this._vbh.update(delta)
 
         let overlapBodies: SmallBody[][] = []
         overlaps.forEach(pair => {
-            if(pair[0]._bodies instanceof SmallBody) {
-                if(pair[1]._bodies instanceof SmallBody) {
-                    overlapBodies.push([pair[0]._bodies as SmallBody, pair[1]._bodies as SmallBody])
+            if(pair[0]._level != pair[1]._level) {
+                let e1: Entity = pair[0], e2: Entity = pair[1]
+                
+                if(e2._bodies instanceof SmallBody) {
+                    if(e1._bodies instanceof SmallBody) {
+                        overlapBodies.push([e2._bodies as SmallBody, e1._bodies as SmallBody])
+                    } else {
+                        let vbh = e1._allBodies || e1._bodies as VBH<Body>
+                        overlapBodies.push.apply(overlapBodies, vbh.collideAABB(
+                            e2._bodies as SmallBody,
+                            e1.globalx, e1.globaly, e1.globalvx, e1.globalvy,
+                            e2.globalx, e2.globaly, e2.globalvx, e2.globalvy
+                        ))
+                    }
                 } else {
-                    let vbh = pair[1]._allBodies || pair[1]._bodies as VBH<Body>
-                    overlapBodies.push.apply(overlapBodies, vbh.collideAABB(
-                        pair[0]._bodies as SmallBody,
-                        pair[1].globalx, pair[1].globaly, pair[1].globalvx, pair[1].globalvy,
-                        pair[0].globalx, pair[0].globaly, pair[0].globalvx, pair[0].globalvy
-                    ))
-                }
-            } else {
-                if(pair[1]._bodies instanceof Body) {
-                    let vbh = pair[0]._allBodies || pair[0]._bodies as VBH<Body>
-                    overlapBodies.push.apply(overlapBodies, vbh.collideAABB(
-                        pair[1]._bodies as SmallBody,
-                        pair[0].globalx, pair[0].globaly, pair[0].globalvx, pair[0].globalvy,
-                        pair[1].globalx, pair[1].globaly, pair[1].globalvx, pair[1].globalvy
-                    ))
-                } else {
-                    let vbh1 = pair[0]._allBodies || pair[0]._bodies as VBH<Body>,
-                        vbh2 = pair[1]._allBodies || pair[1]._bodies as VBH<Body>
-                    overlapBodies.push.apply(overlapBodies, vbh1.collideVBH(
-                        vbh2, 
-                        pair[0].globalx, pair[0].globaly, pair[0].globalvx, pair[0].globalvy,
-                        pair[1].globalx, pair[1].globaly, pair[1].globalvx, pair[1].globalvy
-                    ))
+                    if(e1._bodies instanceof Body) {
+                        let vbh = e2._allBodies || e2._bodies as VBH<Body>
+                        overlapBodies.push.apply(overlapBodies, vbh.collideAABB(
+                            e1._bodies as SmallBody,
+                            e2.globalx, e2.globaly, e2.globalvx, e2.globalvy,
+                            e1.globalx, e1.globaly, e1.globalvx, e1.globalvy
+                        ))
+                    } else {
+                        let vbh1 = e2._allBodies || e2._bodies as VBH<Body>,
+                            vbh2 = e1._allBodies || e1._bodies as VBH<Body>
+                        overlapBodies.push.apply(overlapBodies, vbh1.collideVBH(
+                            vbh2, 
+                            e2.globalx, e2.globaly, e2.globalvx, e2.globalvy,
+                            e1.globalx, e1.globaly, e1.globalvx, e1.globalvy
+                        ))
+                    }
                 }
             }
         })
 
-        overlapBodies = overlapBodies.filter(pair => {
+        overlapBodies
+        .filter(pair => {
             let r = this._getLayerRule(pair[0]._layer, pair[1]._layer)
 
             switch(r) {
@@ -265,74 +444,102 @@ export class World {
                 case 0: return false
             }
         })
-
-        overlapBodies.forEach(pair => {
-            let ent1 = pair[0]._topEntity, ent2 = pair[1]._topEntity
-            if(ent1._level != ent2._level) {
-                if(ent1._level > ent2._level) {
-                    if ((!ent1._leftLower || (ent1._leftLower.body1 != pair[0] && ent1._leftLower.body2 != pair[0])) &&
-                        (!ent1._rightLower || (ent1._rightLower.body1 != pair[0] && ent1._rightLower.body2 != pair[0])) &&
-                        (!ent1._upLower || (ent1._upLower.body1 != pair[0] && ent1._upLower.body2 != pair[0])) &&
-                        (!ent1._downLower || (ent1._downLower.body1 != pair[0] && ent1._downLower.body2 != pair[0]))) {
-                        ent1._potContacts.push(pair)
-                    }
-                } else {
-                    if ((!ent2._leftLower || (ent2._leftLower.body1 != pair[1] && ent2._leftLower.body2 != pair[1])) &&
-                        (!ent2._rightLower || (ent2._rightLower.body1 != pair[1] && ent2._rightLower.body2 != pair[1])) &&
-                        (!ent2._upLower || (ent2._upLower.body1 != pair[1] && ent2._upLower.body2 != pair[1])) &&
-                        (!ent2._downLower || (ent2._downLower.body1 != pair[1] && ent2._downLower.body2 != pair[1]))) {
-                        ent2._potContacts.push(pair)
-                    }
-                }
+        .filter(pair => !pair[0]._isSensor || !pair[1]._isSensor)
+        .forEach(pair => {
+            let e1 = pair[0]._topEntity, e2 = pair[1]._topEntity
+            if(e1._level > e2._level) {
+                e1._potContacts.push([pair[0], pair[1]])
+            } else {
+                e2._potContacts.push([pair[1], pair[0]])
             }
         })
+    }
 
-        // II. SOLVE MOVEMENT OF ALL ENTITIES: DEFINE NEW X, Y, VX, VY AND CONTACTS
-        for(let level in this._ents) {
-            let currentEnts = this._ents[level]
+    _narrowPhase(b1: Rect, b2: Rect, 
+                 x1: number, y1: number, x2: number, y2: number, 
+                 vx1: number, vy1: number, vx2: number, vy2: number, delta: number): NarrowResult {
+        let toix = Infinity,
+            toiy = Infinity,
+            narrow: NarrowResult
 
-            for(let ent of currentEnts) {
-                // PREPARE FOR NEXT LEVEL (at the beginning?)
-                ent._oldx = ent._x
-                ent._oldy = ent._y
+        // IF ALREADY IN CONTACT
+        if(b1._topEntity._leftLower && b1._topEntity._leftLower.otherBody == b2 ||
+           b1._topEntity._rightLower && b1._topEntity._rightLower.otherBody == b2 ||
+           b1._topEntity._upLower && b1._topEntity._upLower.otherBody == b2 ||
+           b1._topEntity._downLower && b1._topEntity._downLower.otherBody == b2) {
+            return null
+        }
 
-                // CALCULATE SPEED WITH PARENT
-                if(ent._parent) {
-                    ent._vx += (ent._parent._x - ent._parent._oldx) / delta
-                    ent._vy += (ent._parent._y - ent._parent._oldy) / delta
-                }
-
-                while(ent != null) {
-                    // ADJUST SPEED DUE TO LOWER CONTACTS
-
-                    // CALCULATE POTENTIAL COLLISION INFO
-
-                    // DECIDE BEHAVIOUR
-
-                    // DEFINE NEW CONTACTS DUE TO COLLISIONS
-
-                    // REMOVE CONTACTS DUE TO SLIDE OFF
-
-                    // CALCULATE NEW X, Y (END OF COURSE OR ON COLLISION)
-                }
-
-                // CORRECT SPEED FOR PARENT
-                if(ent._parent) {
-                    ent._vx -= (ent._parent._x - ent._parent._oldx) / delta
-                    ent._vy -= (ent._parent._y - ent._parent._oldy) / delta
-                }
-
-                // RESET POTENTIAL CONTACTS
-                ent._potContacts = []
+        // --  TOI
+        if (vx1 != vx2 && 
+            (!b1._topEntity._leftLower || b1._topEntity._leftLower.otherBody._topEntity != b2._topEntity ||
+             !b1._topEntity._rightLower || b1._topEntity._rightLower.otherBody._topEntity != b2._topEntity)) {
+            if(x1 < x2) {
+                toix = (x1 - x2 + (b1.width + b2.width) / 2) / (vx2 - vx1)
+            } else {
+                toix = (x1 - x2 - (b1.width + b2.width) / 2) / (vx2 - vx1)
             }
         }
-    }
-    _move(entity: Entity, dx: number, dy: number) {
+        
+        if (vy1 != vy2 &&
+            (!b1._topEntity._upLower || b1._topEntity._upLower.otherBody._topEntity != b2._topEntity ||
+             !b1._topEntity._downLower || b1._topEntity._downLower.otherBody._topEntity != b2._topEntity) 
+            ) {
+            if(y1 < y2) {
+                toiy = (y1 - y2 + (b1.height + b2.height) / 2) / (vy2 - vy1)
+            } else {
+                toiy = (y1 - y2 - (b1.height + b2.height) / 2) / (vy2 - vy1)
+            }
+        }
+            
+        if((toix < toiy || toiy < 0) && toix < delta && toix > 0) {
+            let newy1 = y1 + toix * vy1,
+                newy2 = y2 + toix * vy2
 
-    }
+            if(!(newy2 - b2.height/2 > newy1 + b1.height/2 || newy1 - b1.height/2 > newy2 + b2.height/2)) {
+                narrow = {
+                    time: toix,
+                    x: x1 + toix * vx1,
+                    y: newy1,
 
-    // SIMULATION PROCEDURES
-    broadphase(): Body[][] {
-        return null
+                    body: b1,
+                    otherBody: b2,
+
+                    side: x1 < x2 ? "right" : "left"
+                }
+            }
+        } 
+        
+        if(toiy < delta && toiy > 0) {
+            let newx1 = x1 + toiy * vx1,
+                newx2 = x2 + toiy * vx2
+            
+            if(!(newx2 - b2.width/2 > newx1 + b1.width/2 || newx1 - b1.width/2 > newx2 + b2.width/2)) {
+                narrow = {
+                    time: toiy,
+
+                    x: newx1,
+                    y: y1 + toiy * vy1,
+                    body: b1,
+                    otherBody: b2,
+
+                    side: y1 < y2 ? "up" : "down"
+                }
+            }
+        } 
+
+        return narrow
     }
+}
+
+interface NarrowResult {
+    body: Body
+    otherBody: Body
+
+    time: number
+
+    x: number
+    y: number
+
+    side: string
 }

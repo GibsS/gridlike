@@ -8,6 +8,6 @@ import vbhTest from './vbh'
 layerTest()
 worldTest()
 entityTest()
-contactTest()
+// contactTest()
 gridTest()
 vbhTest()

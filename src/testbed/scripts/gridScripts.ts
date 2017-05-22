@@ -161,26 +161,9 @@ class Script4 extends Script {
             width: 1,
             height: 1
         }))
-
-        let contact = {
-            body1: this.rect.body,
-            body2: this.grid,
-            isHorizontal: true
-        }
-        this.rect._leftLower = contact
-        this.grid._higherContacts = [contact]
-
-        // for(let i = -300; i <= 300; i++) {
-        //     if(i % 10 == 0) {
-        //         this.grid.setTileShape(i, 1, 1)
-        //     }
-        //     this.grid.setTileShape(i, 0, 1)
-        // }
     }
     update(time: number, delta: number) {
-        //this.rect.x += delta * 1
-        // this.testbed.xCam += delta * 10
-        //console.log(this.line.globalx, this.line.globaly, this.rect.globalx, this.rect.globaly)
+        
     }
     click(x: number, y: number, body: Body) {
         console.log(x, y)
