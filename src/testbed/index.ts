@@ -79,7 +79,8 @@ export class Testbed {
         // BUTTONS 
         let playBtn = document.getElementById("play-btn"),
             stepBtn = document.getElementById("step-btn"),
-            resetBtn = document.getElementById("reset-btn")
+            resetBtn = document.getElementById("reset-btn"),
+            resetPauseBtn = document.getElementById("reset-pause-btn")
 
         playBtn.onclick = () => { 
             if(this._play) {
@@ -98,6 +99,14 @@ export class Testbed {
         resetBtn.onclick = () => {
             if(this.scriptDescriptor != null) {
                 this.start(this.scriptDescriptor.id)
+            }
+        }
+
+        resetPauseBtn.onclick = () => {
+            if(this.scriptDescriptor != null) {
+                this.start(this.scriptDescriptor.id, true)
+                playBtn.innerText = "Play"
+                this._play = false
             }
         }
 
@@ -186,7 +195,7 @@ export class Testbed {
         document.getElementById('scripts').appendChild(a)
         document.getElementById('scripts').appendChild(document.createElement('br'))
     }
-    start(script: string) {
+    start(script: string, paused?: boolean) {
         if(script != null) {
             this.stop()
         }
@@ -221,7 +230,9 @@ export class Testbed {
         this._fps = 0
 
         this.script.init()
-        this._update()
+        if(!paused) {
+            this._update()
+        }
     }
     resume() {
         this._play = true

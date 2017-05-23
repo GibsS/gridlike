@@ -54,28 +54,26 @@ function testVBH(VBHType: () => VBH<IAABB>, otherVBHs: (() => VBH<IAABB>)[]) {
         })
     })
 
-    describe("Querying", function() {
+    describe("VBH.queryRect", function() {
 
         beforeEach(function() {
             vbh.bulkInsert([aabb1, aabb2, aabb3, aabb4])
         })
 
-        describe("VBH.queryRect", function() {
-            it('should return null if nothing overlaps with the rectangle', function() {
-                let res = vbh.queryRect(-10, 0, 4, 4)
+        it('should return null if nothing overlaps with the rectangle', function() {
+            let res = vbh.queryRect(-10, 0, 4, 4)
 
-                assert.deepEqual(res.bodies, [])
-            })
-            it('should return all the elements overlaps with the rectangle /1', function() {
-                let res = vbh.queryRect(1.5, -0.5, 3, 3)
+            assert.deepEqual(res.bodies, [])
+        })
+        it('should return all the elements overlaps with the rectangle /1', function() {
+            let res = vbh.queryRect(1.5, -0.5, 3, 3)
 
-                assert(_.isEqual(res.bodies.sort(), [aabb1, aabb2, aabb3].sort()))
-            })
-            it('should return all the elements overlaps with the rectangle /2', function() {
-                let res = vbh.queryRect(2.5, -0.5, 0, 0)
+            assert(_.isEqual(res.bodies.sort(), [aabb1, aabb2, aabb3].sort()))
+        })
+        it('should return all the elements overlaps with the rectangle /2', function() {
+            let res = vbh.queryRect(2.5, -0.5, 0, 0)
 
-                assert(res.bodies.length == 1 && res.bodies[0] == aabb2)
-            })
+            assert(res.bodies.length == 1 && res.bodies[0] == aabb2)
         })
     })
 

@@ -3,7 +3,7 @@ import * as _ from 'lodash'
 import { nearEqual } from './helper'
 import * as util from 'util'
 
-import worldInvariant from './invariant/worldInvariant'
+import invariant from './invariant'
 
 import { World, Entity, Grid } from '../lib/index'
 
@@ -50,7 +50,7 @@ export default function test() {
                             assertTileEqual(grid.getTile(i, j), j, i)
                         }
                     }
-                    worldInvariant(world)
+                    invariant(world)
                 })
             })
 
@@ -69,7 +69,7 @@ export default function test() {
                     for(let i = 0; i < 50; i++) {
                         assertTileEqual(grid.getTile(i, 0), i, { foo: "test" })
                     }
-                    worldInvariant(world)
+                    invariant(world)
                 })
             })
 
@@ -87,7 +87,7 @@ export default function test() {
                             assertTileEqual(grid.getTile(i, j), 0, null)
                         }
                     }
-                    worldInvariant(world)
+                    invariant(world)
                 })
                 
                 it('should create a grid where every tile match with the got counterpart /2', function() {
@@ -103,7 +103,7 @@ export default function test() {
                             assertTileEqual(grid.getTile(i, j), 0, null)
                         }
                     }
-                    worldInvariant(world)
+                    invariant(world)
                 })
             })
         })
@@ -124,48 +124,48 @@ export default function test() {
             it('a tile\'s value should be equal to the value it is attributed /1', function() {
                 grid.setTile(0, 0, 0, null)
                 assertTileEqual(grid.getTile(0, 0), 0, null)
-                worldInvariant(world)
+                invariant(world)
             })
             it('a tile\'s value should be equal to the value it is attributed /2', function() {
                 grid.setTile(1, 1, 2, { foo: 'test' })
                 assertTileEqual(grid.getTile(1, 1), 2,  { foo: 'test' })
-                worldInvariant(world)
+                invariant(world)
             })
             it('a tile\'s value should be equal to the value it is attributed /3', function() {
                 grid.setTile(-10, 1, 2, { foo: 'test' })
                 assertTileEqual(grid.getTile(-10, 1), 2,  { foo: 'test' })
-                worldInvariant(world)
+                invariant(world)
             })
             it('a tile\'s value should be equal to the value it is attributed /4', function() {
                 grid.setTile(-100, 1, 2, { foo: 'test' })
                 assertTileEqual(grid.getTile(-100, 1), 2,  { foo: 'test' })
-                worldInvariant(world)
+                invariant(world)
             })
             it('a tile\'s value should be equal to the value it is attributed /5', function() {
                 grid.setTile(-100, 100, 2, { foo: 'test' })
                 assertTileEqual(grid.getTile(-100, 100), 2,  { foo: 'test' })
-                worldInvariant(world)
+                invariant(world)
             })
             it('a tile\'s value should be equal to the value it is attributed /6', function() {
                 grid.setTile(0, 0, 2, { foo: 'test' })
                 grid.setTile(0, 1, 2, { foo: 'test' })
                 assertTileEqual(grid.getTile(0, 0), 2,  { foo: 'test' })
                 assertTileEqual(grid.getTile(0, 1), 2,  { foo: 'test' })
-                worldInvariant(world)
+                invariant(world)
             })
             it('a tile\'s value should be equal to the value it is attributed /7', function() {
                 grid.setTile(2, 3, 2, { foo: 'test' })
                 grid.setTile(2, 2, 2, { foo: 'test' })
                 assertTileEqual(grid.getTile(2, 3), 2,  { foo: 'test' })
                 assertTileEqual(grid.getTile(2, 2), 2,  { foo: 'test' })
-                worldInvariant(world)
+                invariant(world)
             })
 
             it('clear tile works /1', function() {
                 grid.setTile(1, 1, 2, { foo: 'test' })
                 grid.clearTile(1, 1)
                 assertTileEqual(grid.getTile(1, 1), 0,  null)
-                worldInvariant(world)
+                invariant(world)
             })
 
             it('clear tile works /1', function() {
@@ -174,7 +174,7 @@ export default function test() {
                 grid.clearTile(1, 2)
                 assertTileEqual(grid.getTile(1, 2), 0,  null)
                 assertTileEqual(grid.getTile(1, 1), 2,  { foo: 'test' })
-                worldInvariant(world)
+                invariant(world)
             })
         })
 
@@ -210,7 +210,7 @@ export default function test() {
 
                         return null
                     })
-                    worldInvariant(world)
+                    invariant(world)
                 })
 
                 it('should allow the modification of the tiles it goes through', function() {
@@ -223,7 +223,7 @@ export default function test() {
                             assertTileEqual(grid.getTile(i, j), i + j, { x: i, y: j })
                         }
                     }
-                    worldInvariant(world)
+                    invariant(world)
                 })
             })
 
@@ -243,7 +243,7 @@ export default function test() {
                             }
                         }
                     }
-                    worldInvariant(world)
+                    invariant(world)
                 })
             })
 
@@ -261,7 +261,7 @@ export default function test() {
                     assertTileEqual(grid.getTile(11, 11), 3, { foo: "test" })
                     assertTileEqual(grid.getTile(11, 2), 3, { foo: "test" })
                     
-                    worldInvariant(world)
+                    invariant(world)
                 })
             })
         })

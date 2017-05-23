@@ -44,20 +44,20 @@ export interface EntityListener {
 
 export class Entity implements IMoveAABB {
 
-    _world: World
-
     _listener: EntityListener
+
+    _world: World
 
     _parent: Entity // a rect of higher level
     _parentType: number // 0: static, 1: follow
     _childs: Entity[]
     _topEntity: Entity
 
-    _level: number
-
     _bodies: Body | VBH<Body>
     _allBodies: VBH<Body>
     _grids: Grid | Grid[]
+
+    _level: number
     
     _x: number
     _y: number
@@ -908,5 +908,26 @@ export class Entity implements IMoveAABB {
         this._forAllBodies(b => {
             this._maxy = Math.max(this._maxy, b.maxy)
         })
+    }
+
+    _removeLeftLowerContact() {
+        let i = this._leftLower.otherBody._higherContacts.findIndex(c => c.otherBody == this._leftLower.body)
+        this._leftLower.otherBody._higherContacts.splice(i, 1)
+        this._leftLower = null
+    }
+    _removeRightLowerContact() {
+        let i = this._rightLower.otherBody._higherContacts.findIndex(c => c.otherBody == this._rightLower.body)
+        this._rightLower.otherBody._higherContacts.splice(i, 1)
+        this._rightLower = null
+    }
+    _removeDownLowerContact() {
+        let i = this._downLower.otherBody._higherContacts.findIndex(c => c.otherBody == this._downLower.body)
+        this._downLower.otherBody._higherContacts.splice(i, 1)
+        this._downLower = null
+    }
+    _removeUpLowerContact() {
+        let i = this._upLower.otherBody._higherContacts.findIndex(c => c.otherBody == this._upLower.body)
+        this._upLower.otherBody._higherContacts.splice(i, 1)
+        this._upLower = null
     }
 }

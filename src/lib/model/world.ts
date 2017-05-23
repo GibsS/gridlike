@@ -30,13 +30,14 @@ export class World {
 
         this._layerIds["default"] = 0
         this._layerNames[0] = "default"
-        this._layers[0] = 0xFFFFFFFF
-        this._layers[32] = 0xFFFFFFFF
-
-        for(let i = 1; i < 32; i++) {
-            this._layers[i] = 0x3
-            this._layers[i+32] = 0x0
+        for(let i = 0; i < 64; i++) {
+            this._layers[i] = 0xFFFFFFFF
         }
+
+        // for(let i = 1; i < 32; i++) {
+        //     this._layers[i] = 0x3
+        //     this._layers[i+32] = 0x0
+        // }
 
         this._ents = []
 
@@ -66,12 +67,12 @@ export class World {
         }
     }
     addLayer(layer: string) {
-        let i = 16
-        while(i < 32 && this._layerNames[i]) {
+        let i = 1
+        while(i < 32 && this._layerNames[i] != null) {
             i++
         }
         if(i == 32) {
-            console.log("[ERROR] Can't add layer: no more layers available")
+            console.log("[ERROR] Can't add layer: no more layers available" + (null as any).a)
         } else {
             this._layerNames[i] = layer
             this._layerIds[layer] = i
@@ -79,10 +80,10 @@ export class World {
     }
     setLayerRule(layer1: string, layer2: string, rule: string) {
         // TODO CLEAR ALL CONTACTS THAT DON'T FIT THE NEW RULE
-        if(!this._layerIds[layer1]) {
+        if(this._layerIds[layer1] == null) {
             this.addLayer(layer1)
         }
-        if(!this._layerIds[layer2]) {
+        if(this._layerIds[layer2] == null) {
             this.addLayer(layer2)
         }
         
@@ -236,16 +237,13 @@ export class World {
                     ent._vy += ent._parent._vy
                 }
 
-
                 let endOfCourse = false
                 while(!endOfCourse) {
                     // ADJUST SPEED DUE TO LOWER CONTACTS + REMOVE LOST CONTACTS
                     if(ent._leftLower) {
                         let sub = ent._leftLower.otherBody._topEntity
                         if(ent._vx > sub._simvx) {
-                            let i = ent._leftLower.otherBody._higherContacts.findIndex(c => c.otherBody == ent._leftLower.body)
-                            ent._leftLower.otherBody._higherContacts.splice(i, 1)
-                            ent._leftLower = null
+                            ent._removeLeftLowerContact()
                         } else {
                             ent._vx = sub._simvx
                         }
@@ -253,9 +251,7 @@ export class World {
                     if(ent._rightLower) {
                         let sub = ent._rightLower.otherBody._topEntity
                         if(ent._vx < sub._simvx) {
-                            let i = ent._rightLower.otherBody._higherContacts.findIndex(c => c.otherBody == ent._rightLower.body)
-                            ent._rightLower.otherBody._higherContacts.splice(i, 1)
-                            ent._rightLower = null
+                            ent._removeRightLowerContact()
                         } else {
                             ent._vx = sub._simvx
                         }
@@ -263,9 +259,7 @@ export class World {
                     if(ent._downLower) {
                         let sub = ent._downLower.otherBody._topEntity
                         if(ent._vy > sub._simvy) {
-                            let i = ent._downLower.otherBody._higherContacts.findIndex(c => c.otherBody == ent._downLower.body)
-                            ent._downLower.otherBody._higherContacts.splice(i, 1)
-                            ent._downLower = null
+                            ent._removeDownLowerContact()
                         } else {
                             ent._vy = sub._simvy
                         }
@@ -273,9 +267,7 @@ export class World {
                     if(ent._upLower) {
                         let sub = ent._upLower.otherBody._topEntity
                         if(ent._vx < sub._simvy) {
-                            let i = ent._upLower.otherBody._higherContacts.findIndex(c => c.otherBody == ent._upLower.body)
-                            ent._upLower.otherBody._higherContacts.splice(i, 1)
-                            ent._upLower = null
+                            ent._removeUpLowerContact()
                         } else {
                             ent._vy = sub._simvy
                         }
@@ -307,9 +299,41 @@ export class World {
                             })
                             
                             // UPDATE X, Y, TIME
-                            ent._x += first.x - first.body._x
-                            ent._y += first.y - first.body._y
+                            ent._x = first.x - first.body._x
+                            ent._y = first.y - first.body._y
                             time += first.time
+                            
+                            if(!first.otherBody._higherContacts) {
+                                first.otherBody._higherContacts = []
+                            }
+
+                            switch(first.side) {
+                                case "up": {
+                                    if(ent._upLower) { ent._removeUpLowerContact() }
+                                    ent._upLower = { body: first.body, otherBody: first.otherBody, side: "up" }
+                                    first.otherBody._higherContacts.push({ body: first.otherBody, otherBody: first.body, side: "down" })
+                                    break
+                                }
+                                case "down": {
+                                    if(ent._downLower) { ent._removeDownLowerContact() }
+                                    ent._downLower = { body: first.body, otherBody: first.otherBody, side: "down" }
+                                    first.otherBody._higherContacts.push({ body: first.otherBody, otherBody: first.body, side: "up" })
+                                    break
+                                }
+                                case "left": {
+                                    if(ent._leftLower) { ent._removeLeftLowerContact() }
+                                    ent._leftLower = { body: first.body, otherBody: first.otherBody, side: "left" }
+                                    first.otherBody._higherContacts.push({ body: first.otherBody, otherBody: first.body, side: "right" })
+                                    break
+                                }
+                                case "right": {
+                                    if(ent._rightLower) { ent._removeRightLowerContact() }
+                                    ent._rightLower = { body: first.body, otherBody: first.otherBody, side: "down" }
+                                    first.otherBody._higherContacts.push({ body: first.otherBody, otherBody: first.body, side: "left" })
+                                    break
+                                }
+                            }
+
                         } else {
                             endOfCourse = true
                         }
@@ -318,8 +342,8 @@ export class World {
                     }
 
                     if (endOfCourse) {
-                        ent._x = (delta - time) * ent._vx
-                        ent._y = (delta - time) * ent._vy
+                        ent._x += (delta - time) * ent._vx
+                        ent._y += (delta - time) * ent._vy
                     }
 
                     // REMOVE CONTACTS DUE TO SLIDE OFF
@@ -328,9 +352,7 @@ export class World {
                             if(ent._leftLower.otherBody instanceof Rect) {
                                 if(Math.abs(ent._leftLower.body._y + ent._y - ent._leftLower.otherBody._y - ent._leftLower.otherBody._topEntity._y) * 2 
                                     > ent._leftLower.body._height + ent._leftLower.otherBody._height) {
-                                    let i = ent._leftLower.otherBody._higherContacts.findIndex(c => c.otherBody == ent._leftLower.body)
-                                    ent._leftLower.otherBody._higherContacts.splice(i, 1)
-                                    ent._leftLower = null
+                                    ent._removeLeftLowerContact()
                                 }
                             }
                         }
@@ -340,9 +362,7 @@ export class World {
                             if(ent._rightLower.otherBody instanceof Rect) {
                                 if(Math.abs(ent._rightLower.body._y + ent._y - ent._rightLower.otherBody._y - ent._rightLower.otherBody._topEntity._y) * 2 
                                     > ent._rightLower.body._height + ent._rightLower.otherBody._height) {
-                                    let i = ent._rightLower.otherBody._higherContacts.findIndex(c => c.otherBody == ent._rightLower.body)
-                                    ent._rightLower.otherBody._higherContacts.splice(i, 1)
-                                    ent._rightLower = null
+                                    ent._removeRightLowerContact()
                                 }
                             }
                         }
@@ -352,9 +372,7 @@ export class World {
                             if(ent._upLower.otherBody instanceof Rect) {
                                 if(Math.abs(ent._upLower.body._x + ent._x - ent._upLower.otherBody._x - ent._upLower.otherBody._topEntity._x) * 2 
                                     > ent._upLower.body._width + ent._upLower.otherBody._width) {
-                                    let i = ent._upLower.otherBody._higherContacts.findIndex(c => c.otherBody == ent._upLower.body)
-                                    ent._upLower.otherBody._higherContacts.splice(i, 1)
-                                    ent._upLower = null
+                                    ent._removeUpLowerContact()
                                 }
                             }
                         }
@@ -364,9 +382,7 @@ export class World {
                             if(ent._downLower.otherBody instanceof Rect) {
                                 if(Math.abs(ent._downLower.body._x + ent._x - ent._downLower.otherBody._x - ent._downLower.otherBody._topEntity._x) * 2 
                                     > ent._downLower.body._width + ent._downLower.otherBody._width) {
-                                    let i = ent._downLower.otherBody._higherContacts.findIndex(c => c.otherBody == ent._downLower.body)
-                                    ent._downLower.otherBody._higherContacts.splice(i, 1)
-                                    ent._downLower = null
+                                    ent._removeDownLowerContact()
                                 }
                             }
                         }
@@ -393,11 +409,9 @@ export class World {
     }
 
     // SIMULATION PROCEDURES
-    _broadphase(delta: number) {      
-        let overlaps = this._vbh.update(delta)
-
+    _broadphase(delta: number) {
         let overlapBodies: SmallBody[][] = []
-        overlaps.forEach(pair => {
+        this._vbh.update(delta).forEach(pair => {
             if(pair[0]._level != pair[1]._level) {
                 let e1: Entity = pair[0], e2: Entity = pair[1]
                 
@@ -461,15 +475,7 @@ export class World {
         let toix = Infinity,
             toiy = Infinity,
             narrow: NarrowResult
-
-        // IF ALREADY IN CONTACT
-        if(b1._topEntity._leftLower && b1._topEntity._leftLower.otherBody == b2 ||
-           b1._topEntity._rightLower && b1._topEntity._rightLower.otherBody == b2 ||
-           b1._topEntity._upLower && b1._topEntity._upLower.otherBody == b2 ||
-           b1._topEntity._downLower && b1._topEntity._downLower.otherBody == b2) {
-            return null
-        }
-
+            
         // --  TOI
         if (vx1 != vx2 && 
             (!b1._topEntity._leftLower || b1._topEntity._leftLower.otherBody._topEntity != b2._topEntity ||
