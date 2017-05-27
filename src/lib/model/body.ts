@@ -252,6 +252,14 @@ export abstract class SmallBody extends Body {
         }
     }
 
+    abstract _width: number
+    abstract _height: number
+
+    abstract _leftCollide: boolean
+    abstract _rightCollide: boolean
+    abstract _upCollide: boolean
+    abstract _downCollide: boolean
+
     constructor(entity: Entity, args?: SmallBodyArgs) {
         super(entity, args)
 
@@ -290,6 +298,11 @@ export class Rect extends SmallBody {
     get maxx(): number { return this._x + this._width/2 }
     get miny(): number { return this._y - this._height/2 }
     get maxy(): number { return this._y + this._height/2 }
+
+    get _leftCollide(): boolean { return true }
+    get _rightCollide(): boolean { return true }
+    get _upCollide(): boolean { return true }
+    get _downCollide(): boolean { return true }
 
     constructor(entity: Entity, args: RectArgs) {
         super(entity, args)
@@ -350,6 +363,14 @@ export class Line extends SmallBody {
     get maxx(): number { return this._x + (this._isHorizontal && this._size/2) }
     get miny(): number { return this._y - (!this._isHorizontal && this._size/2) }
     get maxy(): number { return this._y + (!this._isHorizontal && this._size/2) }
+
+    get _width(): number { return this._isHorizontal ? this._size : 0 }
+    get _height(): number { return this._isHorizontal ? 0 : this._size }
+
+    get _leftCollide(): boolean { return this._oneway == 0 || !this._isHorizontal && this._oneway == 2 }
+    get _rightCollide(): boolean { return this._oneway == 0 || !this._isHorizontal && this._oneway == 1 }
+    get _upCollide(): boolean { return this._oneway == 0 || this._isHorizontal && this._oneway == 1 }
+    get _downCollide(): boolean { return this._oneway == 0 || this._isHorizontal && this._oneway == 2 }
 
     constructor(entity: Entity, args: LineArgs) {
         super(entity, args)

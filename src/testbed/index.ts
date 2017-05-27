@@ -485,7 +485,7 @@ export class Testbed {
 }
 
 import { GridScript1, GridScript2, GridScript3, GridScript4 } from './scripts/gridScripts'
-import { SimulScript1, SimulScript2, SimulScript3 } from './scripts/simulScripts'
+import { SimulScript1, SimulScript2, SimulScript3, SimulScript4 } from './scripts/simulScripts'
 
 window.onload = () => {
     let testbed = new Testbed()
@@ -498,6 +498,7 @@ window.onload = () => {
     testbed.addScript(SimulScript1)
     testbed.addScript(SimulScript2)
     testbed.addScript(SimulScript3)
+    testbed.addScript(SimulScript4)
 
-    testbed.start(SimulScript2.id)
+    testbed.start(SimulScript4.id)
 }

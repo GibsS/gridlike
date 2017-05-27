@@ -346,43 +346,27 @@ export class World {
 
                     // REMOVE CONTACTS DUE TO SLIDE OFF
                     if (ent._leftLower) {
-                        if(ent._leftLower.body instanceof Rect) {
-                            if(ent._leftLower.otherBody instanceof Rect) {
-                                if(Math.abs(ent._leftLower.body._y + ent._y - ent._leftLower.otherBody._y - ent._leftLower.otherBody._topEntity._y) * 2 
-                                    > ent._leftLower.body._height + ent._leftLower.otherBody._height) {
-                                    ent._removeLeftLowerContact()
-                                }
-                            }
+                        if(Math.abs(ent._leftLower.body._y + ent._y - ent._leftLower.otherBody._y - ent._leftLower.otherBody._topEntity._y) * 2 
+                            > (ent._leftLower.body as SmallBody)._height + (ent._leftLower.otherBody as SmallBody)._height) {
+                            ent._removeLeftLowerContact()
                         }
                     }
                     if (ent._rightLower) {
-                        if(ent._rightLower.body instanceof Rect) {
-                            if(ent._rightLower.otherBody instanceof Rect) {
-                                if(Math.abs(ent._rightLower.body._y + ent._y - ent._rightLower.otherBody._y - ent._rightLower.otherBody._topEntity._y) * 2 
-                                    > ent._rightLower.body._height + ent._rightLower.otherBody._height) {
-                                    ent._removeRightLowerContact()
-                                }
-                            }
+                        if(Math.abs(ent._rightLower.body._y + ent._y - ent._rightLower.otherBody._y - ent._rightLower.otherBody._topEntity._y) * 2 
+                            > (ent._rightLower.body as SmallBody)._height + (ent._rightLower.otherBody as SmallBody)._height) {
+                            ent._removeRightLowerContact()
                         }
                     }
                     if (ent._upLower) {
-                        if(ent._upLower.body instanceof Rect) {
-                            if(ent._upLower.otherBody instanceof Rect) {
-                                if(Math.abs(ent._upLower.body._x + ent._x - ent._upLower.otherBody._x - ent._upLower.otherBody._topEntity._x) * 2 
-                                    > ent._upLower.body._width + ent._upLower.otherBody._width) {
-                                    ent._removeUpLowerContact()
-                                }
-                            }
+                        if(Math.abs(ent._upLower.body._x + ent._x - ent._upLower.otherBody._x - ent._upLower.otherBody._topEntity._x) * 2 
+                            > (ent._upLower.body as SmallBody)._width + (ent._upLower.otherBody as SmallBody)._width) {
+                            ent._removeUpLowerContact()
                         }
                     }
                     if (ent._downLower) {
-                        if(ent._downLower.body instanceof Rect) {
-                            if(ent._downLower.otherBody instanceof Rect) {
-                                if(Math.abs(ent._downLower.body._x + ent._x - ent._downLower.otherBody._x - ent._downLower.otherBody._topEntity._x) * 2 
-                                    > ent._downLower.body._width + ent._downLower.otherBody._width) {
-                                    ent._removeDownLowerContact()
-                                }
-                            }
+                        if(Math.abs(ent._downLower.body._x + ent._x - ent._downLower.otherBody._x - ent._downLower.otherBody._topEntity._x) * 2 
+                            > (ent._downLower.body as SmallBody)._width + (ent._downLower.otherBody as SmallBody)._width) {
+                            ent._removeDownLowerContact()
                         }
                     }
                 }
@@ -470,7 +454,7 @@ export class World {
         })
     }
 
-    _narrowPhase(b1: Rect, b2: Rect, 
+    _narrowPhase(b1: SmallBody, b2: SmallBody, 
                  x1: number, y1: number, x2: number, y2: number, 
                  vx1: number, vy1: number, vx2: number, vy2: number, delta: number): NarrowResult {
         let toix = Infinity, toiy = Infinity
@@ -480,12 +464,12 @@ export class World {
             (!b1._topEntity._leftLower || b1._topEntity._leftLower.otherBody._topEntity != b2._topEntity ||
              !b1._topEntity._rightLower || b1._topEntity._rightLower.otherBody._topEntity != b2._topEntity)) {
             if (x1 < x2) {
-                if(vx1 > vx2) {
-                    toix = (x1 - x2 + (b1.width + b2.width) / 2) / (vx2 - vx1)
+                if(vx1 > vx2 && b1._rightCollide && b2._leftCollide) {
+                    toix = (x1 - x2 + (b1._width + b2._width) / 2) / (vx2 - vx1)
                 }
             } else {
-                if(vx1 < vx2) {
-                    toix = (x1 - x2 - (b1.width + b2.width) / 2) / (vx2 - vx1)
+                if(vx1 < vx2 && b2._rightCollide && b1._leftCollide) {
+                    toix = (x1 - x2 - (b1._width + b2._width) / 2) / (vx2 - vx1)
                 }
             }
         }
@@ -494,12 +478,12 @@ export class World {
             (!b1._topEntity._upLower || b1._topEntity._upLower.otherBody._topEntity != b2._topEntity ||
              !b1._topEntity._downLower || b1._topEntity._downLower.otherBody._topEntity != b2._topEntity)) {
             if (y1 < y2) {
-                if(vy1 > vy2) {
-                    toiy = (y1 - y2 + (b1.height + b2.height) / 2) / (vy2 - vy1)
+                if(vy1 > vy2 && b1._upCollide && b2._downCollide) {
+                    toiy = (y1 - y2 + (b1._height + b2._height) / 2) / (vy2 - vy1)
                 }
             } else {
-                if(vy1 < vy2) {
-                    toiy = (y1 - y2 - (b1.height + b2.height) / 2) / (vy2 - vy1)
+                if(vy1 < vy2 && b1._downCollide && b2._upCollide) {
+                    toiy = (y1 - y2 - (b1._height + b2._height) / 2) / (vy2 - vy1)
                 }
             }
         }
@@ -509,7 +493,7 @@ export class World {
                 let newy1 = y1 + toix * vy1,
                     newy2 = y2 + toix * vy2
 
-                if(!(newy2 - b2.height/2 > newy1 + b1.height/2 || newy1 - b1.height/2 > newy2 + b2.height/2)) {
+                if(!(newy2 - b2._height/2 > newy1 + b1._height/2 || newy1 - b1._height/2 > newy2 + b2._height/2)) {
                     return {
                         time: toix,
                         x: x1 + toix * vx1,
@@ -527,7 +511,7 @@ export class World {
                 let newx1 = x1 + toiy * vx1,
                     newx2 = x2 + toiy * vx2
                 
-                if(!(newx2 - b2.width/2 > newx1 + b1.width/2 || newx1 - b1.width/2 > newx2 + b2.width/2)) {
+                if(!(newx2 - b2._width/2 > newx1 + b1._width/2 || newx1 - b1._width/2 > newx2 + b2._width/2)) {
                     return {
                         time: toiy,
                         x: newx1,
@@ -545,7 +529,7 @@ export class World {
                 let newx1 = x1 + toiy * vx1,
                     newx2 = x2 + toiy * vx2
                 
-                if(!(newx2 - b2.width/2 > newx1 + b1.width/2 || newx1 - b1.width/2 > newx2 + b2.width/2)) {
+                if(!(newx2 - b2._width/2 > newx1 + b1._width/2 || newx1 - b1._width/2 > newx2 + b2._width/2)) {
                     return {
                         time: toiy,
                         x: newx1,
@@ -562,7 +546,7 @@ export class World {
                 let newy1 = y1 + toix * vy1,
                     newy2 = y2 + toix * vy2
 
-                if(!(newy2 - b2.height/2 > newy1 + b1.height/2 || newy1 - b1.height/2 > newy2 + b2.height/2)) {
+                if(!(newy2 - b2._height/2 > newy1 + b1._height/2 || newy1 - b1._height/2 > newy2 + b2._height/2)) {
                     return {
                         time: toix,
                         x: x1 + toix * vx1,
