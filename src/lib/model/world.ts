@@ -512,7 +512,7 @@ export class World {
             }
         }
             
-        if((toix < toiy || toiy < 0) && toix < delta && toix >= 0) {
+        if((toix < toiy || toiy < 0) && toix < delta && toix > -0.0001) {
             let newy1 = y1 + toix * vy1,
                 newy2 = y2 + toix * vy2
 
@@ -530,7 +530,7 @@ export class World {
             }
         } 
         
-        if(toiy < delta && toiy >= 0) {
+        if(toiy < delta && toiy > -0.0001) {
             let newx1 = x1 + toiy * vx1,
                 newx2 = x2 + toiy * vx2
             

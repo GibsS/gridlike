@@ -52,6 +52,10 @@ export class Testbed {
     showContact: boolean
 
     constructor() {
+        this.xCam = 0
+        this.yCam = 0
+        this.zoom = 40
+
         this.canvas = document.getElementById("canvas") as HTMLCanvasElement
         this.ctx = this.canvas.getContext('2d')
 
@@ -218,10 +222,6 @@ export class Testbed {
         this.lastUpdate = new Date().getTime()
 
         this._play = true
-
-        this.xCam = 0
-        this.yCam = 0
-        this.zoom = 40
 
         this._step = 0
         this._frameStep = 0
