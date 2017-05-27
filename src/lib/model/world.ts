@@ -266,19 +266,18 @@ export class World {
                     }
                     if(ent._upLower) {
                         let sub = ent._upLower.otherBody._topEntity
-                        if(ent._vx < sub._simvy) {
+                        if(ent._vy < sub._simvy) {
                             ent._removeUpLowerContact()
                         } else {
                             ent._vy = sub._simvy
                         }
                     }
-
                     if(ent._potContacts.length > 0) {
                         // CALCULATE POTENTIAL COLLISION INFO
                         let narrows = ent._potContacts.map(pair => {
                             return this._narrowPhase(pair[0] as Rect, pair[1] as Rect, 
                                 pair[0]._x + ent._x, pair[0]._y + ent._y, 
-                                pair[1]._y + pair[1]._topEntity._y + pair[1]._topEntity._simvx * time, 
+                                pair[1]._x + pair[1]._topEntity._x + pair[1]._topEntity._simvx * time, 
                                 pair[1]._y + pair[1]._topEntity._y + pair[1]._topEntity._simvy * time,
                                 ent._vx, ent._vy,
                                 pair[1]._topEntity._simvx, pair[1]._topEntity._simvy,
@@ -297,6 +296,7 @@ export class World {
                                     first = n
                                 }
                             })
+                            console.log(first)
                             
                             // UPDATE X, Y, TIME
                             ent._x = first.x - first.body._x
@@ -333,7 +333,6 @@ export class World {
                                     break
                                 }
                             }
-
                         } else {
                             endOfCourse = true
                         }
@@ -417,7 +416,17 @@ export class World {
                 
                 if(e2._bodies instanceof SmallBody) {
                     if(e1._bodies instanceof SmallBody) {
-                        overlapBodies.push([e2._bodies as SmallBody, e1._bodies as SmallBody])
+                        let b1 = e1._bodies, b2 = e2._bodies
+                        if(b1 instanceof Rect) {
+                            if(b2 instanceof Rect) {
+                                if(!(e1._x + b1._x - b1._width/2 + Math.min(0, e1.vx * delta)*2 > e2._x + b2._x + b2._width/2 + Math.max(0, e2.vx * delta)*2 || 
+                                     e1._x + b1._x + b1._width/2 + Math.max(0, e1.vx * delta)*2 < e2._x + b2._x - b2._width/2 + Math.min(0, e2.vx * delta)*2 || 
+                                     e1._y + b1._y - b1._height/2 + Math.min(0, e1.vy * delta)*2 > e2._y + b2._y + b2._height/2 + Math.max(0, e2.vy * delta)*2 ||
+                                     e1._y + b1._y + b1._height/2 + Math.max(0, e1.vy * delta)*2 < e2._y + b2._y - b2._height/2 + Math.min(0, e2.vy * delta)*2)) {
+                                    overlapBodies.push([b2 as SmallBody, b1 as SmallBody])
+                                }
+                            }
+                        }
                     } else {
                         let vbh = e1._allBodies || e1._bodies as VBH<Body>
                         overlapBodies.push.apply(overlapBodies, vbh.collideAABB(
@@ -472,38 +481,43 @@ export class World {
     _narrowPhase(b1: Rect, b2: Rect, 
                  x1: number, y1: number, x2: number, y2: number, 
                  vx1: number, vy1: number, vx2: number, vy2: number, delta: number): NarrowResult {
-        let toix = Infinity,
-            toiy = Infinity,
-            narrow: NarrowResult
+        let toix = Infinity, toiy = Infinity
             
         // --  TOI
         if (vx1 != vx2 && 
             (!b1._topEntity._leftLower || b1._topEntity._leftLower.otherBody._topEntity != b2._topEntity ||
              !b1._topEntity._rightLower || b1._topEntity._rightLower.otherBody._topEntity != b2._topEntity)) {
-            if(x1 < x2) {
-                toix = (x1 - x2 + (b1.width + b2.width) / 2) / (vx2 - vx1)
+            if (x1 < x2) {
+                if(vx1 > vx2) {
+                    toix = (x1 - x2 + (b1.width + b2.width) / 2) / (vx2 - vx1)
+                }
             } else {
-                toix = (x1 - x2 - (b1.width + b2.width) / 2) / (vx2 - vx1)
+                if(vx1 < vx2) {
+                    toix = (x1 - x2 - (b1.width + b2.width) / 2) / (vx2 - vx1)
+                }
             }
         }
         
         if (vy1 != vy2 &&
             (!b1._topEntity._upLower || b1._topEntity._upLower.otherBody._topEntity != b2._topEntity ||
-             !b1._topEntity._downLower || b1._topEntity._downLower.otherBody._topEntity != b2._topEntity) 
-            ) {
-            if(y1 < y2) {
-                toiy = (y1 - y2 + (b1.height + b2.height) / 2) / (vy2 - vy1)
+             !b1._topEntity._downLower || b1._topEntity._downLower.otherBody._topEntity != b2._topEntity)) {
+            if (y1 < y2) {
+                if(vy1 > vy2) {
+                    toiy = (y1 - y2 + (b1.height + b2.height) / 2) / (vy2 - vy1)
+                }
             } else {
-                toiy = (y1 - y2 - (b1.height + b2.height) / 2) / (vy2 - vy1)
+                if(vy1 < vy2) {
+                    toiy = (y1 - y2 - (b1.height + b2.height) / 2) / (vy2 - vy1)
+                }
             }
         }
             
-        if((toix < toiy || toiy < 0) && toix < delta && toix > 0) {
+        if((toix < toiy || toiy < 0) && toix < delta && toix >= 0) {
             let newy1 = y1 + toix * vy1,
                 newy2 = y2 + toix * vy2
 
             if(!(newy2 - b2.height/2 > newy1 + b1.height/2 || newy1 - b1.height/2 > newy2 + b2.height/2)) {
-                narrow = {
+                return {
                     time: toix,
                     x: x1 + toix * vx1,
                     y: newy1,
@@ -516,16 +530,16 @@ export class World {
             }
         } 
         
-        if(toiy < delta && toiy > 0) {
+        if(toiy < delta && toiy >= 0) {
             let newx1 = x1 + toiy * vx1,
                 newx2 = x2 + toiy * vx2
             
             if(!(newx2 - b2.width/2 > newx1 + b1.width/2 || newx1 - b1.width/2 > newx2 + b2.width/2)) {
-                narrow = {
+                return {
                     time: toiy,
-
                     x: newx1,
                     y: y1 + toiy * vy1,
+
                     body: b1,
                     otherBody: b2,
 
@@ -534,7 +548,7 @@ export class World {
             }
         } 
 
-        return narrow
+        return null
     }
 }
 

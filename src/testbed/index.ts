@@ -107,6 +107,7 @@ export class Testbed {
                 this.start(this.scriptDescriptor.id, true)
                 playBtn.innerText = "Play"
                 this._play = false
+                this._draw()
             }
         }
 
@@ -137,6 +138,7 @@ export class Testbed {
             } else {
                 this.zoom += 2
             }
+            this._draw()
         }, true)
 
         this.canvas.onclick = (e) => {
@@ -168,21 +170,27 @@ export class Testbed {
         mousetrap.reset();
         mousetrap.bind('j', () => {
             this.xCam -= 5 / this.zoom
+            this._draw()
         })
         mousetrap.bind('l', () => {
             this.xCam += 5 / this.zoom
+            this._draw()
         })
         mousetrap.bind('k', () => {
             this.yCam -= 5 / this.zoom
+            this._draw()
         })
         mousetrap.bind('i', () => {
             this.yCam += 5 / this.zoom
+            this._draw()
         })
         mousetrap.bind('u', () => {
             this.zoom += 2
+            this._draw()
         })
         mousetrap.bind('o', () => {
             this.zoom = Math.max(0, this.zoom - 2)
+            this._draw()
         })
     }
 
@@ -337,6 +345,12 @@ export class Testbed {
                         this.ctx.moveTo(contact.body.globalx * this.zoom + bx, -contact.body.globaly * this.zoom + by)
                         this.ctx.lineTo(contact.otherBody.globalx * this.zoom + bx, -contact.otherBody.globaly * this.zoom + by)
                         this.ctx.stroke()
+
+                        this.ctx.fillText(
+                            c.substring(1),
+                            (contact.body.globalx + contact.otherBody.globalx) * this.zoom / 2 + bx, 
+                            - (contact.body.globaly + contact.otherBody.globaly) * this.zoom / 2 + by
+                        )
                     }
                 }
                 this.ctx.strokeStyle="#000000";
@@ -471,7 +485,7 @@ export class Testbed {
 }
 
 import { GridScript1, GridScript2, GridScript3, GridScript4 } from './scripts/gridScripts'
-import { SimulScript1 } from './scripts/simulScripts'
+import { SimulScript1, SimulScript2, SimulScript3 } from './scripts/simulScripts'
 
 window.onload = () => {
     let testbed = new Testbed()
@@ -482,6 +496,8 @@ window.onload = () => {
     testbed.addScript(GridScript4)
 
     testbed.addScript(SimulScript1)
+    testbed.addScript(SimulScript2)
+    testbed.addScript(SimulScript3)
 
-    testbed.start(SimulScript1.id)
+    testbed.start(SimulScript3.id)
 }
