@@ -163,12 +163,12 @@ class Script4 extends Script {
     update(time: number, delta: number) {
         follow(this, this.rect, time, delta)
         update(this.rect, time, delta, 5)
+        this.ground.vx = 2 * Math.sin(time)
     }
 }
 
 class Script5 extends Script {
 
-    ground: Entity
     rect: Entity
 
     init() {
@@ -244,8 +244,58 @@ class Script5 extends Script {
     }
 }
 
-export const SimulScript1 = { id: "SimulScript1", name: "Test 1: Free move rect on rect", description: "Move: ZQSD", script: () => new Script1() } as ScriptDescriptor
+class Script6 extends Script {
+
+    ground1: Entity
+    ground2: Entity
+    ground3: Entity
+    rect: Entity
+
+    init() {
+        this.rect = this.r(this.world.createRect({
+            x: 0,
+            y: 2,
+            width: 1,
+            height: 1,
+            level: 1
+        }))
+        this.rect.name = "rect"
+
+        this.ground1 = this.r(this.world.createRect({
+            x: 0, y: 0,
+            width: 4,
+            height: 1,
+            level: 0
+        }))
+        this.ground1.name = "ground1"
+        this.ground2 = this.r(this.world.createRect({
+            x: -2, y: 0,
+            width: 1,
+            height: 4,
+            level: 0
+        }))
+        this.ground2.name = "ground2"
+        this.ground3 = this.r(this.world.createLine({
+            x: 2, y: 0,
+            size: 1,
+            isHorizontal: true,
+            level: 0
+        }))
+        this.ground3.name = "ground3"
+
+        input(this, this.rect, false)
+    }
+
+    update(time: number, delta: number) {
+        follow(this, this.rect, time, delta)
+        update(this.rect, time, delta, 5)
+        this.ground3.vy = 3 * Math.sin(time)
+    }
+}
+
+export const SimulScript1 = { id: "SimulScript1", name: "Test 1: Free rect movement against single rect", description: "Move: ZQSD", script: () => new Script1() } as ScriptDescriptor
 export const SimulScript2 = { id: "SimulScript2", name: "Test 2: Corner test", description: null, script: () => new Script2() } as ScriptDescriptor
-export const SimulScript3 = { id: "SimulScript3", name: "Test 3: Free move rect on moving rect", description: "Move: ZQSD", script: () => new Script3() } as ScriptDescriptor
-export const SimulScript4 = { id: "SimulScript4", name: "Test 4: Free move rect on line", description: "Move: ZQSD", script: () => new Script4() } as ScriptDescriptor
-export const SimulScript5 = { id: "SimulScript5", name: "Test 5: Layers and Layer groups", description: "Move: ZQSD", script: () => new Script5() } as ScriptDescriptor
+export const SimulScript3 = { id: "SimulScript3", name: "Test 3: Free rect movement against single moving rect", description: "Move: ZQSD", script: () => new Script3() } as ScriptDescriptor
+export const SimulScript4 = { id: "SimulScript4", name: "Test 4: Free rect movement against lines", description: "Move: ZQSD", script: () => new Script4() } as ScriptDescriptor
+export const SimulScript5 = { id: "SimulScript5", name: "Test 5: Layers and layer groups", description: "Move: ZQSD", script: () => new Script5() } as ScriptDescriptor
+export const SimulScript6 = { id: "SimulScript6", name: "Test 1: Free rect movement against several rects", description: "Move: ZQSD", script: () => new Script6() } as ScriptDescriptor
