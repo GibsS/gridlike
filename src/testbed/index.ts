@@ -499,5 +499,5 @@ window.onload = () => {
     testbed.addScript(SimulScript2)
     testbed.addScript(SimulScript3)
 
-    testbed.start(SimulScript3.id)
+    testbed.start(SimulScript2.id)
 }

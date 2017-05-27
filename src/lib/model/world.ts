@@ -277,8 +277,8 @@ export class World {
                         let narrows = ent._potContacts.map(pair => {
                             return this._narrowPhase(pair[0] as Rect, pair[1] as Rect, 
                                 pair[0]._x + ent._x, pair[0]._y + ent._y, 
-                                pair[1]._x + pair[1]._topEntity._x + pair[1]._topEntity._simvx * time, 
-                                pair[1]._y + pair[1]._topEntity._y + pair[1]._topEntity._simvy * time,
+                                pair[1]._x + pair[1]._topEntity._x + pair[1]._topEntity._simvx * (time - delta), 
+                                pair[1]._y + pair[1]._topEntity._y + pair[1]._topEntity._simvy * (time - delta),
                                 ent._vx, ent._vy,
                                 pair[1]._topEntity._simvx, pair[1]._topEntity._simvy,
                                 delta - time
@@ -296,7 +296,6 @@ export class World {
                                     first = n
                                 }
                             })
-                            console.log(first)
                             
                             // UPDATE X, Y, TIME
                             ent._x = first.x - first.body._x
@@ -509,42 +508,79 @@ export class World {
                 }
             }
         }
-            
-        if((toix < toiy || toiy < 0) && toix < delta && toix > -0.0001) {
-            let newy1 = y1 + toix * vy1,
-                newy2 = y2 + toix * vy2
 
-            if(!(newy2 - b2.height/2 > newy1 + b1.height/2 || newy1 - b1.height/2 > newy2 + b2.height/2)) {
-                return {
-                    time: toix,
-                    x: x1 + toix * vx1,
-                    y: newy1,
+        if(toix > toiy) {
+            if(toix < delta && toix > -0.0001) {
+                let newy1 = y1 + toix * vy1,
+                    newy2 = y2 + toix * vy2
 
-                    body: b1,
-                    otherBody: b2,
+                if(!(newy2 - b2.height/2 > newy1 + b1.height/2 || newy1 - b1.height/2 > newy2 + b2.height/2)) {
+                    return {
+                        time: toix,
+                        x: x1 + toix * vx1,
+                        y: newy1,
 
-                    side: x1 < x2 ? "right" : "left"
+                        body: b1,
+                        otherBody: b2,
+
+                        side: x1 < x2 ? "right" : "left"
+                    }
                 }
-            }
-        } 
-        
-        if(toiy < delta && toiy > -0.0001) {
-            let newx1 = x1 + toiy * vx1,
-                newx2 = x2 + toiy * vx2
+            } 
             
-            if(!(newx2 - b2.width/2 > newx1 + b1.width/2 || newx1 - b1.width/2 > newx2 + b2.width/2)) {
-                return {
-                    time: toiy,
-                    x: newx1,
-                    y: y1 + toiy * vy1,
+            if(toiy < delta && toiy > -0.0001) {
+                let newx1 = x1 + toiy * vx1,
+                    newx2 = x2 + toiy * vx2
+                
+                if(!(newx2 - b2.width/2 > newx1 + b1.width/2 || newx1 - b1.width/2 > newx2 + b2.width/2)) {
+                    return {
+                        time: toiy,
+                        x: newx1,
+                        y: y1 + toiy * vy1,
 
-                    body: b1,
-                    otherBody: b2,
+                        body: b1,
+                        otherBody: b2,
 
-                    side: y1 < y2 ? "up" : "down"
+                        side: y1 < y2 ? "up" : "down"
+                    }
                 }
-            }
-        } 
+            } 
+        } else {
+            if(toiy < delta && toiy > -0.0001) {
+                let newx1 = x1 + toiy * vx1,
+                    newx2 = x2 + toiy * vx2
+                
+                if(!(newx2 - b2.width/2 > newx1 + b1.width/2 || newx1 - b1.width/2 > newx2 + b2.width/2)) {
+                    return {
+                        time: toiy,
+                        x: newx1,
+                        y: y1 + toiy * vy1,
+
+                        body: b1,
+                        otherBody: b2,
+
+                        side: y1 < y2 ? "up" : "down"
+                    }
+                }
+            } 
+            if(toix < delta && toix > -0.0001) {
+                let newy1 = y1 + toix * vy1,
+                    newy2 = y2 + toix * vy2
+
+                if(!(newy2 - b2.height/2 > newy1 + b1.height/2 || newy1 - b1.height/2 > newy2 + b2.height/2)) {
+                    return {
+                        time: toix,
+                        x: x1 + toix * vx1,
+                        y: newy1,
+
+                        body: b1,
+                        otherBody: b2,
+
+                        side: x1 < x2 ? "right" : "left"
+                    }
+                }
+            } 
+        }
 
         return null
     }

@@ -48,10 +48,8 @@ class Script2 extends Script {
     rect: Entity
 
     init() {
-        let dist = 1 + Math.random()*2
-        console.log("distance:", dist)
         this.rect = this.r(this.world.createRect({
-            x: -dist+0.001, y: -dist,
+            x: -1.001, y: -1,
             width: 1,
             height: 1,
             level: 1
@@ -105,7 +103,7 @@ class Script3 extends Script {
     }
 
     update(time: number, delta: number) {
-        this.ground.vy = 1
+        this.ground.vy = 2 * Math.sin(time)
         update(this.rect, time, delta, 5)
     }
 }
