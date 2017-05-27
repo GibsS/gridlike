@@ -458,9 +458,7 @@ export class World {
 
         overlapBodies
         .filter(pair => {
-            let r = this._getLayerRule(pair[0]._layer, pair[1]._layer)
-
-            switch(r) {
+            switch(this._getLayerRule(pair[0]._layer, pair[1]._layer)) {
                 case 0x3: return true
                 case 0x2: return pair[0]._layerGroup == pair[1]._layerGroup
                 case 0x1: return pair[0]._layerGroup != pair[1]._layerGroup
