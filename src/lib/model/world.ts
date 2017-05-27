@@ -415,16 +415,11 @@ export class World {
                 
                 if(e2._bodies instanceof SmallBody) {
                     if(e1._bodies instanceof SmallBody) {
-                        let b1 = e1._bodies, b2 = e2._bodies
-                        if(b1 instanceof Rect) {
-                            if(b2 instanceof Rect) {
-                                if(!(e1._x + b1._x - b1._width/2 + Math.min(0, e1.vx * delta)*2 > e2._x + b2._x + b2._width/2 + Math.max(0, e2.vx * delta)*2 || 
-                                     e1._x + b1._x + b1._width/2 + Math.max(0, e1.vx * delta)*2 < e2._x + b2._x - b2._width/2 + Math.min(0, e2.vx * delta)*2 || 
-                                     e1._y + b1._y - b1._height/2 + Math.min(0, e1.vy * delta)*2 > e2._y + b2._y + b2._height/2 + Math.max(0, e2.vy * delta)*2 ||
-                                     e1._y + b1._y + b1._height/2 + Math.max(0, e1.vy * delta)*2 < e2._y + b2._y - b2._height/2 + Math.min(0, e2.vy * delta)*2)) {
-                                    overlapBodies.push([b2 as SmallBody, b1 as SmallBody])
-                                }
-                            }
+                        if(!(e1.minx + Math.min(0, e1.vx * delta)*2 > e2.maxx + Math.max(0, e2.vx * delta)*2 || 
+                                e1.maxx + Math.max(0, e1.vx * delta)*2 < e2.minx + Math.min(0, e2.vx * delta)*2 || 
+                                e1.miny + Math.min(0, e1.vy * delta)*2 > e2.maxy + Math.max(0, e2.vy * delta)*2 ||
+                                e1.maxy + Math.max(0, e1.vy * delta)*2 < e2.miny + Math.min(0, e2.vy * delta)*2)) {
+                            overlapBodies.push([e1._bodies as SmallBody, e2._bodies as SmallBody])
                         }
                     } else {
                         let vbh = e1._allBodies || e1._bodies as VBH<Body>
