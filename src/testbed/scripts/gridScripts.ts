@@ -166,7 +166,7 @@ class Script4 extends Script {
         
     }
     click(x: number, y: number, body: Body) {
-        console.log(x, y)
+        
     }
 }
 

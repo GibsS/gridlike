@@ -233,8 +233,8 @@ export class World {
 
                 // CALCULATE SPEED WITH PARENT
                 if(ent._parent) {
-                    ent._vx += ent._parent._vx
-                    ent._vy += ent._parent._vy
+                    ent._vx += ent._parent._simvx
+                    ent._vy += ent._parent._simvy
                 }
 
                 let endOfCourse = false
@@ -272,6 +272,7 @@ export class World {
                             ent._vy = sub._simvy
                         }
                     }
+                    
                     if(ent._potContacts.length > 0) {
                         // CALCULATE POTENTIAL COLLISION INFO
                         let narrows = ent._potContacts.map(pair => {

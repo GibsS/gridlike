@@ -4,7 +4,9 @@ import { Script, ScriptDescriptor } from '../script'
 import { Testbed } from '../'
 import { Entity, Grid, Body, LayerCollision } from '../../lib'
 
-import { input, update } from '../controllers/fixSpeedController'
+import * as fixSpeed from '../controllers/fixSpeedController'
+import * as charController from '../controllers/characterController'
+import * as forceController from '../controllers/forceAndDragController'
 import { follow } from '../controllers/cameraController'
 
 class Script1 extends Script {
@@ -30,11 +32,11 @@ class Script1 extends Script {
         }))
         this.ground.name = "ground"
 
-        input(this, this.rect, false)
+        fixSpeed.input(this, this.rect, false)
     }
 
     update(time: number, delta: number) {
-        update(this.rect, time, delta, 5)
+        fixSpeed.update(this.rect, time, delta, 5)
     }
 }
 
@@ -90,12 +92,12 @@ class Script3 extends Script {
         }))
         this.ground.name = "ground"
 
-        input(this, this.rect, true)
+        fixSpeed.input(this, this.rect, true)
     }
 
     update(time: number, delta: number) {
         this.ground.vy = 2 * Math.sin(time)
-        update(this.rect, time, delta, 5)
+        fixSpeed.update(this.rect, time, delta, 5)
     }
 }
 
@@ -157,12 +159,12 @@ class Script4 extends Script {
         }))
         this.ground.name = "ground"
 
-        input(this, this.rect, false)
+        fixSpeed.input(this, this.rect, false)
     }
 
     update(time: number, delta: number) {
         follow(this, this.rect, time, delta)
-        update(this.rect, time, delta, 5)
+        fixSpeed.update(this.rect, time, delta, 5)
         this.ground.vx = 2 * Math.sin(time)
     }
 }
@@ -235,12 +237,12 @@ class Script5 extends Script {
             level: 0
         })).name = "never:2"
 
-        input(this, this.rect, false)
+        fixSpeed.input(this, this.rect, false)
     }
 
     update(time: number, delta: number) {
         follow(this, this.rect, time, delta)
-        update(this.rect, time, delta, 5)
+        fixSpeed.update(this.rect, time, delta, 5)
     }
 }
 
@@ -283,12 +285,12 @@ class Script6 extends Script {
         }))
         this.ground3.name = "ground3"
 
-        input(this, this.rect, false)
+        fixSpeed.input(this, this.rect, false)
     }
 
     update(time: number, delta: number) {
         follow(this, this.rect, time, delta)
-        update(this.rect, time, delta, 5)
+        fixSpeed.update(this.rect, time, delta, 5)
         this.ground3.vy = 3 * Math.sin(time)
     }
 }
@@ -325,17 +327,194 @@ class Script7 extends Script {
             isHorizontal: true
         })
 
-        input(this, this.rect, false)
+        fixSpeed.input(this, this.rect, false)
     }
 
     update(time: number, delta: number) {
-        update(this.rect, time, delta, 5)
+        fixSpeed.update(this.rect, time, delta, 5)
 
         if(time % 10 < 5) {
             this.ground.vx = 0
         } else {
             this.ground.vx = 2 * Math.sin(time/3)
         }
+    }
+}
+
+class Script8 extends Script {
+
+    ground: Entity
+    big: Entity
+
+    init() {
+        this.big = this.r(this.world.createRect({
+            x: 0,
+            y: 2,
+            width: 1,
+            height: 1,
+            level: 1
+        }))
+        this.big.createLine({
+            x: 0, y: 3,
+            isHorizontal: true,
+            size: 1
+        })
+        this.big.createRect({
+            x: 2, y: 0,
+            width: 2,
+            height: 1
+        })
+
+        this.ground = this.r(this.world.createRect({
+            x: -1, y: -1,
+            width: 4,
+            height: 1,
+            level: 0
+        }))
+        this.ground.createRect({
+            x: -2, y: 0,
+            width: 1,
+            height: 4
+        })
+        this.ground.createLine({
+            x: 2, y: 5,
+            size: 1,
+            isHorizontal: true
+        })
+
+        fixSpeed.input(this, this.big, false)
+    }
+
+    update(time: number, delta: number) {
+        fixSpeed.update(this.big, time, delta, 5)
+
+        if(time % 10 < 5) {
+            this.ground.vx = 0
+        } else {
+            this.ground.vx = 2 * Math.sin(time/3)
+        }
+    }
+}
+
+class Script9 extends Script {
+
+    ground: Entity
+    rect: Entity
+
+    init() {
+        this.rect = this.r(this.world.createRect({
+            x: 0,
+            y: 2,
+            width: 1,
+            height: 1,
+            level: 1
+        }))
+
+        this.ground = this.r(this.world.createGrid({
+            x: 0, y: -3,
+            level: 0,
+            width: 20,
+            height: 20
+        }))
+        let grid = this.ground.body as Grid
+        grid.setTileShape(0, 0, 1)
+        grid.setTileShape(1, 0, 1)
+        grid.setTileShape(-1, 0, 1)
+        grid.setTileShape(-2, 0, 1)
+        grid.setTileShape(-2, 1, 1)
+
+        grid.setTileShape(-4, 2, 1)
+        grid.setTileShape(-4, 3, 1)
+
+        fixSpeed.input(this, this.rect, false)
+    }
+
+    update(time: number, delta: number) {
+        fixSpeed.update(this.rect, time, delta, 5)
+    }
+}
+
+class Script10 extends Script {
+
+    ground: Entity
+    grid: Entity
+
+    init() {
+        this.grid = this.r(this.world.createGrid({
+            x: 0,
+            y: 2,
+            level: 1,
+            width: 20,
+            height: 20
+        }))
+        let grid = this.ground.body as Grid
+        grid.setTileShape(0, 0, 1)
+        grid.setTileShape(2, 2, 1)
+
+        this.ground = this.r(this.world.createGrid({
+            x: 0, y: -3,
+            level: 0
+        }))
+        grid = this.ground.body as Grid
+        grid.setTileShape(0, 0, 1)
+        grid.setTileShape(1, 0, 1)
+        grid.setTileShape(-1, 0, 1)
+        grid.setTileShape(-2, 0, 1)
+        grid.setTileShape(-2, 1, 1)
+
+        grid.setTileShape(-4, 2, 1)
+        grid.setTileShape(-4, 3, 1)
+
+        fixSpeed.input(this, this.grid, false)
+    }
+
+    update(time: number, delta: number) {
+        fixSpeed.update(this.grid, time, delta, 5)
+    }
+}
+
+class Script11 extends Script {
+
+    rect: Entity
+    movingGrid: Entity
+    
+    init() {
+        this.rect = this.r(this.world.createRect({
+            x: 0, y: 0,
+            width: 1, height: 1,
+            level: 2
+        }))
+
+        this.movingGrid = this.r(this.world.createGrid({
+            x: -4, y: 0,
+            level: 1,
+            width: 20,
+            height: 20
+        }))
+        let grid = this.movingGrid.body as Grid
+        grid.setTileShape(0, 0, 1)
+        grid.setTileShape(0, -1, 1)
+        grid.setTileShape(0, -2, 1)
+        grid.setTileShape(1, 0, 1)
+
+        grid = this.r(this.world.createGrid({
+            x: 0, y: -3,
+            level: 0,
+            width: 20,
+            height: 20
+        })).body as Grid
+        grid.setTileShape(0, 0, 1)
+        grid.setTileShape(0, -1, 1)
+        grid.setTileShape(0, -2, 1)
+        grid.setTileShape(1, 0, 1)
+
+        charController.input(this, this.rect)
+        forceController.input(this, this.movingGrid, false, 'f', 'h', 't', 'g')
+    }
+
+    update(time: number, delta: number) {
+        charController.update(this.rect, time, delta, 2)
+        forceController.update(this.movingGrid, time, delta, 2)
     }
 }
 
@@ -346,3 +525,7 @@ export const SimulScript4 = { id: "SimulScript4", category: "Specification", nam
 export const SimulScript5 = { id: "SimulScript5", category: "Specification", name: "Test 5: Layers and layer groups", description: "Move: ZQSD", script: () => new Script5() } as ScriptDescriptor
 export const SimulScript6 = { id: "SimulScript6", category: "Specification", name: "Test 6: Free rect movement against several rects", description: "Move: ZQSD", script: () => new Script6() } as ScriptDescriptor
 export const SimulScript7 = { id: "SimulScript7", category: "Specification", name: "Test 7: Free rect movement against multi-body entity", description: "Move: ZQSD", script: () => new Script7() } as ScriptDescriptor
+export const SimulScript8 = { id: "SimulScript8", category: "Specification", name: "Test 8: Multi-body entity against multi-body entity", description: "Move: ZQSD", script: () => new Script8() } as ScriptDescriptor
+export const SimulScript9 = { id: "SimulScript9", category: "Specification", name: "Test 9: Free rect movement against grid", description: "Move: ZQSD", script: () => new Script9() } as ScriptDescriptor
+export const SimulScript10 = { id: "SimulScript10", category: "Specification", name: "Test 10: Grid against grid", description: "Move: ZQSD", script: () => new Script10() } as ScriptDescriptor
+export const SimulScript11 = { id: "SimulScript11", category: "Specification", name: "Test 11: Grids and a character", description: "Move chararacter: ZQSD\nMove moving grid: TFGH", script: () => new Script11() } as ScriptDescriptor
