@@ -39,4 +39,4 @@ class Script1 extends Script {
     }
 }
 
-export const PerformanceScript1 = { id: "PerformanceScript1", name: "Performance 1", description: null, script: () => new Script1() } as ScriptDescriptor
+export const PerformanceScript1 = { id: "PerformanceScript1", category: "Performance", name: "Performance 1", description: null, script: () => new Script1() } as ScriptDescriptor

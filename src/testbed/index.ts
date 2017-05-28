@@ -11,7 +11,8 @@ export class Testbed {
     canvas: HTMLCanvasElement
     ctx: CanvasRenderingContext2D
 
-    scripts: Map<string, ScriptDescriptor>
+    scripts: Map<string, Map<string, ScriptDescriptor>>
+    currentCategory: string
 
     scriptDescriptor: ScriptDescriptor
     script: Script
@@ -70,7 +71,7 @@ export class Testbed {
         this.canvas.width = this.canvas.offsetWidth
         this.canvas.height = this.canvas.offsetHeight
 
-        this.scripts = new Map<string, ScriptDescriptor>()
+        this.scripts = new Map<string, Map<string, ScriptDescriptor>>()
 
         window.onresize = (e) => {
             this.canvas.width = this.canvas.offsetWidth
@@ -199,13 +200,45 @@ export class Testbed {
     }
 
     addScript(script: ScriptDescriptor) {
-        this.scripts.set(script.id, script)
-        let a = document.createElement('button')
-        a.style.width = "100%"
-        a.innerText = script.name
-        a.onclick = () => { this.start(script.id) }
-        document.getElementById('scripts').appendChild(a)
-        document.getElementById('scripts').appendChild(document.createElement('br'))
+        if(!this.scripts.has(script.category)) {
+            this.scripts.set(script.category, new Map<string, ScriptDescriptor>())
+        }
+        this.scripts.get(script.category).set(script.id, script)
+        this.currentCategory = script.category
+    }
+    resetScriptList() {
+        let scriptDiv = document.getElementById('scripts')
+        while (scriptDiv.firstChild) {
+            scriptDiv.removeChild(scriptDiv.firstChild);
+        }
+        for(let category of this.scripts.keys()) {
+            let a = document.createElement('button')
+            a.style.fontWeight = "bold"
+            a.style.width = "100%"
+            a.innerText = category
+            a.onclick = () => { 
+                if(this.currentCategory == category) {
+                    this.currentCategory = null
+                } else {
+                    this.currentCategory = category
+                }
+                this.resetScriptList()
+            }
+            scriptDiv.appendChild(a)
+            scriptDiv.appendChild(document.createElement('br'))
+            if(category == this.currentCategory) {
+                for(let script of this.scripts.get(category).keys()) {
+                    let a = document.createElement('button')
+                    a.style.width = "100%"
+                    a.innerText = this.scripts.get(category).get(script).name
+                    a.onclick = () => { 
+                        this.start(script) 
+                    }
+                    scriptDiv.appendChild(a)
+                    scriptDiv.appendChild(document.createElement('br'))
+                }
+            }
+        }
     }
     start(script: string, paused?: boolean) {
         if(script != null) {
@@ -214,7 +247,13 @@ export class Testbed {
         this.resetKeys()
         document.getElementById("play-btn").innerText = "Pause"
         
-        this.scriptDescriptor = this.scripts.get(script)
+        for(let scripts of this.scripts.values()) {
+            if(scripts.has(script)) {
+                this.scriptDescriptor = scripts.get(script)
+                break
+            }
+        }
+        
         this.script = this.scriptDescriptor.script()
         this.world = new World()
         this.script._world = this.world
@@ -507,4 +546,5 @@ window.onload = () => {
     testbed.addScript(PerformanceScript1)
 
     testbed.start(SimulScript7.id)
+    testbed.resetScriptList()
 }

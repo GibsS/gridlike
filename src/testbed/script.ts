@@ -4,6 +4,7 @@ import { Testbed } from './'
 export interface ScriptDescriptor {
     id: string
     name: string
+    category: string
     description: string
     script: () => Script
 }

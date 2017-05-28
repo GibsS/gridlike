@@ -171,7 +171,7 @@ class Script4 extends Script {
 }
 
 
-export const GridScript1 = { id: "GridScript1", name: "Grid script 1", description: null, script: () => new Script1() } as ScriptDescriptor
-export const GridScript2 = { id: "GridScript2", name: "Grid script 2", description: null, script: () => new Script2() } as ScriptDescriptor
-export const GridScript3 = { id: "GridScript3", name: "Grid script 3", description: null, script: () => new Script3() } as ScriptDescriptor
-export const GridScript4 = { id: "GridScript4", name: "Grid script 4", description: null, script: () => new Script4() } as ScriptDescriptor
+export const GridScript1 = { id: "GridScript1", category: "Grid generation", name: "Grid script 1", description: null, script: () => new Script1() } as ScriptDescriptor
+export const GridScript2 = { id: "GridScript2", category: "Grid generation", name: "Grid script 2", description: null, script: () => new Script2() } as ScriptDescriptor
+export const GridScript3 = { id: "GridScript3", category: "Grid generation", name: "Grid script 3", description: null, script: () => new Script3() } as ScriptDescriptor
+export const GridScript4 = { id: "GridScript4", category: "Grid generation", name: "Grid script 4", description: null, script: () => new Script4() } as ScriptDescriptor
