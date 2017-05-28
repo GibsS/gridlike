@@ -470,9 +470,11 @@ export class Grid extends Body {
                 maxy = t.info[0].length + t.y
             }
         } else {
-            minx = -Math.floor((args.width || (this._gridSize - 10))/2)
+            args.width = args.width || (this._gridSize - 15)
+            args.height = args.height || (this._gridSize - 15)
+            minx = -Math.floor(args.width/2)
             maxx = minx + args.width
-            miny = -Math.floor((args.height || (this._gridSize - 10))/2)
+            miny = -Math.floor(args.height/2)
             maxy = miny + args.height
         }
 

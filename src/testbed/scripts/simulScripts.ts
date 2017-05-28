@@ -441,13 +441,10 @@ class Script10 extends Script {
 
     init() {
         this.grid = this.r(this.world.createGrid({
-            x: 0,
-            y: 2,
-            level: 1,
-            width: 20,
-            height: 20
+            x: 0, y: 2,
+            level: 1
         }))
-        let grid = this.ground.body as Grid
+        let grid = this.grid.body as Grid
         grid.setTileShape(0, 0, 1)
         grid.setTileShape(2, 2, 1)
 

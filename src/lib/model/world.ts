@@ -461,29 +461,25 @@ export class World {
         let toix = Infinity, toiy = Infinity
             
         // --  TOI
-        if (vx1 != vx2 && 
-            (!b1._topEntity._leftLower || b1._topEntity._leftLower.otherBody._topEntity != b2._topEntity ||
-             !b1._topEntity._rightLower || b1._topEntity._rightLower.otherBody._topEntity != b2._topEntity)) {
+        if (vx1 != vx2) {
             if (x1 < x2) {
-                if(vx1 > vx2 && b1._rightCollide && b2._leftCollide) {
+                if(vx1 > vx2 && b1._rightCollide && b2._leftCollide && (!b1._topEntity._rightLower || b1._topEntity._rightLower.otherBody._topEntity != b2._topEntity)) {
                     toix = (x1 - x2 + (b1._width + b2._width) / 2) / (vx2 - vx1)
                 }
             } else {
-                if(vx1 < vx2 && b2._rightCollide && b1._leftCollide) {
+                if(vx1 < vx2 && b2._rightCollide && b1._leftCollide && (!b1._topEntity._leftLower || b1._topEntity._leftLower.otherBody._topEntity != b2._topEntity)) {
                     toix = (x1 - x2 - (b1._width + b2._width) / 2) / (vx2 - vx1)
                 }
             }
         }
         
-        if (vy1 != vy2 &&
-            (!b1._topEntity._upLower || b1._topEntity._upLower.otherBody._topEntity != b2._topEntity ||
-             !b1._topEntity._downLower || b1._topEntity._downLower.otherBody._topEntity != b2._topEntity)) {
+        if (vy1 != vy2) {
             if (y1 < y2) {
-                if(vy1 > vy2 && b1._upCollide && b2._downCollide) {
+                if(vy1 > vy2 && b1._upCollide && b2._downCollide && (!b1._topEntity._upLower || b1._topEntity._upLower.otherBody._topEntity != b2._topEntity)) {
                     toiy = (y1 - y2 + (b1._height + b2._height) / 2) / (vy2 - vy1)
                 }
             } else {
-                if(vy1 < vy2 && b1._downCollide && b2._upCollide) {
+                if(vy1 < vy2 && b1._downCollide && b2._upCollide && (!b1._topEntity._downLower || b1._topEntity._downLower.otherBody._topEntity != b2._topEntity)) {
                     toiy = (y1 - y2 - (b1._height + b2._height) / 2) / (vy2 - vy1)
                 }
             }
