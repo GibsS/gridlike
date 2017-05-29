@@ -419,6 +419,14 @@ export class Testbed {
                     this.ctx.lineTo(o[1].globalx * this.zoom + bx, -o[1].globaly * this.zoom + by)
                     this.ctx.stroke()
                 }
+                if(e._overlap) {
+                    for(let o of e._overlap) {
+                        this.ctx.beginPath()
+                        this.ctx.moveTo(o[0].globalx * this.zoom + bx, -o[0].globaly * this.zoom + by)
+                        this.ctx.lineTo(o[1].globalx * this.zoom + bx, -o[1].globaly * this.zoom + by)
+                        this.ctx.stroke()
+                    }
+                }
 
                 this.ctx.strokeStyle="#000000"
             }
@@ -561,7 +569,7 @@ export class Testbed {
 import { GridScript1, GridScript2, GridScript3, GridScript4 } from './scripts/gridScripts'
 import { 
     SimulScript1, SimulScript2, SimulScript3, SimulScript4, SimulScript5, SimulScript6, SimulScript7,
-    SimulScript8, SimulScript9, SimulScript10, SimulScript11, SimulScript12
+    SimulScript8, SimulScript9, SimulScript10, SimulScript11, SimulScript12, SimulScript13
 } from './scripts/simulScripts'
 import { PerformanceScript1 } from './scripts/performanceScripts'
 
@@ -585,9 +593,10 @@ window.onload = () => {
     testbed.addScript(SimulScript10)
     testbed.addScript(SimulScript11)
     testbed.addScript(SimulScript12)
+    testbed.addScript(SimulScript13)
 
     testbed.addScript(PerformanceScript1)
 
-    testbed.start(SimulScript12.id)
+    testbed.start(SimulScript13.id)
     testbed.resetScriptList()
 }
