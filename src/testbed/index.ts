@@ -5,6 +5,7 @@ import * as wheel from 'mouse-wheel'
 import { Script, ScriptDescriptor } from './script'
 
 import { World, Entity, Body, BodyType, Rect, Line, Grid, Contact } from '../lib'
+import { SmallBody } from '../lib/model/body'
 
 export class Testbed {
 
@@ -36,11 +37,15 @@ export class Testbed {
     _displayTotal: number
     _logicTotal: number
     _physicsTotal: number
+    _broadphaseTotal: number
+    _narrowTotal: number
 
     // STATS
     _avgDisplayTime: number
     _avgLogicTime: number
     _avgPhysicTime: number
+    _avgBroadphaseTime: number
+    _avgNarrowphaseTime: number
     _fps: number
 
     // OPTIONS
@@ -269,11 +274,15 @@ export class Testbed {
         this._displayTotal = 0
         this._logicTotal = 0
         this._physicsTotal = 0
+        this._narrowTotal = 0
+        this._broadphaseTotal = 0
 
         // STATS
         this._avgDisplayTime = 0
         this._avgLogicTime = 0
         this._avgPhysicTime = 0
+        this._avgBroadphaseTime = 0
+        this._avgNarrowphaseTime = 0
         this._fps = 0
 
         this.script.init()
@@ -328,6 +337,8 @@ export class Testbed {
         this._physicsTotal += t1 - t0
         this._logicTotal += t2 - t1
         this._displayTotal += t3 - t2
+        this._narrowTotal += this.world._narrowphaseTime
+        this._broadphaseTotal += this.world._broadphaseTime
 
         this._step += 1
         this._frameStep += 1
@@ -336,14 +347,20 @@ export class Testbed {
             this._avgPhysicTime = t1 - t0
             this._avgDisplayTime = t3 - t2
             this._avgLogicTime = t2 - t1
+            this._avgBroadphaseTime = this.world._broadphaseTime
+            this._avgNarrowphaseTime = this.world._narrowphaseTime
         } else if(this.world.time - this._lastUpdateTime > 1) {
-            this._avgPhysicTime = (this._physicsTotal/this._frameStep)
-            this._avgDisplayTime = (this._displayTotal/this._frameStep)
-            this._avgLogicTime = (this._logicTotal/this._frameStep)
+            this._avgPhysicTime = this._physicsTotal/this._frameStep
+            this._avgDisplayTime = this._displayTotal/this._frameStep
+            this._avgLogicTime = this._logicTotal/this._frameStep
+            this._avgBroadphaseTime = this._broadphaseTotal/this._frameStep
+            this._avgNarrowphaseTime = this._narrowTotal/this._frameStep
 
             this._physicsTotal = 0
             this._displayTotal = 0
             this._logicTotal = 0
+            this._broadphaseTotal = 0
+            this._narrowTotal = 0
             
             this._fps = this._frameStep
             this._frameStep = 0
@@ -375,7 +392,8 @@ export class Testbed {
             }
 
             if(this.showContact) {
-                this.ctx.strokeStyle="#FF0000";
+                this.ctx.strokeStyle="#FF0000"
+
                 for(let c of ["_upLower", "_downLower", "_rightLower", "_leftLower"]) {
                     let contact = e[c] as Contact
 
@@ -392,7 +410,17 @@ export class Testbed {
                         )
                     }
                 }
-                this.ctx.strokeStyle="#000000";
+
+                this.ctx.strokeStyle = "#0000FF"
+
+                for(let o of e._invalidOverlap) {
+                    this.ctx.beginPath()
+                    this.ctx.moveTo(o[0].globalx * this.zoom + bx, -o[0].globaly * this.zoom + by)
+                    this.ctx.lineTo(o[1].globalx * this.zoom + bx, -o[1].globaly * this.zoom + by)
+                    this.ctx.stroke()
+                }
+
+                this.ctx.strokeStyle="#000000"
             }
             e._forBodies(b => {
                 let x = b.globalx, y = b.globaly
@@ -410,6 +438,11 @@ export class Testbed {
                                     
                     this.ctx.fillText("[" + x.toFixed(2) + ", " + y.toFixed(2) + "]", (x + 0.2) * this.zoom + bx, -y * this.zoom + by)
                     this.ctx.stroke()
+                }
+                if((b as SmallBody).isSensor) {
+                    this.ctx.strokeStyle = "#0000FF"
+                } else {
+                    this.ctx.strokeStyle = "#000000"
                 }
                 switch(b.type) {
                     case BodyType.RECT: {
@@ -477,12 +510,14 @@ export class Testbed {
             })
         }
         this.ctx.font="15px Arial"
-        this.ctx.fillText("Physic (time/step): " + this._avgPhysicTime.toFixed(3), 10, this.canvas.offsetHeight - 10)
-        this.ctx.fillText("Display (time/step): " + this._avgDisplayTime.toFixed(3), 10, this.canvas.offsetHeight - 25)
-        this.ctx.fillText("Logic (time/step): " + this._avgLogicTime.toFixed(3), 10, this.canvas.offsetHeight - 40)
-        this.ctx.fillText("FPS: " + this._fps, 10, this.canvas.offsetHeight - 55)
-        this.ctx.fillText("Step: " + this._step, 10, this.canvas.offsetHeight - 70)
-        this.ctx.fillText("World time: " + this.world.time.toFixed(1), 10, this.canvas.offsetHeight - 85)
+        this.ctx.fillText("Broad phase (time/step): " + this._avgBroadphaseTime.toFixed(3), 10, this.canvas.offsetHeight - 10)
+        this.ctx.fillText("Narrow phase (time/step): " + this._avgNarrowphaseTime.toFixed(3), 10, this.canvas.offsetHeight - 25)
+        this.ctx.fillText("Physic (time/step): " + this._avgPhysicTime.toFixed(3), 10, this.canvas.offsetHeight - 40)
+        this.ctx.fillText("Display (time/step): " + this._avgDisplayTime.toFixed(3), 10, this.canvas.offsetHeight - 55)
+        this.ctx.fillText("Logic (time/step): " + this._avgLogicTime.toFixed(3), 10, this.canvas.offsetHeight - 70)
+        this.ctx.fillText("FPS: " + this._fps, 10, this.canvas.offsetHeight - 85)
+        this.ctx.fillText("Step: " + this._step, 10, this.canvas.offsetHeight - 100)
+        this.ctx.fillText("World time: " + this.world.time.toFixed(1), 10, this.canvas.offsetHeight - 115)
 
         this.ctx.font="20px Arial"
         this.ctx.fillText(this.scriptDescriptor.name, 10, 30)

@@ -21,6 +21,9 @@ export class World {
 
     _vbh: MoveVBH<Entity>
 
+    _broadphaseTime: number = 0
+    _narrowphaseTime: number = 0
+
     constructor() {
         this._time = 0
 
@@ -221,7 +224,9 @@ export class World {
         this._time += delta
 
         // I. GET ALL POTENTIAL COLLISION, FILTERED OUT
+        let t0 = performance.now()
         this._broadphase(delta)
+        let t1 = performance.now()
 
         // II. SOLVE INVALID STATE + SOLVE MOVEMENT OF ALL ENTITIES: DEFINE NEW X, Y, VX, VY AND CONTACTS
         for(let level in this._ents) {
@@ -232,8 +237,8 @@ export class World {
                     time: number = 0
 
                 // INVALID SOLVING
-                ent._overlap = _.unionWith(
-                    ent._overlap, 
+                ent._invalidOverlap = _.unionWith(
+                    ent._invalidOverlap, 
                     ent._potContacts.filter(c => c[1] instanceof Rect || (c[1] as Line)._oneway == 0 && !c[1]._grid), 
                     (a, b) => a[1] == b[1]
                 ).map((o: SmallBody[]) => {
@@ -354,8 +359,8 @@ export class World {
                                         case "up": {
                                             if(ent._downLower) {
                                                 if((n.otherBody as SmallBody)._upCollide) {
-                                                    if(!ent._overlap) { ent._overlap = [] }
-                                                    ent._overlap.push([n.body, n.otherBody])
+                                                    if(!ent._invalidOverlap) { ent._invalidOverlap = [] }
+                                                    ent._invalidOverlap.push([n.body, n.otherBody])
                                                 }
                                             } else {
                                                 firstTime = n.time
@@ -366,8 +371,8 @@ export class World {
                                         case "down": {
                                             if(ent._upLower) {
                                                 if((n.otherBody as SmallBody)._downCollide) {
-                                                    if(!ent._overlap) { ent._overlap = [] }
-                                                    ent._overlap.push([n.body, n.otherBody])
+                                                    if(!ent._invalidOverlap) { ent._invalidOverlap = [] }
+                                                    ent._invalidOverlap.push([n.body, n.otherBody])
                                                 }
                                             } else {
                                                 firstTime = n.time
@@ -378,8 +383,8 @@ export class World {
                                         case "left": {
                                             if(ent._rightLower) {
                                                 if((n.otherBody as SmallBody)._leftCollide) {
-                                                    if(!ent._overlap) { ent._overlap = [] }
-                                                    ent._overlap.push([n.body, n.otherBody])
+                                                    if(!ent._invalidOverlap) { ent._invalidOverlap = [] }
+                                                    ent._invalidOverlap.push([n.body, n.otherBody])
                                                 }
                                             } else {
                                                 firstTime = n.time
@@ -390,8 +395,8 @@ export class World {
                                         case "right": {
                                             if(ent._leftLower) {
                                                 if((n.otherBody as SmallBody)._rightCollide) {
-                                                    if(!ent._overlap) { ent._overlap = [] }
-                                                    ent._overlap.push([n.body, n.otherBody])
+                                                    if(!ent._invalidOverlap) { ent._invalidOverlap = [] }
+                                                    ent._invalidOverlap.push([n.body, n.otherBody])
                                                 }
                                             } else {
                                                 firstTime = n.time
@@ -493,6 +498,10 @@ export class World {
                 ent._simvy = (ent._y - oldy) / delta
             }
         }
+
+        let t2 = performance.now()
+        this._broadphaseTime = t1 - t0
+        this._narrowphaseTime = t2 - t1
     }
     _move(entity: Entity, dx: number, dy: number) {
 

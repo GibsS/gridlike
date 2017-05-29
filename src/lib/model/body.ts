@@ -53,7 +53,6 @@ export abstract class Body implements IAABB {
     _y: number
 
     _higherContacts: Contact[]
-    _overlap: Overlap[]
 
     get entity(): Entity { return this._entity }
     set entity(val: Entity) { console.log("[ERROR] can't set entity") }
