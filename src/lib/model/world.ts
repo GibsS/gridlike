@@ -223,13 +223,68 @@ export class World {
         // I. GET ALL POTENTIAL COLLISION, FILTERED OUT
         this._broadphase(delta)
 
-        // II. SOLVE MOVEMENT OF ALL ENTITIES: DEFINE NEW X, Y, VX, VY AND CONTACTS
+        // II. SOLVE INVALID STATE + SOLVE MOVEMENT OF ALL ENTITIES: DEFINE NEW X, Y, VX, VY AND CONTACTS
         for(let level in this._ents) {
             let currentEnts = this._ents[level]
 
             for(let ent of currentEnts) {
                 let oldx = ent._x, oldy = ent._y,
                     time: number = 0
+
+                // INVALID SOLVING
+                ent._overlap = _.unionWith(
+                    ent._overlap, 
+                    ent._potContacts.filter(c => c[1] instanceof Rect || (c[1] as Line)._oneway == 0 && !c[1]._grid), 
+                    (a, b) => a[1] == b[1]
+                ).map((o: SmallBody[]) => {
+                    let otherx = o[1]._topEntity._x + o[1]._x - delta * o[1]._topEntity._simvx,
+                        othery = o[1]._topEntity._y + o[1]._y - delta * o[1]._topEntity._simvy
+
+                    switch(this._solveOverlap(
+                        o[0], o[1], 
+                        ent._x + o[0]._x, ent._y + o[0]._y, 
+                        otherx, othery,
+                        !ent._upLower, !ent._downLower, !ent._leftLower, !ent._rightLower)) {
+                        case 0: { // no overlap
+                            return null
+                        }
+                        case 1: { // stuck
+                            return o
+                        }
+                        case 2: { // move left
+                            ent._x = otherx - o[1]._width/2 - o[0]._width/2 - o[0]._x
+                            if(ent._rightLower) { ent._removeRightLowerContact() }
+                            ent._rightLower = { body: o[0], otherBody: o[1], side: "right" }
+                            if(!o[1]._higherContacts) { o[1]._higherContacts = [] }
+                            o[1]._higherContacts.push({ body: o[1], otherBody: o[0], side: "left" })
+                            return null
+                        }
+                        case 3: { // move right
+                            ent._x = otherx + o[1]._width/2 + o[0]._width/2 - o[0]._x
+                            if(ent._leftLower) { ent._removeLeftLowerContact() }
+                            ent._leftLower = { body: o[0], otherBody: o[1], side: "left" }
+                            if(!o[1]._higherContacts) { o[1]._higherContacts = [] }
+                            o[1]._higherContacts.push({ body: o[1], otherBody: o[0], side: "right" })
+                            return null
+                        }
+                        case 4: { // move up
+                            ent._y = othery + o[1]._height/2 + o[0]._height/2 - o[0]._y
+                            if(ent._downLower) { ent._removeDownLowerContact() }
+                            ent._downLower = { body: o[0], otherBody: o[1], side: "down" }
+                            if(!o[1]._higherContacts) { o[1]._higherContacts = [] }
+                            o[1]._higherContacts.push({ body: o[1], otherBody: o[0], side: "up" })
+                            return null
+                        }
+                        case 5: { // move down
+                            ent._y = othery - o[1]._height/2 - o[0]._height/2 - o[0]._y
+                            if(ent._upLower) { ent._removeUpLowerContact() }
+                            ent._upLower = { body: o[0], otherBody: o[1], side: "up" }
+                            if(!o[1]._higherContacts) { o[1]._higherContacts = [] }
+                            o[1]._higherContacts.push({ body: o[1], otherBody: o[0], side: "down" })
+                            return null
+                        }
+                    }
+                }).filter(o => o)
 
                 // CALCULATE SPEED WITH PARENT
                 if(ent._parent) {
@@ -293,44 +348,96 @@ export class World {
                                 first: NarrowResult
                             narrows.forEach(n => {
                                 if(n.time < firstTime) {
-                                    firstTime = n.time
-                                    first = n
+                                    switch(n.side) {
+                                        case "up": {
+                                            if(ent._downLower) {
+                                                if((n.otherBody as SmallBody)._upCollide) {
+                                                    if(!ent._overlap) { ent._overlap = [] }
+                                                    ent._overlap.push([n.body, n.otherBody])
+                                                }
+                                            } else {
+                                                firstTime = n.time
+                                                first = n
+                                            }
+                                            break
+                                        }
+                                        case "down": {
+                                            if(ent._upLower) {
+                                                if((n.otherBody as SmallBody)._downCollide) {
+                                                    if(!ent._overlap) { ent._overlap = [] }
+                                                    ent._overlap.push([n.body, n.otherBody])
+                                                }
+                                            } else {
+                                                firstTime = n.time
+                                                first = n
+                                            }
+                                            break
+                                        }
+                                        case "left": {
+                                            if(ent._rightLower) {
+                                                if((n.otherBody as SmallBody)._leftCollide) {
+                                                    if(!ent._overlap) { ent._overlap = [] }
+                                                    ent._overlap.push([n.body, n.otherBody])
+                                                }
+                                            } else {
+                                                firstTime = n.time
+                                                first = n
+                                            }
+                                            break
+                                        }
+                                        case "right": {
+                                            if(ent._leftLower) {
+                                                if((n.otherBody as SmallBody)._rightCollide) {
+                                                    if(!ent._overlap) { ent._overlap = [] }
+                                                    ent._overlap.push([n.body, n.otherBody])
+                                                }
+                                            } else {
+                                                firstTime = n.time
+                                                first = n
+                                            }
+                                            break
+                                        }
+                                    }
                                 }
                             })
-                            
-                            // UPDATE X, Y, TIME
-                            ent._x = first.x - first.body._x
-                            ent._y = first.y - first.body._y
-                            time += first.time
-                            
-                            if(!first.otherBody._higherContacts) {
-                                first.otherBody._higherContacts = []
-                            }
 
-                            switch(first.side) {
-                                case "up": {
-                                    if(ent._upLower) { ent._removeUpLowerContact() }
-                                    ent._upLower = { body: first.body, otherBody: first.otherBody, side: "up" }
-                                    first.otherBody._higherContacts.push({ body: first.otherBody, otherBody: first.body, side: "down" })
-                                    break
+                            if(!first) {
+                                endOfCourse = true
+                            } else {
+                                // UPDATE X, Y, TIME
+                                ent._x = first.x - first.body._x
+                                ent._y = first.y - first.body._y
+                                time += first.time
+                                
+                                if(!first.otherBody._higherContacts) {
+                                    first.otherBody._higherContacts = []
                                 }
-                                case "down": {
-                                    if(ent._downLower) { ent._removeDownLowerContact() }
-                                    ent._downLower = { body: first.body, otherBody: first.otherBody, side: "down" }
-                                    first.otherBody._higherContacts.push({ body: first.otherBody, otherBody: first.body, side: "up" })
-                                    break
-                                }
-                                case "left": {
-                                    if(ent._leftLower) { ent._removeLeftLowerContact() }
-                                    ent._leftLower = { body: first.body, otherBody: first.otherBody, side: "left" }
-                                    first.otherBody._higherContacts.push({ body: first.otherBody, otherBody: first.body, side: "right" })
-                                    break
-                                }
-                                case "right": {
-                                    if(ent._rightLower) { ent._removeRightLowerContact() }
-                                    ent._rightLower = { body: first.body, otherBody: first.otherBody, side: "down" }
-                                    first.otherBody._higherContacts.push({ body: first.otherBody, otherBody: first.body, side: "left" })
-                                    break
+
+                                switch(first.side) {
+                                    case "up": {
+                                        if(ent._upLower) { ent._removeUpLowerContact() }
+                                        ent._upLower = { body: first.body, otherBody: first.otherBody, side: "up" }
+                                        first.otherBody._higherContacts.push({ body: first.otherBody, otherBody: first.body, side: "down" })
+                                        break
+                                    }
+                                    case "down": {
+                                        if(ent._downLower) { ent._removeDownLowerContact() }
+                                        ent._downLower = { body: first.body, otherBody: first.otherBody, side: "down" }
+                                        first.otherBody._higherContacts.push({ body: first.otherBody, otherBody: first.body, side: "up" })
+                                        break
+                                    }
+                                    case "left": {
+                                        if(ent._leftLower) { ent._removeLeftLowerContact() }
+                                        ent._leftLower = { body: first.body, otherBody: first.otherBody, side: "left" }
+                                        first.otherBody._higherContacts.push({ body: first.otherBody, otherBody: first.body, side: "right" })
+                                        break
+                                    }
+                                    case "right": {
+                                        if(ent._rightLower) { ent._removeRightLowerContact() }
+                                        ent._rightLower = { body: first.body, otherBody: first.otherBody, side: "down" }
+                                        first.otherBody._higherContacts.push({ body: first.otherBody, otherBody: first.body, side: "left" })
+                                        break
+                                    }
                                 }
                             }
                         } else {
@@ -559,6 +666,54 @@ export class World {
         }
 
         return null
+    }
+
+    /*
+        returns:
+            0: no overlap
+            1: stuck
+            2: move left
+            3: move right
+            4: move up
+            5: move down
+    */
+    _solveOverlap(b1: SmallBody, b2: SmallBody, x1: number, y1: number, x2: number, y2: number, 
+                  canUp: boolean, canDown: boolean, canLeft: boolean, canRight: boolean): number {
+        if (x1 - b1._width/2 + 0.001 > x2 + b2._width/2
+            || x1 + b1._width/2 < x2 - b2._width/2 + 0.001
+            || y1 - b1._height/2 + 0.001 > y2 + b2._height/2 
+            || y1 + b1._height/2 < y2 - b2._height/2 + 0.001) {
+            return 0
+        } else {
+            let up = y1 + b1._height/2 - y2 - b2._height/2,
+                down = y2 - b2._height/2 - y1 + b1._height/2,
+                left = x2 - b2._width/2 - x1 + b1._width/2,
+                right = x1 + b1._width/2 - x2 - b2._width/2,
+                yMax = Math.max(up, down), xMax = Math.max(left, right)
+
+            if (yMax <= 0 && xMax <= 0) {
+                if(canUp) { return 4 }
+                if(canDown) { return 5 }
+                if(canLeft) { return 2 }
+                if(canRight) { return 3 }
+                return 1
+            }
+
+            if(yMax > xMax) {
+                if(up > down) {
+                    if(canUp) { return 4 }
+                } else {
+                    if(canDown) { return 5 }
+                }
+            } else {
+                if(left > right) {
+                    if(canLeft) { return 2 }
+                } else {
+                    if(canRight) { return 3 }
+                }
+            }
+            return 1
+        }
     }
 }
 

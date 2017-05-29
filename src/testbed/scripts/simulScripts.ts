@@ -251,12 +251,14 @@ class Script6 extends Script {
     ground1: Entity
     ground2: Entity
     ground3: Entity
+    ground4: Entity
+    ground5: Entity
     rect: Entity
 
     init() {
         this.rect = this.r(this.world.createRect({
             x: 0,
-            y: 2,
+            y: 4,
             width: 1,
             height: 1,
             level: 1
@@ -284,6 +286,20 @@ class Script6 extends Script {
             level: 0
         }))
         this.ground3.name = "ground3"
+        this.ground4 = this.r(this.world.createLine({
+            x: 0, y: 2,
+            size: 1,
+            isHorizontal: true,
+            level: 0
+        }))
+        this.ground4.name = "ground4"
+        this.ground5 = this.r(this.world.createRect({
+            x: -6.5, y: 0,
+            width: 4,
+            height: 10,
+            level: 0
+        }))
+        this.ground5.name = "ground4"
 
         fixSpeed.input(this, this.rect, false)
     }
@@ -292,6 +308,8 @@ class Script6 extends Script {
         follow(this, this.rect, time, delta)
         fixSpeed.update(this.rect, time, delta, 5)
         this.ground3.vy = 3 * Math.sin(time)
+        this.ground4.vx = 3 * Math.sin(time)
+        this.ground5.vx = 1 * Math.sin(time)
     }
 }
 

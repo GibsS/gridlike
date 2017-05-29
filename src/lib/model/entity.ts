@@ -70,6 +70,8 @@ export class Entity implements IMoveAABB {
     _upLower: Contact
     _downLower: Contact
 
+    _overlap: Body[][]
+
     _minx: number
     _maxx: number
     _miny: number

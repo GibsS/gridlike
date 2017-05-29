@@ -552,6 +552,6 @@ window.onload = () => {
 
     testbed.addScript(PerformanceScript1)
 
-    testbed.start(SimulScript7.id)
+    testbed.start(SimulScript6.id)
     testbed.resetScriptList()
 }
