@@ -293,7 +293,9 @@ export class World {
                 }
 
                 let endOfCourse = false
-                while(!endOfCourse) {
+                let a = 0
+                while(!endOfCourse && a < 10) {
+                    a++
                     // ADJUST SPEED DUE TO LOWER CONTACTS + REMOVE LOST CONTACTS
                     if(ent._leftLower) {
                         let sub = ent._leftLower.otherBody._topEntity
@@ -409,9 +411,7 @@ export class World {
                                 ent._y = first.y - first.body._y
                                 time += first.time
                                 
-                                if(!first.otherBody._higherContacts) {
-                                    first.otherBody._higherContacts = []
-                                }
+                                if(!first.otherBody._higherContacts) { first.otherBody._higherContacts = [] }
 
                                 switch(first.side) {
                                     case "up": {
@@ -597,7 +597,7 @@ export class World {
                 let newy1 = y1 + toix * vy1,
                     newy2 = y2 + toix * vy2
 
-                if(!(newy2 - b2._height/2 > newy1 + b1._height/2 || newy1 - b1._height/2 > newy2 + b2._height/2)) {
+                if(!(newy2 - b2._height/2 + 0.000001 > newy1 + b1._height/2 || newy1 - b1._height/2 + 0.000001 > newy2 + b2._height/2)) {
                     return {
                         time: toix,
                         x: x1 + toix * vx1,
@@ -615,7 +615,7 @@ export class World {
                 let newx1 = x1 + toiy * vx1,
                     newx2 = x2 + toiy * vx2
                 
-                if(!(newx2 - b2._width/2 > newx1 + b1._width/2 || newx1 - b1._width/2 > newx2 + b2._width/2)) {
+                if(!(newx2 - b2._width/2 + 0.000001 > newx1 + b1._width/2 || newx1 - b1._width/2 + 0.000001 > newx2 + b2._width/2)) {
                     return {
                         time: toiy,
                         x: newx1,
@@ -633,7 +633,7 @@ export class World {
                 let newx1 = x1 + toiy * vx1,
                     newx2 = x2 + toiy * vx2
                 
-                if(!(newx2 - b2._width/2 > newx1 + b1._width/2 || newx1 - b1._width/2 > newx2 + b2._width/2)) {
+                if(!(newx2 - b2._width/2 + 0.000001 > newx1 + b1._width/2 || newx1 - b1._width/2 + 0.000001 > newx2 + b2._width/2)) {
                     return {
                         time: toiy,
                         x: newx1,
@@ -650,7 +650,7 @@ export class World {
                 let newy1 = y1 + toix * vy1,
                     newy2 = y2 + toix * vy2
 
-                if(!(newy2 - b2._height/2 > newy1 + b1._height/2 || newy1 - b1._height/2 > newy2 + b2._height/2)) {
+                if(!(newy2 - b2._height/2 + 0.000001 > newy1 + b1._height/2 || newy1 - b1._height/2 + 0.000001 > newy2 + b2._height/2)) {
                     return {
                         time: toix,
                         x: x1 + toix * vx1,

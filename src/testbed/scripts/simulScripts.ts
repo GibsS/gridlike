@@ -530,6 +530,56 @@ class Script11 extends Script {
     update(time: number, delta: number) {
         charController.update(this.rect, time, delta, 2)
         forceController.update(this.movingGrid, time, delta, 2)
+        follow(this, this.rect, time, delta)
+    }
+}
+
+class Script12 extends Script {
+
+    rect: Entity
+    
+    init() {
+        this.rect = this.r(this.world.createRect({
+            x: 0, y: 2,
+            width: 1, height: 1,
+            level: 2
+        }))
+
+        this.r(this.world.createRect({
+            x: 0, y: 0,
+            level: 0,
+            width: 2, height: 1
+        }))
+        this.r(this.world.createRect({
+            x: -2, y: 0,
+            level: 0,
+            width: 2, height: 1
+        }))
+        this.r(this.world.createRect({
+            x: 2, y: 0,
+            level: 0,
+            width: 2, height: 1
+        }))
+        this.r(this.world.createLine({
+            x: 4, y: 0.5,
+            level: 0,
+            size: 2,
+            isHorizontal: true
+        }))
+        this.r(this.world.createLine({
+            x: -4, y: 0.5,
+            level: 0,
+            size: 2,
+            isHorizontal: true,
+            side: "up"
+        }))
+
+        charController.input(this, this.rect)
+    }
+
+    update(time: number, delta: number) {
+        charController.update(this.rect, time, delta, 2)
+        follow(this, this.rect, time, delta)
     }
 }
 
@@ -544,3 +594,4 @@ export const SimulScript8 = { id: "SimulScript8", category: "Specification", nam
 export const SimulScript9 = { id: "SimulScript9", category: "Specification", name: "Test 9: Free rect movement against grid", description: "Move: ZQSD", script: () => new Script9() } as ScriptDescriptor
 export const SimulScript10 = { id: "SimulScript10", category: "Specification", name: "Test 10: Grid against grid", description: "Move: ZQSD", script: () => new Script10() } as ScriptDescriptor
 export const SimulScript11 = { id: "SimulScript11", category: "Specification", name: "Test 11: Grids and a character", description: "Move chararacter: ZQSD\nMove moving grid: TFGH", script: () => new Script11() } as ScriptDescriptor
+export const SimulScript12 = { id: "SimulScript12", category: "Specification", name: "Test 12: Aligned entities", description: "Move chararacter: ZQSD", script: () => new Script12() } as ScriptDescriptor
