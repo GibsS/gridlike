@@ -528,10 +528,10 @@ export class World {
             
             if(e2._bodies instanceof SmallBody) {
                 if(e1._bodies instanceof SmallBody) {
-                    if(!(e1.minx + Math.min(0, e1.vx * delta)*2 > e2.maxx + Math.max(0, e2.vx * delta)*2 || 
-                            e1.maxx + Math.max(0, e1.vx * delta)*2 < e2.minx + Math.min(0, e2.vx * delta)*2 || 
-                            e1.miny + Math.min(0, e1.vy * delta)*2 > e2.maxy + Math.max(0, e2.vy * delta)*2 ||
-                            e1.maxy + Math.max(0, e1.vy * delta)*2 < e2.miny + Math.min(0, e2.vy * delta)*2)) {
+                    if(!(e1.minX + Math.min(0, e1.vx * delta)*2 > e2.maxX + Math.max(0, e2.vx * delta)*2 || 
+                            e1.maxX + Math.max(0, e1.vx * delta)*2 < e2.minX + Math.min(0, e2.vx * delta)*2 || 
+                            e1.minY + Math.min(0, e1.vy * delta)*2 > e2.maxY + Math.max(0, e2.vy * delta)*2 ||
+                            e1.maxY + Math.max(0, e1.vy * delta)*2 < e2.minY + Math.min(0, e2.vy * delta)*2)) {
                         overlapBodies.push([e1._bodies as SmallBody, e2._bodies as SmallBody])
                     }
                 } else {

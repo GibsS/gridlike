@@ -107,8 +107,8 @@ export class Entity implements IMoveAABB {
             this._parentType = val == "static" ? 0 : 1
         }
     }
-    get childs(): Entity[] { return _.clone(this._childs) }
-    set childs(val: Entity[]) { console.log("[ERROR] can't set Entity.childs") }
+    get children(): Entity[] { return _.clone(this._childs) }
+    set children(val: Entity[]) { console.log("[ERROR] can't set Entity.childs") }
 
     get body(): Body {
         if(this._bodies instanceof Body) {
@@ -328,46 +328,46 @@ export class Entity implements IMoveAABB {
         return false
     }
 
-    get minx(): number {
+    get minX(): number {
         if(this._minx != null) {
             return this._minx
         } else {
             let tmp = Infinity
             this._forAllBodies(b => {
-                tmp = Math.min(tmp, b.minx)
+                tmp = Math.min(tmp, b.minX)
             })
             return tmp
         }
     }
-    get miny(): number {
+    get minY(): number {
         if(this._miny != null) {
             return this._miny
         } else {
             let tmp = Infinity
             this._forAllBodies(b => {
-                tmp = Math.min(tmp, b.miny)
+                tmp = Math.min(tmp, b.minY)
             })
             return tmp
         }
     }
-    get maxx(): number {
+    get maxX(): number {
         if(this._maxx != null) {
             return this._maxx
         } else {
             let tmp = -Infinity
             this._forAllBodies(b => {
-                tmp = Math.max(tmp, b.maxx)
+                tmp = Math.max(tmp, b.maxX)
             })
             return tmp
         }
     }
-    get maxy(): number {
+    get maxY(): number {
         if(this._maxy != null) {
             return this._maxy
         } else {
             let tmp = -Infinity
             this._forAllBodies(b => {
-                tmp = Math.max(tmp, b.maxy)
+                tmp = Math.max(tmp, b.maxY)
             })
             return tmp
         }
@@ -461,10 +461,10 @@ export class Entity implements IMoveAABB {
         if(topEntity._allBodies) {
             topEntity._allBodies.remove(body)
         }
-        if(topEntity._minx == body.minx) { topEntity._resetMinx() }
-        if(topEntity._maxx == body.maxx) { topEntity._resetMaxx() }
-        if(topEntity._miny == body.miny) { topEntity._resetMiny() }
-        if(topEntity._maxy == body.maxy) { topEntity._resetMaxy() }
+        if(topEntity._minx == body.minX) { topEntity._resetMinx() }
+        if(topEntity._maxx == body.maxX) { topEntity._resetMaxx() }
+        if(topEntity._miny == body.minY) { topEntity._resetMiny() }
+        if(topEntity._maxy == body.maxY) { topEntity._resetMaxy() }
 
         if(body._higherContacts) {
             let len = body._higherContacts.length
@@ -526,10 +526,10 @@ export class Entity implements IMoveAABB {
         }
 
         if(!(topEntity._bodies instanceof Body)) {
-            topEntity._minx = Math.min(topEntity._minx || Infinity, body.minx)
-            topEntity._maxx = Math.max(topEntity._maxx || -Infinity, body.maxx)
-            topEntity._miny = Math.min(topEntity._miny || Infinity, body.miny)
-            topEntity._maxy = Math.max(topEntity._maxy || -Infinity, body.maxy)
+            topEntity._minx = Math.min(topEntity._minx || Infinity, body.minX)
+            topEntity._maxx = Math.max(topEntity._maxx || -Infinity, body.maxX)
+            topEntity._miny = Math.min(topEntity._miny || Infinity, body.minY)
+            topEntity._maxy = Math.max(topEntity._maxy || -Infinity, body.maxY)
         }
     }
     _forAllBodies(lambda: (b: Body) => void) {
@@ -613,7 +613,7 @@ export class Entity implements IMoveAABB {
                     }
 
                     // IF HAS STATIC CHILD, NEEDS A VBH
-                    if(this._childs && this.childs.filter(c => c._parentType == 0).length && !this._allBodies) {
+                    if(this._childs && this.children.filter(c => c._parentType == 0).length && !this._allBodies) {
                         this._allBodies = new SimpleVBH<Body>()
                         this._allBodies.bulkInsert(this.bodies)
                     }
@@ -636,17 +636,17 @@ export class Entity implements IMoveAABB {
                             if(this._allBodies) {
                                 this._allBodies.insert(b)
                             }
-                            resetminx = resetminx || topEntity.minx == b.minx
-                            resetmaxx = resetmaxx || topEntity.maxx == b.maxx
-                            resetminy = resetminy || topEntity.miny == b.maxy
-                            resetmaxy = resetmaxy || topEntity.maxy == b.maxy
+                            resetminx = resetminx || topEntity.minX == b.minX
+                            resetmaxx = resetmaxx || topEntity.maxX == b.maxX
+                            resetminy = resetminy || topEntity.minY == b.maxY
+                            resetmaxy = resetmaxy || topEntity.maxY == b.maxY
 
                             b._x -= x
                             b._y -= y
-                            this._minx = Math.min(this._minx, b.minx)
-                            this._maxx = Math.max(this._maxx, b.maxx)
-                            this._miny = Math.min(this._miny, b.miny)
-                            this._maxy = Math.max(this._maxy, b.maxy)
+                            this._minx = Math.min(this._minx, b.minX)
+                            this._maxx = Math.max(this._maxx, b.maxX)
+                            this._miny = Math.min(this._miny, b.minY)
+                            this._maxy = Math.max(this._maxy, b.maxY)
                         })
 
                         // CHANGE OWNERSHIP OF CONTACTS
@@ -660,7 +660,7 @@ export class Entity implements IMoveAABB {
 
                         // CONTINUE TO THE NEXT
                         if(child._childs) {
-                            childs.push.apply(childs, child.childs.filter(c => c._parentType == 0))
+                            childs.push.apply(childs, child.children.filter(c => c._parentType == 0))
                         }
                         child = childs.pop()
                     }
@@ -801,7 +801,7 @@ export class Entity implements IMoveAABB {
                 }
 
                 // IF HAS STATIC CHILD, NEEDS A VBH
-                if(this._childs && this.childs.filter(c => c._parentType == 0).length && !this._allBodies) {
+                if(this._childs && this.children.filter(c => c._parentType == 0).length && !this._allBodies) {
                     this._allBodies = new SimpleVBH<Body>()
                     this._allBodies.bulkInsert(this.bodies)
                 }
@@ -831,7 +831,7 @@ export class Entity implements IMoveAABB {
                     }
 
                     if(child._childs) {
-                        childs.push.apply(childs, child.childs.filter(c => c._parentType == 0))
+                        childs.push.apply(childs, child.children.filter(c => c._parentType == 0))
                     }
                     child = childs.pop()
                 }
@@ -891,25 +891,25 @@ export class Entity implements IMoveAABB {
     _resetMinx() {
         this._minx = Infinity
         this._forAllBodies(b => {
-            this._minx = Math.min(this._minx, b.minx)
+            this._minx = Math.min(this._minx, b.minX)
         })
     }
     _resetMiny() {
         this._miny = Infinity
         this._forAllBodies(b => {
-            this._miny = Math.min(this._miny, b.miny)
+            this._miny = Math.min(this._miny, b.minY)
         })
     }
     _resetMaxx() {
         this._maxx = -Infinity
         this._forAllBodies(b => {
-            this._maxx = Math.max(this._maxx, b.maxx)
+            this._maxx = Math.max(this._maxx, b.maxX)
         })
     }
     _resetMaxy() {
         this._maxy = -Infinity
         this._forAllBodies(b => {
-            this._maxy = Math.max(this._maxy, b.maxy)
+            this._maxy = Math.max(this._maxy, b.maxY)
         })
     }
 

@@ -123,10 +123,10 @@ export abstract class Body implements IAABB {
         return downContact && downContact.body == this && downContact
     }
 
-    abstract minx: number
-    abstract miny: number
-    abstract maxx: number
-    abstract maxy: number
+    abstract minX: number
+    abstract minY: number
+    abstract maxX: number
+    abstract maxY: number
 
     constructor(entity: Entity, args?: BodyArgs) {
         if(args) {
@@ -208,10 +208,10 @@ export abstract class Body implements IAABB {
     }
 
     _testResetBounds() {
-        resetminx = this._topEntity.minx == this.minx
-        resetmaxx = this._topEntity.maxx == this.maxx
-        resetminy = this._topEntity.miny == this.miny
-        resetmaxy = this._topEntity.maxy == this.maxy
+        resetminx = this._topEntity.minX == this.minX
+        resetmaxx = this._topEntity.maxX == this.maxX
+        resetminy = this._topEntity.minY == this.minY
+        resetmaxy = this._topEntity.maxY == this.maxY
     }
     _resetBounds() {
         if(resetminx) { this._topEntity._resetMinx() }
@@ -295,10 +295,10 @@ export class Rect extends SmallBody {
         this._clearContacts()
     }
 
-    get minx(): number { return this._x - this._width/2 }
-    get maxx(): number { return this._x + this._width/2 }
-    get miny(): number { return this._y - this._height/2 }
-    get maxy(): number { return this._y + this._height/2 }
+    get minX(): number { return this._x - this._width/2 }
+    get maxX(): number { return this._x + this._width/2 }
+    get minY(): number { return this._y - this._height/2 }
+    get maxY(): number { return this._y + this._height/2 }
 
     get _leftCollide(): boolean { return true }
     get _rightCollide(): boolean { return true }
@@ -362,10 +362,10 @@ export class Line extends SmallBody {
         }
     }
 
-    get minx(): number { return this._x - (this._isHorizontal && this._size/2) }
-    get maxx(): number { return this._x + (this._isHorizontal && this._size/2) }
-    get miny(): number { return this._y - (!this._isHorizontal && this._size/2) }
-    get maxy(): number { return this._y + (!this._isHorizontal && this._size/2) }
+    get minX(): number { return this._x - (this._isHorizontal && this._size/2) }
+    get maxX(): number { return this._x + (this._isHorizontal && this._size/2) }
+    get minY(): number { return this._y - (!this._isHorizontal && this._size/2) }
+    get maxY(): number { return this._y + (!this._isHorizontal && this._size/2) }
 
     get _width(): number { return this._isHorizontal ? this._size : 0 }
     get _height(): number { return this._isHorizontal ? 0 : this._size }
@@ -438,10 +438,10 @@ export class Grid extends Body {
     _newBodies: Body[]
     _oldBodies: Body[]
     
-    get minx(): number { console.log('Grid.minx not implemented'); return 0 }
-    get maxx(): number { console.log('Grid.maxx not implemented'); return 0 }
-    get miny(): number { console.log('Grid.miny not implemented'); return 0 }
-    get maxy(): number { console.log('Grid.maxy not implemented'); return 0 }
+    get minX(): number { console.log('Grid.minx not implemented'); return 0 }
+    get maxX(): number { console.log('Grid.maxx not implemented'); return 0 }
+    get minY(): number { console.log('Grid.miny not implemented'); return 0 }
+    get maxY(): number { console.log('Grid.maxy not implemented'); return 0 }
 
     get listener(): GridListener { return this._listener }
     set listener(val: GridListener) { this._listener = val }

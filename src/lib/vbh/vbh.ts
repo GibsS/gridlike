@@ -5,10 +5,10 @@ import { RaycastResult, QueryResult } from '../model/query'
 import { EPS } from '../model/world'
 
 export interface IAABB {
-    minx: number
-    maxx: number
-    miny: number
-    maxy: number
+    minX: number
+    maxX: number
+    minY: number
+    maxY: number
 
     enabled: boolean
 }
@@ -74,7 +74,7 @@ export class SimpleVBH<X extends IAABB> implements VBH<X> {
         let res = []
 
         for(let e of this.elements) {
-            if(e.enabled && !(e.minx > x + width || e.maxx < x || e.miny > y + height || e.maxy < y)) {
+            if(e.enabled && !(e.minX > x + width || e.maxX < x || e.minY > y + height || e.maxY < y)) {
                 res.push(e)
             }
         }
@@ -97,8 +97,8 @@ export class SimpleVBH<X extends IAABB> implements VBH<X> {
         for(let a of this.elements) {
             for(let b of (other as SimpleVBH<X>).elements) {
                 if(a.enabled && b.enabled && 
-                !(a.minx > b.maxx + maxxOffset || a.maxx < b.minx + minxOffset 
-                || a.miny > b.maxy + maxyOffset || a.maxy < b.miny + minyOffset)) {
+                !(a.minX > b.maxX + maxxOffset || a.maxX < b.minX + minxOffset 
+                || a.minY > b.maxY + maxyOffset || a.maxY < b.minY + minyOffset)) {
                     res.push([a, b])
                 }
             }
@@ -122,8 +122,8 @@ export class SimpleVBH<X extends IAABB> implements VBH<X> {
 
         for(let a of this.elements) {
             if(a.enabled && other.enabled && 
-                !(a.minx > other.maxx + maxxOffset || a.maxx < other.minx + minxOffset 
-                || a.miny > other.maxy + maxyOffset || a.maxy < other.miny + minyOffset)) {
+                !(a.minX > other.maxX + maxxOffset || a.maxX < other.minX + minxOffset 
+                || a.minY > other.maxY + maxyOffset || a.maxY < other.minY + minyOffset)) {
                 res.push([a, other])
             }
         }
@@ -141,17 +141,17 @@ export class SimpleMoveVBH<X extends IMoveAABB> extends SimpleVBH<X> implements 
         for(let i = 0; i < len; i++) {
             let a = this.elements[i]
 
-            let minx = a.minx + Math.min(0, a.vx * delta)*2,
-                maxx = a.maxx + Math.max(0, a.vx * delta)*2,
-                miny = a.miny + Math.min(0, a.vy * delta)*2,
-                maxy = a.maxy + Math.max(0, a.vy * delta)*2
+            let minx = a.minX + Math.min(0, a.vx * delta)*2,
+                maxx = a.maxX + Math.max(0, a.vx * delta)*2,
+                miny = a.minY + Math.min(0, a.vy * delta)*2,
+                maxy = a.maxY + Math.max(0, a.vy * delta)*2
 
             for(let j = i + 1; j < len; j++) {
                 let b = this.elements[j]
 
                 if(a.enabled && b.enabled && 
-                !(minx > b.maxx + Math.max(0, b.vx * delta)*2 || maxx < b.minx + Math.min(0, b.vx * delta)*2
-                || miny > b.maxy + Math.max(0, b.vy * delta)*2 || maxy < b.miny + + Math.min(0, b.vy * delta)*2)) {
+                !(minx > b.maxX + Math.max(0, b.vx * delta)*2 || maxx < b.minX + Math.min(0, b.vx * delta)*2
+                || miny > b.maxY + Math.max(0, b.vy * delta)*2 || maxy < b.minY + + Math.min(0, b.vy * delta)*2)) {
                     res.push([a, b])
                 }
             }
@@ -164,16 +164,16 @@ export class SimpleMoveVBH<X extends IMoveAABB> extends SimpleVBH<X> implements 
 
         let len = this.elements.length
 
-        let minx = e.minx + Math.min(0, dx)*2,
-            maxx = e.maxx + Math.max(0, dx)*2,
-            miny = e.miny + Math.min(0, dy)*2,
-            maxy = e.maxy + Math.max(0, dy)*2
+        let minx = e.minX + Math.min(0, dx)*2,
+            maxx = e.maxX + Math.max(0, dx)*2,
+            miny = e.minY + Math.min(0, dy)*2,
+            maxy = e.maxY + Math.max(0, dy)*2
 
         for(let j = 0; j < len; j++) {
             let b = this.elements[j]
 
             if(b != e && e.enabled && b.enabled && 
-            !(minx > b.maxx || maxx < b.minx || miny > b.maxy || maxy < b.miny)) {
+            !(minx > b.maxX || maxx < b.minX || miny > b.maxY || maxy < b.minY)) {
                 res.push([e, b])
             }
         }

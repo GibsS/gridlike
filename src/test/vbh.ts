@@ -11,10 +11,10 @@ function hasPair(list: any[], e1, e2) {
 
 function testVBH(VBHType: () => VBH<IAABB>, otherVBHs: (() => VBH<IAABB>)[]) {
     var vbh: VBH<IAABB>,
-        aabb1: IAABB = { minx: 0, miny: 1, maxx: 2, maxy: 3, enabled: true },
-        aabb2: IAABB = { minx: 2, miny: -1, maxx: 3, maxy: 0, enabled: true },
-        aabb3: IAABB = { minx: 3.1, miny: -1, maxx: 4.1, maxy: 0, enabled: true },
-        aabb4: IAABB = { minx: -1, miny: 1, maxx: -0.1, maxy: 2, enabled: true }
+        aabb1: IAABB = { minX: 0, minY: 1, maxX: 2, maxY: 3, enabled: true },
+        aabb2: IAABB = { minX: 2, minY: -1, maxX: 3, maxY: 0, enabled: true },
+        aabb3: IAABB = { minX: 3.1, minY: -1, maxX: 4.1, maxY: 0, enabled: true },
+        aabb4: IAABB = { minX: -1, minY: 1, maxX: -0.1, maxY: 2, enabled: true }
 
     beforeEach(function() {
         vbh = VBHType()
@@ -81,8 +81,8 @@ function testVBH(VBHType: () => VBH<IAABB>, otherVBHs: (() => VBH<IAABB>)[]) {
         vbh = VBHType()
         let otherVBH = other()
         describe("VBH collisions between " + vbh.constructor.name + " and " + otherVBH.constructor.name, function() {
-            let aabb5: IAABB = { minx: 3, maxx: 4, miny: 4, maxy: 5, enabled: true },
-                aabb6: IAABB = { minx: 5, maxx: 6, miny: -1, maxy: 0, enabled: true }
+            let aabb5: IAABB = { minX: 3, maxX: 4, minY: 4, maxY: 5, enabled: true },
+                aabb6: IAABB = { minX: 5, maxX: 6, minY: -1, maxY: 0, enabled: true }
 
             beforeEach(function() {
                 otherVBH = other()
@@ -129,7 +129,7 @@ function testVBH(VBHType: () => VBH<IAABB>, otherVBHs: (() => VBH<IAABB>)[]) {
             vbh.bulkInsert([aabb1, aabb2, aabb3, aabb4])
         })
 
-        let aabb6: IAABB = { minx: 6, maxx: 7, miny: -1, maxy: 0, enabled: true }
+        let aabb6: IAABB = { minX: 6, maxX: 7, minY: -1, maxY: 0, enabled: true }
 
         it('should return the list of pairs of colliding elements /1', function() {
             let res = vbh.collideAABB(aabb6, 0, 0, 0, 0, 0, 0, -4, 0)
@@ -152,10 +152,10 @@ function testVBH(VBHType: () => VBH<IAABB>, otherVBHs: (() => VBH<IAABB>)[]) {
 function testMoveVBH(vbhType: () => MoveVBH<IMoveAABB>) {
 
     var vbh: MoveVBH<IMoveAABB>,
-    aabb1: IMoveAABB = { minx: 0, miny: 1, maxx: 2, maxy: 3, enabled: true, vx: 0, vy: 0 },
-    aabb2: IMoveAABB = { minx: 3, miny: -1, maxx: 4, maxy: 0, enabled: true, vx: 0, vy: 0 },
-    aabb3: IMoveAABB = { minx: 4.1, miny: -1, maxx: 5.1, maxy: 0, enabled: true, vx: 0, vy: 0 },
-    aabb4: IMoveAABB = { minx: -1, miny: 1, maxx: -0.1, maxy: 2, enabled: true, vx: 0, vy: 0 }
+    aabb1: IMoveAABB = { minX: 0, minY: 1, maxX: 2, maxY: 3, enabled: true, vx: 0, vy: 0 },
+    aabb2: IMoveAABB = { minX: 3, minY: -1, maxX: 4, maxY: 0, enabled: true, vx: 0, vy: 0 },
+    aabb3: IMoveAABB = { minX: 4.1, minY: -1, maxX: 5.1, maxY: 0, enabled: true, vx: 0, vy: 0 },
+    aabb4: IMoveAABB = { minX: -1, minY: 1, maxX: -0.1, maxY: 2, enabled: true, vx: 0, vy: 0 }
 
     beforeEach(function() {
         vbh = vbhType()

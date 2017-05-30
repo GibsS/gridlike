@@ -91,7 +91,7 @@ export default function test() {
                 entity2.destroy()
 
                 assert(entity1.parent == null, 'entity1 has no parent')
-                assert(entity3.childs.length == 0, 'entity3 has no child')
+                assert(entity3.children.length == 0, 'entity3 has no child')
                 invariant(world)
             })
             it('Removing an entity with parent and childs maintains invariants', function() {

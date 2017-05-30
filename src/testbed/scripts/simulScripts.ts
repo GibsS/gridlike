@@ -589,7 +589,7 @@ class Script13 extends Script {
     
     init() {
         this.rect = this.r(this.world.createRect({
-            x: 0, y: 2,
+            x: 0, y: 1,
             width: 1, height: 1,
             level: 2
         }))
