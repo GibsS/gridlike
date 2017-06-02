@@ -641,15 +641,15 @@ class Script14 extends Script {
 
     init() {
         this.rect = this.r(this.world.createRect({
-            x: 0,
-            y: 2,
+            x: 100000000,
+            y: 100000002,
             width: 1,
             height: 1,
             level: 1
         }))
 
         this.ground = this.r(this.world.createEntity({
-            x: 0, y: 0,
+            x: 100000000, y: 100000000,
             level: 0
         }))
         this.ground.createRect({
@@ -674,6 +674,7 @@ class Script14 extends Script {
 
     update(time: number, delta: number) {
         fixSpeed.update(this.rect, time, delta, 5)
+        follow(this, this.rect, time, delta)
     }
 }
 

@@ -29,6 +29,8 @@ export interface LineArgs extends SmallBodyArgs {
     side?: string
 }
 export interface GridArgs extends BodyArgs {
+    layer?: string
+    layerGroup?: number
     tiles?: TileArgs
     width?: number
     height?: number
@@ -306,8 +308,10 @@ export class Rect extends SmallBody {
     constructor(entity: Entity, args: RectArgs) {
         super(entity, args)
 
-        this._width = args.width
-        this._height = args.height
+        if(args) {
+            this._width = args.width
+            this._height = args.height
+        }
     }
 }
 
@@ -409,6 +413,9 @@ export class Grid extends Body {
 
     type = BodyType.GRID
 
+    _layer: number
+    _layerGroup: number
+
     _listener: GridListener
 
     _tileSize: number
@@ -445,6 +452,9 @@ export class Grid extends Body {
 
         this._tileSize = args.tileSize || 1
         this._gridSize = subGridSize
+
+        this._layer = args.layer ? entity._world._layerIds[args.layer] : 0
+        this._layerGroup = args.layerGroup || 0
 
         // GET MIN AND MAX
         let minx, maxx, miny, maxy
@@ -683,7 +693,7 @@ export class Grid extends Body {
             }
         }
     }
-    _getUpInfo(shape: number, otherShape: number) {
+    /* _getUpInfo(shape: number, otherShape: number) {
         if(shape == 1) {
             if(otherShape == 1) {
                 Grid._upInfo.line = -1
@@ -1104,23 +1114,231 @@ export class Grid extends Body {
             if(body) this._clearOneBodyRow(x, y+1, xoffset, yoffset, lines, body)
             if(Grid._upInfo.line != -1) { this._addOneBodyRow(x, y+1, xoffset, yoffset, lines, Grid._upInfo) }
         }
+    }*/
+
+    _updateTileBody(subgrid: SubGrid, x: number, y: number, xoffset: number, yoffset: number, shape: number, layer: number, layerGroup: number) {
+        // REMOVE CURRENTLY PRESENT BODY
+
+        // TRY TO EXTEND EXISTING ADJACENT BODIES
+
+        // UPDATE ADJACENT: IF EMPTY OR SIDE ADDED INSTEAD OF FULL, POTENTIALLY ADD FULL AND VICE VERSA
+
+    }
+    _updateTileSensorBody(subgrid: SubGrid, x: number, y: number, xoffset: number, yoffset: number, isSensor: boolean) {
+        if (isSensor) {
+            let rightBody: Rect, body: Rect
+
+            if (x < this._gridSize-1) {
+                rightBody = subgrid.sensors[x+1][y]
+
+                if (rightBody) {
+                    rightBody._width += 1
+                    rightBody._x -= 0.5
+                    subgrid.sensors[x][y] = rightBody
+                    body = rightBody
+                }
+            }
+
+            if (x > 0) {
+                let leftBody: Rect = subgrid.sensors[x-1][y]
+
+                if (leftBody) {
+                    if(body) {
+                        let i = this._newBodies.indexOf(leftBody)
+                        if(i >= 0) this._newBodies.splice(i, 1)
+                        else this._oldBodies.push(leftBody)
+
+                        rightBody._width += leftBody._width
+                        rightBody._x -= leftBody._width/2
+
+                        for(let i = leftBody._y - xoffset - leftBody._width; i < x; i++) {
+                            subgrid.sensors[i][y] = rightBody
+                        }
+                    } else {
+                        leftBody._width += 1
+                        leftBody._x += 0.5
+                        subgrid.sensors[x][y] = leftBody
+                        body = leftBody
+                    }
+                }
+            }
+
+            if (!body) {
+                body = new Rect(null, null)
+                body._entity = this._entity
+
+                body._x = x + 0.5 + xoffset
+                body._y = y + 0.5 + yoffset
+                body._width = 1
+                body._height = 1
+                body._enabled = true
+                body._layer = 0
+                body._layerGroup = 0
+                body._grid = this
+                body._isSensor = false
+                
+                this._newBodies.push(body)
+                subgrid.sensors[x][y] = body
+            }
+
+            let downBody: Rect
+            if (y > 0) {
+                downBody = subgrid.sensors[x][y-1]
+
+                if(downBody && downBody._x == body._x && downBody._width == body._width) {
+                    downBody._height += 1
+                    downBody._y += 0.5
+                    for(let i = downBody._x - downBody._width/2; i < downBody._x + downBody._width/2; i++) {
+                        subgrid.sensors[i][y] = downBody
+                    }
+                }
+            }
+
+            if (y < this._gridSize) {
+                let upBody = subgrid.sensors[x][y+1]
+
+                if(upBody && upBody._x == body._x && upBody._width == body._width) {
+                    if(downBody) {
+                        let i = this._newBodies.indexOf(upBody)
+                        if(i >= 0) {
+                            this._newBodies.splice(i, 1)
+                        } else {
+                            this._oldBodies.push(upBody)
+                        }
+
+                        downBody._height += upBody._height
+                        downBody._y += upBody._height/2
+
+                        for(let i = x - downBody._width; i < x; i++) {
+                            subgrid.sensors[i][y] = upBody
+                        }
+                    } else {
+                        upBody._height += 1
+                        upBody._y -= 0.5
+                        for(let i = upBody._x - upBody._width/2; i < upBody._x + upBody._width/2; i++) {
+                            subgrid.sensors[i][y] = upBody
+                        }
+                    }
+                }
+            }
+        } else {
+            let body = subgrid.sensors[x][y]
+
+            if (body._height == 1) {
+                if(body._width == 1) {
+                    let i = this._newBodies.indexOf(body)
+                    if(i >= 0) this._newBodies.splice(i, 1)
+                    else this._oldBodies.push(body)
+                } else if (x == body._x - body._width/2) {
+                    body._width -= 1
+                    body._x += 0.5
+                } else if (x == body._x + body._width/2 - 1) {
+                    body._width -= 1
+                    body._x -= 0.5
+                } else {
+                    body = new Rect(null, null)
+                    body._entity = this._entity
+
+                    body._x = x + 0.5 + xoffset
+                    body._y = y + 0.5 + yoffset
+                    body._width = 1
+                    body._height = 1
+                    body._enabled = true
+                    body._layer = 0
+                    body._layerGroup = 0
+                    body._grid = this
+                    body._isSensor = false
+                }
+            } else if (body._width == 1) {
+                if (body._height == 1) {
+                    let i = this._newBodies.indexOf(body)
+                    if(i >= 0) this._newBodies.splice(i, 1)
+                    else this._oldBodies.push(body)
+                } else if (y == body._y + body._height/2 - 1) {
+                    body._height -= 1
+                    body._y -= 1
+                } else if (y == body._y - body._height/2) {
+                    body._height -= 1
+                    body._y += 0.5
+                } else {
+                    // TODO
+                }
+            } else { 
+                if (x == body._x - body._width/2) {
+                    if (y == body._y - body._height/2) {
+                        // TODO
+                        body._height -= 1
+                        body._y += 0.5
+                        body = new Rect(null, null)
+                        body._entity = this._entity
+
+                        body._x = x + 0.5 + xoffset
+                        body._y = y + 0.5 + yoffset
+                        body._width = 1
+                        body._height = 1
+                        body._enabled = true
+                        body._layer = 0
+                        body._layerGroup = 0
+                        body._grid = this
+                        body._isSensor = false
+                        
+                        this._newBodies.push(body)
+                        subgrid.sensors[x][y] = body
+                    } else if (y == body._y + body._height/2 - 1) {
+                        // TODO
+                    } else {
+                        // TODO    
+                    }
+                } else if (x == body._x + body._width/2 - 1) {
+                    if (y == body._y - body._height/2) {
+                        // TODO
+                    } else if (y == body._y + body._height/2 - 1) {
+                        // TODO
+                    } else {
+                        // TODO                       
+                    }
+                } else {
+                    if (y == body._y - body._height/2) {
+                        // TODO
+                    } else if (y == body._y + body._height/2 - 1) {
+                        // TODO
+                    } else {
+                        // TODO 
+                    }
+                }
+            }
+            subgrid.sensors[x][y] = null
+        }
+    }
+
+    _updateTileBodies(subgrid: SubGrid, x: number, y: number, xoffset: number, yoffset: number, shape: number, data) {
+        this._oldBodies = []
+        this._newBodies = []
+
+        let newLayer = typeof data != "undefined" && typeof data.layer != "undefined" ? this._entity.world._layerIds[data.layer] : this._layer,
+            newLayerGroup = typeof data != "undefined" && typeof data.layerGroup != "undefined" ? data.layerGroup : this._layerGroup,
+            oldData = subgrid.data[x][y]
+            
+        if (shape != subgrid.shape[x][y] 
+            || ((oldData || typeof oldData.layer == "undefined") ? newLayer != this._layer : newLayer != data.layer)
+            || ((oldData || typeof oldData.layerGroup == "undefined") ? newLayerGroup != this._layerGroup : newLayerGroup != data.layerGroup)) {
+            this._updateTileBody(subgrid, x, y, xoffset, yoffset, shape, newLayer, newLayerGroup)
+        }
+
+        if (typeof data != "undefined" && typeof data.isSensor != "undefined" && subgrid.sensors[x][y] != data.isSensor) {
+            this._updateTileSensorBody(subgrid, x, y, xoffset, yoffset, data.isSensor)
+        }
+
+        for(let b of this._oldBodies) { this._entity.removeBody(b) }
+        for(let b of this._newBodies) { this._entity._addBody(b) }
     }
 
     _setTile(x: number, y: number, shape: number, data?) {
         let subgrid: SubGrid
 
+        // FIND WHICH SUBGRID TO AFFECT + AJUST X/Y POSITION
         if(this._subGrids instanceof SubGrid) {
             subgrid = this._subGrids
-
-            if(shape != subgrid.shape[x][y]){
-                this._oldBodies = []
-                this._newBodies = []
-
-                this._updateTileBodyInSmallGrid(subgrid, x, y, shape)
-
-                for(let b of this._oldBodies) { this._entity.removeBody(b) }
-                for(let b of this._newBodies) { this._entity._addBody(b) }
-            }
         } else {
             let gridx = Math.floor(x / this._gridSize), gridy = Math.floor(y / this._gridSize)
 
@@ -1128,21 +1346,18 @@ export class Grid extends Body {
             
             x -= gridx * this._gridSize
             y -= gridy * this._gridSize
-
-            if(shape != subgrid.shape[x][y]) {
-                this._oldBodies = []
-                this._newBodies = []
-
-                this._updateTileBodyInBigGrid(subgrid, gridx, gridy, x, y, shape)
-
-                for(let b of this._oldBodies) { this._entity.removeBody(b) }
-                for(let b of this._newBodies) { this._entity._addBody(b) }
-            }
         }
+
+        // BODY MODIFICATION
+        this._updateTileBodies(subgrid, x, y, shape, data)
 
         // DATA MODIFICATION
         if(typeof data != "undefined") {
-            subgrid.data[x][y] = _.cloneDeep(data)
+            if(subgrid.data[x][y]) {
+                subgrid.data[x][y] = Object.assign(subgrid.data[x][y], data)
+            } else{
+                subgrid.data[x][y] = _.cloneDeep(data)
+            }
         }
         subgrid.shape[x][y] = shape
 
@@ -1186,12 +1401,11 @@ export class Grid extends Body {
                         this._subGrids[gridx][gridy] = subgrid
                     }
 
-                    this._setTilesInSubGridBig(
+                    this._setTilesInSubGrid(
                         Math.max(0, x - xoff),
                         Math.min(this._gridSize, x + width - xoff),
                         Math.max(0, y - yoff),
                         Math.min(this._gridSize, y + height - yoff),
-                        gridx, gridy,
                         subgrid,
                         (x, y, shape, data?) => info(x + xoff2, y + yoff2, shape, data)
                     )
@@ -1215,39 +1429,18 @@ export class Grid extends Body {
                 let res = info(i, j, prevshape, subgrid.data[i][j])
                 if(res) {
                     if(typeof res == "number") {
+                        this._updateTileBodies(subgrid, i, j, res, undefined)
                         subgrid.shape[i][j] = res
-                        if(prevshape != res)
-                            this._updateTileBodyInSmallGrid(subgrid, i, j, res)
                     } else {
+                        this._updateTileBodies(subgrid, i, j, res.shape, res.data)
                         subgrid.shape[i][j] = res.shape
                         if(typeof res.data != "undefined") {
-                            subgrid.data[i][j] = res.data
+                            if(subgrid.data[i][j]) {
+                                subgrid.data[i][j] = Object.assign(subgrid.data[i][j], res.data)
+                            } else{
+                                subgrid.data[i][j] = _.cloneDeep(res.data)
+                            }
                         }
-                        if(prevshape != res.shape)
-                            this._updateTileBodyInSmallGrid(subgrid, i, j, res.shape)
-                    }
-                }
-            }
-        }            
-    }
-    _setTilesInSubGridBig(minx: number, maxx: number, miny: number, maxy: number, gridx: number, gridy: number, subgrid: SubGrid, 
-                        info: (x: number, y: number, shape: number, data?) => ({ shape: number, data? } | number)) {
-        for(let i = minx; i < maxx; i++) {
-            for(let j = miny; j < maxy; j++) {
-                let prevshape = subgrid.shape[i][j]
-                let res = info(i, j, prevshape, subgrid.data[i][j])
-                if(res) {
-                    if(typeof res == "number") {
-                        subgrid.shape[i][j] = res
-                        if(res != prevshape)
-                            this._updateTileBodyInBigGrid(subgrid, gridx, gridy, i, j, res)
-                    } else {
-                        subgrid.shape[i][j] = res.shape
-                        if(typeof res.data != "undefined") {
-                            subgrid.data[i][j] = res.data
-                        }
-                        if(res.shape != prevshape)
-                            this._updateTileBodyInBigGrid(subgrid, gridx, gridy, i, j, res.shape)
                     }
                 }
             }
@@ -1324,27 +1517,24 @@ export class SubGrid {
     shape: number[][]
     data: any[][]
 
-    columns: Line[][]
-    rows: Line[][]
+    bodies: SmallBody[][]
+    sensors: Rect[][]
 
     constructor(size: number) {
         this.shape = new Array(size)
         this.data = new Array(size)
-        this.columns = new Array(size+1)
-        this.rows = new Array(size+1)
+        this.bodies = new Array(size)
+        this.sensors = new Array(size)
 
         for(let i = 0; i < size; i++) {
             this.shape[i] = new Array(size)
             this.data[i] = new Array(size)
-            this.columns[i] = new Array(size)
-            this.rows[i] = new Array(size)
+            this.bodies[i] = new Array(size)
+            this.sensors[i] = new Array(size)
 
             for(let j = 0; j < size; j++) {
                 this.shape[i][j] = 0
             }
         }
-
-        this.columns[size] = new Array(size)
-        this.rows[size] = new Array(size)
     }
 }
