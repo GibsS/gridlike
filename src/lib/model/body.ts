@@ -569,7 +569,7 @@ export class Grid extends Body {
             }
         }
 
-        return { shape: subgrid.shape[x][y], data: subgrid.data[x][y] }
+        return { shape: subgrid.tiles[x][y].shape, data: subgrid.tiles[x][y].data }
     }
     setTile(x: number, y: number, shape: number, data) {
         this._expandGrid(x - this._xdownLeft, y - this._ydownLeft, x - this._xdownLeft, y - this._ydownLeft)
@@ -693,456 +693,556 @@ export class Grid extends Body {
             }
         }
     }
-    /* _getUpInfo(shape: number, otherShape: number) {
-        if(shape == 1) {
-            if(otherShape == 1) {
-                Grid._upInfo.line = -1
-            } else {
-                Grid._upInfo.line = 1
-            }
-        } else if(shape == 4) {
-            if(otherShape == 1) {
-                Grid._upInfo.line = 2
-            } else if(otherShape == 2) {
-                Grid._upInfo.line = 0
-            } else {
-                Grid._upInfo.line = 1
-            }
-        } else {
-            if(otherShape == 1 || otherShape == 2) {
-                Grid._upInfo.line = 2
-            } else {
-                Grid._upInfo.line = -1
-            }
-        }
-    }
-    _getRightInfo(shape: number, otherShape: number) {
-        if(shape == 1) {
-            if(otherShape == 1) {
-                Grid._rightInfo.line = -1
-            } else {
-                Grid._rightInfo.line = 1
-            }
-        } else if(shape == 5) {
-            if(otherShape == 1) {
-                Grid._rightInfo.line = 2
-            } else if(otherShape == 3) {
-                Grid._rightInfo.line = 0
-            } else {
-                Grid._rightInfo.line = 1
-            }
-        } else {
-            if(otherShape == 1 || otherShape == 3) {
-                Grid._rightInfo.line = 2
-            } else {
-                Grid._rightInfo.line = -1
-            }
-        }
-    }
-    _getDownInfo(shape: number, otherShape: number) {
-        if(shape == 1) {
-            if(otherShape == 1) {
-                Grid._downInfo.line = -1
-            } else {
-                Grid._downInfo.line = 2
-            }
-        } else if(shape == 2) {
-            if(otherShape == 1) {
-                Grid._downInfo.line = 1
-            } else if(otherShape == 4) {
-                Grid._downInfo.line = 0
-            } else {
-                Grid._downInfo.line = 2
-            }
-        } else {
-            if(otherShape == 1 || otherShape == 4) {
-                Grid._downInfo.line = 1
-            } else {
-                Grid._downInfo.line = -1
-            }
-        }
-    }
-    _getLeftInfo(shape: number, otherShape: number) {
-        if(shape == 1) {
-            if(otherShape == 1) {
-                Grid._leftInfo.line = -1
-            } else {
-                Grid._leftInfo.line = 2
-            }
-        } else if(shape == 3) {
-            if(otherShape == 1) {
-                Grid._leftInfo.line = 1
-            } else if(otherShape == 5) {
-                Grid._leftInfo.line = 0
-            } else {
-                Grid._leftInfo.line = 2
-            }
-        } else {
-            if(otherShape == 1 || otherShape == 5) {
-                Grid._leftInfo.line = 1
-            } else {
-                Grid._leftInfo.line = -1
-            }
-        }
-    }
-    _clearOneBodyColumn(x: number, y: number, xgridOffset: number, ygridOffset: number, column, body: Line) {
-        let rely = (y + ygridOffset) - body._y + body._size/2
 
-        if(rely == 0) {
-            body._size -= 1
+    _horizontalBodyMerge(subgrid: SubGrid, tile: Tile, oldBody: SmallBody, x: number, y: number, xoffset: number, yoffset: number) {
+        if(tile.shape == 1 || tile.shape == 2 || tile.shape == 4) {
+            let body: SmallBody
 
-            if(body._size == 0) {
-                let i = this._newBodies.indexOf(body)
-                if(i >= 0) {
-                    this._newBodies.splice(i, 1)
-                } else {
-                    this._oldBodies.push(body)
-                }
-            } else {
-                body._y += 0.5
-            }
-        } else if(rely == body._size - 1) {
-            body._size -= 1
-            if(body._size == 0) {
-                let i = this._newBodies.indexOf(body)
-                if(i >= 0) {
-                    this._newBodies.splice(i, 1)
-                } else {
-                    this._oldBodies.push(body)
-                }
-            } else {
-                body._y -= 0.5
-            }
-        } else {
-            let newBody = new Line(null, null)
-            newBody._entity = this._entity
+            if (x < this._gridSize - 1) {
+                let rightTile = subgrid.tiles[x+1][y],
+                    rightBody = rightTile.body
 
-            newBody._x = x + xgridOffset
-            newBody._y = rely/2 + body._y - body._size/2
-            newBody._size = rely
-            newBody._isHorizontal = false
-            newBody._enabled = true
-            newBody._layer = 0
-            newBody._layerGroup = 0
-            newBody._grid = this
-            newBody._oneway = body._oneway
-            newBody._isSensor = false
-            
-            this._newBodies.push(newBody)
-            for(let i = body._y - body._size/2 - ygridOffset; i < y; i++) {
-                column[i] = newBody
-            }
-
-            body._y += (rely + 1)/2
-            body._size -= (rely + 1)
-        }
-        column[y] = null
-    }
-    _clearOneBodyRow(x: number, y: number, xgridOffset: number, ygridOffset: number, row, body: Line) {
-        let relx = (x + xgridOffset) - body._x + body._size/2
-        
-        if(relx == 0) {
-            body._size -= 1
-
-            if(body._size == 0) {
-                let i = this._newBodies.indexOf(body)
-                if(i >= 0) {
-                    this._newBodies.splice(i, 1)
-                } else {
-                    this._oldBodies.push(body)
-                }
-            } else {
-                body._x += 0.5
-            }
-        } else if(relx == body._size-1) {
-            body._size -= 1
-
-            if(body._size == 0) {
-                let i = this._newBodies.indexOf(body)
-                if(i >= 0) {
-                    this._newBodies.splice(i, 1)
-                } else {
-                    this._oldBodies.push(body)
-                }
-            } else {
-                body._x -= 0.5
-            }
-        } else {
-            let newBody = new Line(null, null)
-            newBody._entity = this._entity
-
-            newBody._x = relx/2 + body._x - body._size/2
-            newBody._y = y + ygridOffset
-            newBody._size = relx
-            newBody._isHorizontal = true
-            newBody._enabled = true
-            newBody._layer = 0
-            newBody._layerGroup = 0
-            newBody._grid = this
-            newBody._oneway = body._oneway
-            newBody._isSensor = false
-            
-            this._newBodies.push(newBody)
-            for(let i = body._x - body._size/2 - xgridOffset; i < x; i++) {
-                row[i] = newBody
-            }
-
-            body._x += (relx + 1)/2
-            body._size -= (relx + 1)
-        }
-        row[x] = null
-    }
-    _addOneBodyColumn(x: number, y: number, xgridOffset: number, ygridOffset: number, column, info: { line: number }) {
-        let upGrow = false,
-            upBody: Line
-        if(y < this._gridSize-1) {
-            upBody = column[y+1]
-
-            if(upBody && info.line == upBody._oneway) {
-                upBody._size += 1
-                upBody._y -= 0.5
-                column[y] = upBody
-                upGrow = true
-            }
-        }
-
-        if(y > 0) {
-            let downBody: Line = column[y-1]
-            if(downBody && info.line == downBody._oneway) {
-                if(upGrow) {
-                    let i = this._newBodies.indexOf(downBody)
-                    if(i >= 0) {
-                        this._newBodies.splice(i, 1)
-                    } else {
-                        this._oldBodies.push(downBody)
-                    }
-
-                    upBody._size += downBody._size
-                    upBody._y -= downBody._size/2
-
-                    for(let i = y - downBody._size; i < y; i++) {
-                        column[i] = upBody
-                    }
-                } else {
-                    downBody._size += 1
-                    downBody._y += 0.5
-                    column[y] = downBody
-                }
-                return
-            }
-        }
-        if(!upGrow) {
-            let newBody = new Line(null, null)
-            newBody._entity = this._entity
-
-            newBody._x = x + xgridOffset
-            newBody._y = y + 0.5 + ygridOffset
-            newBody._size = 1
-            newBody._isHorizontal = false
-            newBody._oneway = info.line
-            newBody._enabled = true
-            newBody._layer = 0
-            newBody._layerGroup = 0
-            newBody._grid = this
-            newBody._isSensor = false
-
-            this._newBodies.push(newBody)
-            column[y] = newBody
-        }
-    }
-    _addOneBodyRow(x: number, y: number, xgridOffset: number, ygridOffset: number, row, info: { line: number }) {
-        let upGrow = false,
-            upBody: Line
-
-        if(x < this._gridSize-1) {
-            upBody = row[x+1]
-
-            if(upBody && info.line == upBody._oneway) {
-                upBody._size += 1
-                upBody._x -= 0.5
-                row[x] = upBody
-                upGrow = true
-            }
-        }
-
-        if(x > 0) {
-            let downBody: Line = row[x-1]
-
-            if(downBody && info.line == downBody._oneway) {
-                if(upGrow) {
-                    let i = this._newBodies.indexOf(downBody)
-                    if(i >= 0) {
-                        this._newBodies.splice(i, 1)
-                    } else {
-                        this._oldBodies.push(downBody)
-                    }
-
-                    upBody._size += downBody._size
-                    upBody._x -= downBody._size/2
-
-                    for(let i = x - downBody._size; i < x; i++) {
-                        row[i] = upBody
-                    }
-                } else {
-                    downBody._size += 1
-                    downBody._x += 0.5
-                    row[x] = downBody
-                }
-                return
-            }
-        }
-        if(!upGrow) {
-            let newBody = new Line(null, null)
-            newBody._entity = this._entity
-
-            newBody._x = x + 0.5 + xgridOffset
-            newBody._y = y + ygridOffset
-            newBody._size = 1
-            newBody._isHorizontal = true
-            newBody._oneway = info.line
-            newBody._enabled = true
-            newBody._layer = 0
-            newBody._layerGroup = 0
-            newBody._grid = this
-            newBody._isSensor = false
-            
-            this._newBodies.push(newBody)
-            row[x] = newBody
-        }
-    }
-
-    _updateTileBodyInSmallGrid(subgrid: SubGrid, x: number, y: number, shape: number) {
-        // LEFT
-        if(x == 0) { this._getLeftInfo(shape, 0) }
-        else { this._getLeftInfo(shape, subgrid.shape[x-1][y]) }
-        let line = subgrid.columns[x]
-        let body = line[y]
-        if(((body && body._oneway) || -1) != Grid._leftInfo.line) {
-            if(body) this._clearOneBodyColumn(x, y, this._xdownLeft, this._ydownLeft, line, body)
-            if(Grid._leftInfo.line != -1) { this._addOneBodyColumn(x, y, this._xdownLeft, this._ydownLeft, line, Grid._leftInfo) }
-        }
-        
-        // RIGHT
-        if(x == this._gridSize - 1) { this._getRightInfo(shape, 0) } 
-        else { this._getRightInfo(shape, subgrid.shape[x+1][y]) }
-        line = subgrid.columns[x+1]
-        body = line[y]
-        if(((body && body._oneway) || -1) != Grid._rightInfo.line) {
-            if(body) this._clearOneBodyColumn(x+1, y, this._xdownLeft, this._ydownLeft, line, body)
-            if(Grid._rightInfo.line != -1) { this._addOneBodyColumn(x+1, y, this._xdownLeft, this._ydownLeft, line, Grid._rightInfo) }
-        }
-        
-        // DOWN
-        if(y == 0) { this._getDownInfo(shape, 0) } 
-        else { this._getDownInfo(shape, subgrid.shape[x][y-1]) }
-        line = subgrid.rows[y]
-        body = line[x]
-        if(((body && body._oneway) || -1) != Grid._downInfo.line) {
-            if(body) this._clearOneBodyRow(x, y, this._xdownLeft, this._ydownLeft, line, body)
-            if(Grid._downInfo.line != -1) { this._addOneBodyRow(x, y, this._xdownLeft, this._ydownLeft, line, Grid._downInfo) }
-        }
-        
-        // UP
-        if(y == this._gridSize - 1) { this._getUpInfo(shape, 0) } 
-        else { this._getUpInfo(shape, subgrid.shape[x][y+1]) }
-        line = subgrid.rows[y+1]
-        body = line[x]
-        if(((body && body._oneway) || -1) != Grid._upInfo.line) {
-            if(body) this._clearOneBodyRow(x, y+1, this._xdownLeft, this._ydownLeft, line, body)
-            if(Grid._upInfo.line != -1) { this._addOneBodyRow(x, y+1, this._xdownLeft, this._ydownLeft, line, Grid._upInfo) }
-        }
-    }
-
-    _updateTileBodyInBigGrid(subgrid: SubGrid, gridx: number, gridy: number, x: number, y: number, shape: number) {
-        let lines, 
-            xoffset = this._xdownLeft + gridx * this._gridSize, 
-            yoffset = this._ydownLeft + gridy * this._gridSize
-
-        // ADJACENT SHAPE CALCULATION
-        // LEFT
-        if(x == 0) {
-            if(gridx == 0) { this._getLeftInfo(shape, 0) } 
-            else { this._getLeftInfo(shape, this._subGrids[gridx-1][gridy].shape[this._gridSize-1][y]) }
-        } else {
-            this._getLeftInfo(shape, subgrid.shape[x-1][y])
-        }
-        lines = subgrid.columns[x]
-        let body = lines[y] as Line
-        if(((body && body._oneway) || -1) != Grid._leftInfo.line) {
-            if(body) this._clearOneBodyColumn(x, y, xoffset, yoffset, lines, body)
-            if(Grid._leftInfo.line != -1) this._addOneBodyColumn(x, y, xoffset, yoffset, lines, Grid._leftInfo)
-        }
-
-        // RIGHT
-        if(x == this._gridSize-1) {
-            if(gridx == this._width-1) { this._getRightInfo(shape, 0); lines = subgrid.columns[x+1] } 
-            else { this._getRightInfo(shape, this._subGrids[gridx + 1][gridy].shape[0][y]); lines = this._subGrids[gridx + 1][gridy].columns[0] }
-        } else {
-            this._getRightInfo(shape, subgrid.shape[x+1][y])
-            lines = subgrid.columns[x+1]
-        }
-        body = lines[y]
-        if(((body && body._oneway) || -1) != Grid._rightInfo.line) {
-            if(body) this._clearOneBodyColumn(x+1, y, xoffset, yoffset, lines, body)
-            if(Grid._rightInfo.line != -1) this._addOneBodyColumn(x+1, y, xoffset, yoffset, lines, Grid._rightInfo)
-        }
-
-        // DOWN
-        if(y == 0) {
-            if(gridy == 0) { this._getDownInfo(shape, 0) } 
-            else { this._getDownInfo(shape, this._subGrids[gridx][gridy-1].shape[x][this._gridSize-1]) }
-        } else {
-            this._getDownInfo(shape, subgrid.shape[x][y-1])
-        }
-        lines = subgrid.rows[y]
-        body = lines[x]
-        if(((body && body._oneway) || -1) != Grid._downInfo.line) {
-            if(body) this._clearOneBodyRow(x, y, xoffset, yoffset, lines, body)
-            if(Grid._downInfo.line != -1) { this._addOneBodyRow(x, y, xoffset, yoffset, lines, Grid._downInfo) }
-        }
-
-        // UP
-        if(y == this._gridSize-1) {
-            if(gridy == this._height-1) { this._getUpInfo(shape, 0); lines = subgrid.rows[y+1] } 
-            else { this._getUpInfo(shape, this._subGrids[gridx][gridy+1].shape[x][0]); lines = this._subGrids[gridx][gridy+1].rows[0] }
-        } else {
-            this._getUpInfo(shape, subgrid.shape[x][y+1])
-            lines = subgrid.rows[y+1]
-        }
-        body = lines[x]
-        if(((body && body._oneway) || -1) != Grid._rightInfo.line) {
-            if(body) this._clearOneBodyRow(x, y+1, xoffset, yoffset, lines, body)
-            if(Grid._upInfo.line != -1) { this._addOneBodyRow(x, y+1, xoffset, yoffset, lines, Grid._upInfo) }
-        }
-    }*/
-
-    _updateTileBody(subgrid: SubGrid, x: number, y: number, xoffset: number, yoffset: number, shape: number, layer: number, layerGroup: number) {
-        // REMOVE CURRENTLY PRESENT BODY
-
-        // TRY TO EXTEND EXISTING ADJACENT BODIES
-
-        // UPDATE ADJACENT: IF EMPTY OR SIDE ADDED INSTEAD OF FULL, POTENTIALLY ADD FULL AND VICE VERSA
-
-    }
-    _updateTileSensorBody(subgrid: SubGrid, x: number, y: number, xoffset: number, yoffset: number, isSensor: boolean) {
-        if (isSensor) {
-            let rightBody: Rect, body: Rect
-
-            if (x < this._gridSize-1) {
-                rightBody = subgrid.sensors[x+1][y]
-
-                if (rightBody) {
+                if (rightBody && rightTile.layer == tile.layer && rightTile.layerGroup == rightTile.layerGroup && rightBody._height == 1) {
                     rightBody._width += 1
                     rightBody._x -= 0.5
-                    subgrid.sensors[x][y] = rightBody
+                    tile.body = rightBody
                     body = rightBody
                 }
             }
 
             if (x > 0) {
-                let leftBody: Rect = subgrid.sensors[x-1][y]
+                let leftTile = subgrid.tiles[x-1][y],
+                    leftBody = leftTile.body
 
-                if (leftBody) {
+                if (leftBody && leftTile.layer == tile.layer && leftTile.layerGroup == tile.layerGroup && leftBody._height == 1) {
+                    if (body) {
+                        let i = this._newBodies.indexOf(leftBody)
+                        if(i >= 0) this._newBodies.splice(i, 1)
+                        else this._oldBodies.push(leftBody)
+
+                        body._width += leftBody._width
+                        body._x -= leftBody._width/2
+
+                        for(let i = leftBody._x - xoffset - leftBody._width/2; i < x; i++) {
+                            subgrid.tiles[i][y].body = body
+                        }
+                    } else {
+                        leftBody._width += 1
+                        leftBody._x += 0.5
+                        tile.body = leftBody
+                    }
+                }
+            }
+        }
+    }
+    _verticalBodyMerge(subgrid: SubGrid, tile: Tile, oldBody: SmallBody, x: number, y: number, xoffset: number, yoffset: number) {
+        if(tile.shape == 1 || tile.shape == 3 || tile.shape == 5) {
+            let body: SmallBody
+
+            if (y < this._gridSize - 1) {
+                let upTile = subgrid.tiles[x][y+1],
+                    upBody = upTile.body
+
+                if (upBody && upTile.layer == tile.layer && upTile.layerGroup == upTile.layerGroup && upBody._width == 1) {
+                    upBody._height += 1
+                    upBody._y -= 0.5
+                    tile.body = upBody
+                    body = upBody
+                }
+            }
+
+            if (x > 0) {
+                let downTile = subgrid.tiles[x][y-1],
+                    downBody = downTile.body
+
+                if (downBody && downTile.layer == tile.layer && downTile.layerGroup == tile.layerGroup && downBody._width == 1) {
+                    if (body) {
+                        let i = this._newBodies.indexOf(downBody)
+                        if(i >= 0) this._newBodies.splice(i, 1)
+                        else this._oldBodies.push(downBody)
+
+                        body._height += downBody._height
+                        body._y -= downBody._height/2
+
+                        for(let i = downBody._y - yoffset - downBody._height/2; i < y; i++) {
+                            subgrid.tiles[x][i].body = body
+                        }
+                    } else {
+                        downBody._height += 1
+                        downBody._y += 0.5
+                        tile.body = downBody
+                    }
+                }
+            }
+        }
+    }
+
+    _removeBody(subgrid: SubGrid, tile: Tile, x: number, y: number, xoffset: number, yoffset: number) {
+        let oldBody = tile.body
+
+        if (oldBody) {
+            if (oldBody._width == 1) {
+                if (oldBody._height == 1) {
+                    let i = this._newBodies.indexOf(oldBody)
+                    if (i >= 0) this._newBodies.splice(i, 1)
+                    else this._oldBodies.push(oldBody)
+                } else if (y + yoffset == oldBody._y - oldBody._height/2) {
+                    oldBody._height -= 1
+                    oldBody._y += 0.5
+
+                    if (oldBody._height == 1) this._horizontalBodyMerge(subgrid, subgrid.tiles[x][y+1], oldBody, x, y+1, xoffset, yoffset)
+                } else if (y + yoffset == oldBody._y + oldBody._height/2 - 1) {
+                    oldBody._height -= 1
+                    oldBody._y -= 0.5
+
+                    if (oldBody._height == 1) this._horizontalBodyMerge(subgrid, subgrid.tiles[x][y-1], oldBody, x, y-1, xoffset, yoffset)
+                } else {
+                    let newBody = new Rect(null, null)
+                    newBody._entity = this._entity
+
+                    newBody._height = y + yoffset - oldBody._y + oldBody._height/2
+                    newBody._width = 1
+                    newBody._y = y - newBody._height/2 + yoffset
+                    newBody._x = x + 0.5 + xoffset
+                    newBody._enabled = true
+                    newBody._layer = oldBody._layer
+                    newBody._layerGroup = oldBody._layerGroup
+                    newBody._grid = this
+                    newBody._isSensor = false
+                    this._newBodies.push(newBody)
+
+                    oldBody._height -= newBody._height + 1
+                    oldBody._y += (newBody._height + 1)/2
+
+                    if (newBody._height == 1) this._horizontalBodyMerge(subgrid, subgrid.tiles[x][y-1], newBody, x, y-1, xoffset, yoffset)
+                    if (oldBody._height == 1) this._horizontalBodyMerge(subgrid, subgrid.tiles[x][y+1], oldBody, x, y+1, xoffset, yoffset)
+                }
+            } else {
+                if (x + xoffset == oldBody._x - oldBody._width/2) {
+                    oldBody._width -= 1
+                    oldBody._x += 0.5
+
+                    if (oldBody._width == 1) this._verticalBodyMerge(subgrid, subgrid.tiles[x+1][y], oldBody, x+1, y, xoffset, yoffset)
+                } else if (x + xoffset == oldBody._x + oldBody._width/2 - 1) {
+                    oldBody._width -= 1
+                    oldBody._x -= 0.5
+
+                    if (oldBody._height == 1) this._verticalBodyMerge(subgrid, subgrid.tiles[x-1][y], oldBody, x-1, y, xoffset, yoffset)
+                } else {
+                    let newBody = new Rect(null, null)
+                    newBody._entity = this.
+                    _entity
+
+                    newBody._width = x + xoffset - oldBody._x + oldBody._width/2
+                    newBody._height = 1
+                    newBody._x = x - newBody._width/2 + xoffset
+                    newBody._y = y + 0.5 + yoffset
+                    newBody._enabled = true
+                    newBody._layer = oldBody._layer
+                    newBody._layerGroup = oldBody._layerGroup
+                    newBody._grid = this
+                    newBody._isSensor = false
+                    this._newBodies.push(newBody)
+
+                    oldBody._width -= newBody._width + 1
+                    oldBody._x += (newBody._width + 1)/2
+
+                    if (newBody._height == 1) this._verticalBodyMerge(subgrid, subgrid.tiles[x-1][y], newBody, x-1, y, xoffset, yoffset)
+                    if (oldBody._height == 1) this._verticalBodyMerge(subgrid, subgrid.tiles[x+1][y], oldBody, x+1, y, xoffset, yoffset)
+                }
+            }
+        }
+        tile.body = null
+    }
+    
+    _updateTileBody(subgrid: SubGrid, tile: Tile, x: number, y: number, xoffset: number, yoffset: number, shape: number, layer: number, layerGroup: number) {
+        // REMOVE CURRENTLY PRESENT BODY
+        this._removeBody(subgrid, tile, x, y, xoffset, yoffset)
+
+        // TRY TO EXTEND EXISTING ADJACENT BODIES
+        let left = x > 0 && subgrid.tiles[x-1][y],
+            right = x < this._gridSize - 1 && subgrid.tiles[x+1][y],
+            up = y < this._gridSize - 1 && subgrid.tiles[x][y+1],
+            down = y > 0 && subgrid.tiles[x][y-1]
+
+        if (shape > 1 || shape == 1 
+            && ((x == 0 || !left || left.shape != 1 || left.layer != layer || left.layerGroup != layerGroup) 
+            || (x == this._gridSize-1 || !right || right.shape != 1 || right.layer != layer || left.layerGroup != layerGroup) 
+            || (y == 0 || !down || down.shape != 1 || down.layer != layer || down.layerGroup != layerGroup)
+            || (y == this._gridSize-1 || !up || up.shape != 1 || up.layer != layer || up.layerGroup != layerGroup))) {
+
+            let fail = false
+
+            if(shape == 1 || shape == 2 || shape == 4) {
+                let body: SmallBody
+
+                if (x < this._gridSize - 1) {
+                    let rightTile = subgrid.tiles[x+1][y],
+                        rightBody = rightTile.body
+
+                    if (rightBody && rightTile.layer == layer && rightTile.layerGroup == layerGroup && rightBody._height == 1) {
+                        rightBody._width += 1
+                        rightBody._x -= 0.5
+                        tile.body = rightBody
+                        body = rightBody
+                    }
+                }
+
+                if (x > 0) {
+                    let leftTile = subgrid.tiles[x-1][y], leftBody = leftTile.body
+
+                    if (leftBody && leftTile.layer == layer && leftTile.layerGroup == layerGroup && leftBody._height == 1) {
+                        if (body) {
+                            let i = this._newBodies.indexOf(leftBody)
+                            if(i >= 0) this._newBodies.splice(i, 1)
+                            else this._oldBodies.push(leftBody)
+
+                            body._width += leftBody._width
+                            body._x -= leftBody._width/2
+
+                            for(let i = leftBody._x - xoffset - leftBody._width/2; i < x; i++) {
+                                subgrid.tiles[i][y].body = body
+                            }
+                        } else {
+                            leftBody._width += 1
+                            leftBody._x += 0.5
+                            tile.body = leftBody
+                            body = leftBody
+                        }
+                    }
+                }
+
+                if(!body) {
+                    if(shape == 1) {
+                        fail = true
+                    } else {
+                        body = new Rect(null, null)
+                        body._entity = this._entity
+
+                        body._x = x + 0.5 + xoffset
+                        body._y = y + 0.5 + yoffset
+                        body._width = 1
+                        body._height = 1
+                        body._enabled = true
+                        body._layer = layer
+                        body._layerGroup = layerGroup
+                        body._grid = this
+                        body._isSensor = false
+                        
+                        tile.body = body
+                        this._newBodies.push(body)
+                    }
+                }
+            } 
+            
+            if(shape == 3 || shape == 5 || shape == 1 && fail) {
+                let body: SmallBody
+
+                if (y < this._gridSize - 1) {
+                    let upTile = subgrid.tiles[x][y+1], upBody = upTile.body
+
+                    if (upBody && upTile.layer == layer && upTile.layerGroup == layerGroup && upBody._width == 1) {
+                        upBody._height += 1
+                        upBody._y -= 0.5
+                        tile.body = upBody
+                        body = upBody
+                    }
+                }
+
+                if (y > 0) {
+                    let downTile = subgrid.tiles[x][y-1], downBody = downTile.body
+
+                    if (downBody && downTile.layer == layer && downTile.layerGroup == layerGroup && downBody._width == 1) {
+                        if (body) {
+                            let i = this._newBodies.indexOf(downBody)
+                            if(i >= 0) this._newBodies.splice(i, 1)
+                            else this._oldBodies.push(downBody)
+
+                            body._height += downBody._height
+                            body._y -= downBody._height/2
+
+                            for(let i = downBody._y - yoffset - downBody._height/2; i < y; i++) {
+                                subgrid.tiles[x][i].body = body
+                            }
+                        } else {
+                            downBody._height += 1
+                            downBody._y += 0.5
+                            tile.body = downBody
+                            body = downBody
+                        }
+                    }
+                }
+
+                if (!body) {
+                    body = new Rect(null, null)
+                    body._entity = this._entity
+
+                    body._x = x + 0.5 + xoffset
+                    body._y = y + 0.5 + yoffset
+                    body._width = 1
+                    body._height = 1
+                    body._enabled = true
+                    body._layer = layer
+                    body._layerGroup = layerGroup
+                    body._grid = this
+                    body._isSensor = false
+                    
+                    this._newBodies.push(body)
+                    tile.body = body
+                }
+            }
+        }
+
+        // UPDATE ADJACENT: IF EMPTY OR SIDE ADDED INSTEAD OF FULL, POTENTIALLY ADD FULL AND VICE VERSA
+        if (shape == 1) {
+            if (left && left.shape == 1 && left.layerGroup == layerGroup && left.layer == layer) {
+                if (x > 1 && y > 0 && y < this._gridSize - 1) {
+                    let leftTile = subgrid.tiles[x-2][y],
+                        upTile = subgrid.tiles[x-1][y+1],
+                        downTile = subgrid.tiles[x-1][y-1]
+
+                    if (leftTile.shape == 1 && leftTile.layer == layer && leftTile.layerGroup == layerGroup
+                        && upTile.shape == 1 && upTile.layer == layer && upTile.layerGroup == layerGroup
+                        && downTile.shape == 1 && downTile.layer == layer && downTile.layerGroup == layerGroup) {
+                        this._removeBody(subgrid, left, x-1, y, xoffset, yoffset)
+                    }
+                }
+            }
+            if (right && right.shape == 1 && right.layerGroup == layerGroup && right.layer == layer) {
+                if (x < this._gridSize - 1 && y > 0 && y < this._gridSize - 1) {
+                    let rightTile = subgrid.tiles[x+2][y],
+                        upTile = subgrid.tiles[x-1][y+1],
+                        downTile = subgrid.tiles[x-1][y-1]
+
+                    if (rightTile.shape == 1 && rightTile.layer == layer && rightTile.layerGroup == layerGroup
+                        && upTile.shape == 1 && upTile.layer == layer && upTile.layerGroup == layerGroup
+                        && downTile.shape == 1 && downTile.layer == layer && downTile.layerGroup == layerGroup) {
+                        this._removeBody(subgrid, right, x+1, y, xoffset, yoffset)
+                    }
+                }
+            }
+            if (up && up.shape == 1 && up.layerGroup == layerGroup && up.layer == layer) {
+                if (x > 1 && x < this._gridSize - 1 && y < this._gridSize - 1) {
+                    let leftTile = subgrid.tiles[x-1][y+1],
+                        upTile = subgrid.tiles[x][y+2],
+                        rightTile = subgrid.tiles[x+1][y+1]
+
+                    if (leftTile.shape == 1 && leftTile.layer == layer && leftTile.layerGroup == layerGroup
+                        && upTile.shape == 1 && upTile.layer == layer && upTile.layerGroup == layerGroup
+                        && rightTile.shape == 1 && rightTile.layer == layer && rightTile.layerGroup == layerGroup) {
+                        this._removeBody(subgrid, up, x, y+1, xoffset, yoffset)
+                    }
+                }
+            }
+            if (down && down.shape == 1 && down.layerGroup == layerGroup && down.layer == layer) {
+                if (x < this._gridSize - 1 && y > 0 && y < this._gridSize - 1) {
+                    let rightTile = subgrid.tiles[x+1][y-1],
+                        leftTile = subgrid.tiles[x-1][y-1],
+                        downTile = subgrid.tiles[x][y-2]
+
+                    if (rightTile.shape == 1 && rightTile.layer == layer && rightTile.layerGroup == layerGroup
+                        && leftTile.shape == 1 && leftTile.layer == layer && leftTile.layerGroup == layerGroup
+                        && downTile.shape == 1 && downTile.layer == layer && downTile.layerGroup == layerGroup) {
+                        this._removeBody(subgrid, down, x, y-1, xoffset, yoffset)
+                    }
+                }
+            }
+        } else {
+            if (left && left.shape == 1 && !left.body && x > 1 && y > 0 && y < this._gridSize - 1) {
+                let leftTile = subgrid.tiles[x-2][y],
+                    upTile = subgrid.tiles[x-1][y+1],
+                    downTile = subgrid.tiles[x-1][y-1]
+
+                if (leftTile.body && leftTile.shape == 1 && leftTile.layer == layer && leftTile.layerGroup == layerGroup && leftTile.body._height == 1) {
+                    leftTile.body._width += 1
+                    leftTile.body._x += 0.5
+                    left.body = leftTile.body
+                } else if (upTile.body && upTile.shape == 1 && upTile.layer == layer && upTile.layerGroup == layerGroup && upTile.body._width == 1) {
+                    upTile.body._height += 1
+                    upTile.body._y -= 0.5
+                    left.body = upTile.body
+                } else if (downTile.body && downTile.shape == 1 && downTile.layer == layer && downTile.layerGroup == layerGroup && downTile.body._width == 1) {
+                    downTile.body._height += 1
+                    downTile.body._y += 0.5
+                    left.body = downTile.body
+                } else {
+                    let newBody = new Rect(null, null)
+                    newBody._entity = this._entity
+
+                    newBody._width = 1
+                    newBody._height = 1
+                    newBody._x = x + xoffset - 0.5
+                    newBody._y = y + yoffset + 0.5
+                    newBody._enabled = true
+                    newBody._layer = layer
+                    newBody._layerGroup = layerGroup
+                    newBody._grid = this
+                    newBody._isSensor = false
+
+                    this._newBodies.push(newBody)
+                    left.body = newBody
+                }
+            }
+            if (right && right.shape == 1 && !right.body && x < this._gridSize - 2 && y > 0 && y < this._gridSize - 1) {
+                let rightTile = subgrid.tiles[x+2][y],
+                    upTile = subgrid.tiles[x+1][y+1],
+                    downTile = subgrid.tiles[x+1][y-1]
+
+                if (rightTile.body && rightTile.shape == 1 && rightTile.layer == layer && rightTile.layerGroup == layerGroup && rightTile.body._height == 1) {
+                    rightTile.body._width += 1
+                    rightTile.body._x -= 0.5
+                    right.body = rightTile.body
+                } else if (upTile.body && upTile.shape == 1 && upTile.layer == layer && upTile.layerGroup == layerGroup && upTile.body._width == 1) {
+                    upTile.body._height += 1
+                    upTile.body._y -= 0.5
+                    right.body = upTile.body
+                } else if (downTile.body && downTile.shape == 1 && downTile.layer == layer && downTile.layerGroup == layerGroup && downTile.body._width == 1) {
+                    downTile.body._height += 1
+                    downTile.body._y += 0.5
+                    right.body = downTile.body
+                } else {
+                    let newBody = new Rect(null, null)
+                    newBody._entity = this._entity
+
+                    newBody._width = 1
+                    newBody._height = 1
+                    newBody._x = x + xoffset + 1.5
+                    newBody._y = y + yoffset + 0.5
+                    newBody._enabled = true
+                    newBody._layer = layer
+                    newBody._layerGroup = layerGroup
+                    newBody._grid = this
+                    newBody._isSensor = false
+
+                    this._newBodies.push(newBody)
+                    right.body = newBody
+                }
+            }
+            if (up && up.shape == 1 && !up.body && y < this._gridSize - 2 && x > 0 && x < this._gridSize - 1) {
+                let rightTile = subgrid.tiles[x+1][y+1],
+                    leftTile = subgrid.tiles[x-1][y+1],
+                    upTile = subgrid.tiles[x][y+2]
+
+                if (rightTile.body && rightTile.shape == 1 && rightTile.layer == layer && rightTile.layerGroup == layerGroup && rightTile.body._height == 1) {
+                    rightTile.body._width += 1
+                    rightTile.body._x -= 0.5
+                    up.body = rightTile.body
+                } else if (upTile.body && upTile.shape == 1 && upTile.layer == layer && upTile.layerGroup == layerGroup && upTile.body._width == 1) {
+                    upTile.body._height += 1
+                    upTile.body._y -= 0.5
+                    up.body = upTile.body
+                } else if (leftTile.body && leftTile.shape == 1 && leftTile.layer == layer && leftTile.layerGroup == layerGroup && leftTile.body._height == 1) {
+                    leftTile.body._width += 1
+                    leftTile.body._x += 0.5
+                    up.body = leftTile.body
+                } else {
+                    let newBody = new Rect(null, null)
+                    newBody._entity = this._entity
+
+                    newBody._width = 1
+                    newBody._height = 1
+                    newBody._x = x + xoffset + 0.5
+                    newBody._y = y + yoffset + 1.5
+                    newBody._enabled = true
+                    newBody._layer = layer
+                    newBody._layerGroup = layerGroup
+                    newBody._grid = this
+                    newBody._isSensor = false
+
+                    this._newBodies.push(newBody)
+                    up.body = newBody
+                }
+            }
+            if (!down && down.shape == 1 && !down.body && y > 1 && x > 0 && x < this._gridSize - 1) {
+                let rightTile = subgrid.tiles[x+1][y-1],
+                    leftTile = subgrid.tiles[x-1][y-1],
+                    downTile = subgrid.tiles[x][y-2]
+
+                if (rightTile.body && rightTile.shape == 1 && rightTile.layer == layer && rightTile.layerGroup == layerGroup && rightTile.body._height == 1) {
+                    rightTile.body._width += 1
+                    rightTile.body._x -= 0.5
+                    down.body = rightTile.body
+                } else if (downTile.body && downTile.shape == 1 && downTile.layer == layer && downTile.layerGroup == layerGroup && downTile.body._width == 1) {
+                    downTile.body._height += 1
+                    downTile.body._y += 0.5
+                    down.body = downTile.body
+                } else if (leftTile.body && leftTile.shape == 1 && leftTile.layer == layer && leftTile.layerGroup == layerGroup && leftTile.body._height == 1) {
+                    leftTile.body._width += 1
+                    leftTile.body._x += 0.5
+                    down.body = leftTile.body
+                } else {
+                    let newBody = new Rect(null, null)
+                    newBody._entity = this._entity
+
+                    newBody._width = 1
+                    newBody._height = 1
+                    newBody._x = x + xoffset + 0.5
+                    newBody._y = y + yoffset - 0.5
+                    newBody._enabled = true
+                    newBody._layer = layer
+                    newBody._layerGroup = layerGroup
+                    newBody._grid = this
+                    newBody._isSensor = false
+
+                    this._newBodies.push(newBody)
+                    down.body = newBody
+                }
+            }
+        }
+    }
+    _updateTileSensorBody(subgrid: SubGrid, tile: Tile, x: number, y: number, xoffset: number, yoffset: number, isSensor: boolean, sensorLayer, sensorLayerGroup) {
+        let body = tile.sensor
+
+        if(body._width == 1) {
+            let i = this._newBodies.indexOf(body)
+            if(i >= 0) this._newBodies.splice(i, 1)
+            else this._oldBodies.push(body)
+        } else if (x == body._x - body._width/2) {
+            body._width -= 1
+            body._x += 0.5
+        } else if (x == body._x + body._width/2 - 1) {
+            body._width -= 1
+            body._x -= 0.5
+        } else {
+            let newBody = new Rect(null, null)
+            newBody._entity = this._entity
+
+            newBody._width = x + xoffset - body._x + body._width/2
+            newBody._height = 1
+            newBody._x = x - body._width/2 + xoffset
+            newBody._y = y + 0.5 + yoffset
+            newBody._enabled = true
+            newBody._layer = 0
+            newBody._layerGroup = 0
+            newBody._grid = this
+            newBody._isSensor = false
+            this._newBodies.push(newBody)
+
+            body._width -= newBody._width + 1
+            body._x += (newBody._width + 1)/2
+        }
+        tile.sensor = null
+        
+        if (isSensor) {
+            let rightBody: Rect, body: Rect
+
+            if (x < this._gridSize - 1) {
+                let rightTile = subgrid.tiles[x+1][y]
+                rightBody = rightTile.sensor
+
+                if (rightBody && rightTile.sensorLayer == sensorLayer && rightTile.sensorLayerGroup == sensorLayerGroup) {
+                    rightBody._width += 1
+                    rightBody._x -= 0.5
+                    tile.sensor = rightBody
+                    body = rightBody
+                }
+            }
+
+            if (x > 0) {
+                let leftTile = subgrid.tiles[x-1][y]
+                let leftBody: Rect = leftTile.sensor
+
+                if (leftBody && leftTile.sensorLayer == sensorLayer && leftTile.sensorLayerGroup == sensorLayerGroup) {
                     if(body) {
                         let i = this._newBodies.indexOf(leftBody)
                         if(i >= 0) this._newBodies.splice(i, 1)
@@ -1152,12 +1252,12 @@ export class Grid extends Body {
                         rightBody._x -= leftBody._width/2
 
                         for(let i = leftBody._y - xoffset - leftBody._width; i < x; i++) {
-                            subgrid.sensors[i][y] = rightBody
+                            subgrid.tiles[i][y].sensor = rightBody
                         }
                     } else {
                         leftBody._width += 1
                         leftBody._x += 0.5
-                        subgrid.sensors[x][y] = leftBody
+                        tile.sensor = leftBody
                         body = leftBody
                     }
                 }
@@ -1172,173 +1272,45 @@ export class Grid extends Body {
                 body._width = 1
                 body._height = 1
                 body._enabled = true
-                body._layer = 0
-                body._layerGroup = 0
+                body._layer = sensorLayer
+                body._layerGroup = sensorLayerGroup
                 body._grid = this
                 body._isSensor = false
                 
+                tile.sensor = body
                 this._newBodies.push(body)
-                subgrid.sensors[x][y] = body
             }
-
-            let downBody: Rect
-            if (y > 0) {
-                downBody = subgrid.sensors[x][y-1]
-
-                if(downBody && downBody._x == body._x && downBody._width == body._width) {
-                    downBody._height += 1
-                    downBody._y += 0.5
-                    for(let i = downBody._x - downBody._width/2; i < downBody._x + downBody._width/2; i++) {
-                        subgrid.sensors[i][y] = downBody
-                    }
-                }
-            }
-
-            if (y < this._gridSize) {
-                let upBody = subgrid.sensors[x][y+1]
-
-                if(upBody && upBody._x == body._x && upBody._width == body._width) {
-                    if(downBody) {
-                        let i = this._newBodies.indexOf(upBody)
-                        if(i >= 0) {
-                            this._newBodies.splice(i, 1)
-                        } else {
-                            this._oldBodies.push(upBody)
-                        }
-
-                        downBody._height += upBody._height
-                        downBody._y += upBody._height/2
-
-                        for(let i = x - downBody._width; i < x; i++) {
-                            subgrid.sensors[i][y] = upBody
-                        }
-                    } else {
-                        upBody._height += 1
-                        upBody._y -= 0.5
-                        for(let i = upBody._x - upBody._width/2; i < upBody._x + upBody._width/2; i++) {
-                            subgrid.sensors[i][y] = upBody
-                        }
-                    }
-                }
-            }
-        } else {
-            let body = subgrid.sensors[x][y]
-
-            if (body._height == 1) {
-                if(body._width == 1) {
-                    let i = this._newBodies.indexOf(body)
-                    if(i >= 0) this._newBodies.splice(i, 1)
-                    else this._oldBodies.push(body)
-                } else if (x == body._x - body._width/2) {
-                    body._width -= 1
-                    body._x += 0.5
-                } else if (x == body._x + body._width/2 - 1) {
-                    body._width -= 1
-                    body._x -= 0.5
-                } else {
-                    body = new Rect(null, null)
-                    body._entity = this._entity
-
-                    body._x = x + 0.5 + xoffset
-                    body._y = y + 0.5 + yoffset
-                    body._width = 1
-                    body._height = 1
-                    body._enabled = true
-                    body._layer = 0
-                    body._layerGroup = 0
-                    body._grid = this
-                    body._isSensor = false
-                }
-            } else if (body._width == 1) {
-                if (body._height == 1) {
-                    let i = this._newBodies.indexOf(body)
-                    if(i >= 0) this._newBodies.splice(i, 1)
-                    else this._oldBodies.push(body)
-                } else if (y == body._y + body._height/2 - 1) {
-                    body._height -= 1
-                    body._y -= 1
-                } else if (y == body._y - body._height/2) {
-                    body._height -= 1
-                    body._y += 0.5
-                } else {
-                    // TODO
-                }
-            } else { 
-                if (x == body._x - body._width/2) {
-                    if (y == body._y - body._height/2) {
-                        // TODO
-                        body._height -= 1
-                        body._y += 0.5
-                        body = new Rect(null, null)
-                        body._entity = this._entity
-
-                        body._x = x + 0.5 + xoffset
-                        body._y = y + 0.5 + yoffset
-                        body._width = 1
-                        body._height = 1
-                        body._enabled = true
-                        body._layer = 0
-                        body._layerGroup = 0
-                        body._grid = this
-                        body._isSensor = false
-                        
-                        this._newBodies.push(body)
-                        subgrid.sensors[x][y] = body
-                    } else if (y == body._y + body._height/2 - 1) {
-                        // TODO
-                    } else {
-                        // TODO    
-                    }
-                } else if (x == body._x + body._width/2 - 1) {
-                    if (y == body._y - body._height/2) {
-                        // TODO
-                    } else if (y == body._y + body._height/2 - 1) {
-                        // TODO
-                    } else {
-                        // TODO                       
-                    }
-                } else {
-                    if (y == body._y - body._height/2) {
-                        // TODO
-                    } else if (y == body._y + body._height/2 - 1) {
-                        // TODO
-                    } else {
-                        // TODO 
-                    }
-                }
-            }
-            subgrid.sensors[x][y] = null
         }
     }
 
-    _updateTileBodies(subgrid: SubGrid, x: number, y: number, xoffset: number, yoffset: number, shape: number, data) {
-        this._oldBodies = []
-        this._newBodies = []
-
-        let newLayer = typeof data != "undefined" && typeof data.layer != "undefined" ? this._entity.world._layerIds[data.layer] : this._layer,
-            newLayerGroup = typeof data != "undefined" && typeof data.layerGroup != "undefined" ? data.layerGroup : this._layerGroup,
-            oldData = subgrid.data[x][y]
+    _updateTileBodies(subgrid: SubGrid, tile: Tile, x: number, y: number, xoffset: number, yoffset: number, shape: number, data) {
+        let newLayer = data && typeof data.layer != "undefined" ? this._entity.world._layerIds[data.layer] : tile.layer,
+            newLayerGroup = data && typeof data.layerGroup != "undefined" ? data.layerGroup : tile.layerGroup,
+            newIsSensor = data && typeof data.isSensor != "undefined" ? data.isSensor : tile.sensor,
+            newIsSensorLayer = data && typeof data.sensorLayer != "undefined" ? data.sensorLayer : tile.sensorLayer,
+            newIsSensorLayerGroup = data && typeof data.sensorLayerGroup != "undefined" ? data.sensorLayerGroup : tile.sensorLayerGroup
             
-        if (shape != subgrid.shape[x][y] 
-            || ((oldData || typeof oldData.layer == "undefined") ? newLayer != this._layer : newLayer != data.layer)
-            || ((oldData || typeof oldData.layerGroup == "undefined") ? newLayerGroup != this._layerGroup : newLayerGroup != data.layerGroup)) {
-            this._updateTileBody(subgrid, x, y, xoffset, yoffset, shape, newLayer, newLayerGroup)
+        if (shape != tile.shape || newLayer != tile.layer || newLayerGroup != tile.layerGroup) {
+            this._updateTileBody(subgrid, tile, x, y, xoffset, yoffset, shape, newLayer, newLayerGroup)
         }
 
-        if (typeof data != "undefined" && typeof data.isSensor != "undefined" && subgrid.sensors[x][y] != data.isSensor) {
-            this._updateTileSensorBody(subgrid, x, y, xoffset, yoffset, data.isSensor)
+        if (newIsSensor != tile.sensor || newIsSensorLayer != tile.sensorLayer || newIsSensorLayerGroup != tile.sensorLayerGroup) {
+            this._updateTileSensorBody(subgrid, tile, x, y, xoffset, yoffset, newIsSensor, newIsSensorLayer, newIsSensorLayerGroup)
         }
-
-        for(let b of this._oldBodies) { this._entity.removeBody(b) }
-        for(let b of this._newBodies) { this._entity._addBody(b) }
     }
 
     _setTile(x: number, y: number, shape: number, data?) {
-        let subgrid: SubGrid
+        let subgrid: SubGrid,
+            tile: Tile
+
+        this._oldBodies = []
+        this._newBodies = []
 
         // FIND WHICH SUBGRID TO AFFECT + AJUST X/Y POSITION
         if(this._subGrids instanceof SubGrid) {
             subgrid = this._subGrids
+            tile = subgrid.tiles[x][y]
+            this._updateTileBodies(subgrid, tile, x, y, this._xdownLeft, this._ydownLeft, shape, data)
         } else {
             let gridx = Math.floor(x / this._gridSize), gridy = Math.floor(y / this._gridSize)
 
@@ -1346,20 +1318,28 @@ export class Grid extends Body {
             
             x -= gridx * this._gridSize
             y -= gridy * this._gridSize
+
+            tile = subgrid.tiles[x][y]
+            this._updateTileBodies(
+                subgrid, tile, 
+                x, y, 
+                this._xdownLeft + gridx * this._gridSize + this._xdownLeft, this._ydownLeft + gridy + this._gridSize + this._ydownLeft, 
+                shape, data
+            )
         }
 
-        // BODY MODIFICATION
-        this._updateTileBodies(subgrid, x, y, shape, data)
+        for(let b of this._oldBodies) { this._entity.removeBody(b) }
+        for(let b of this._newBodies) { this._entity._addBody(b) }
 
         // DATA MODIFICATION
         if(typeof data != "undefined") {
-            if(subgrid.data[x][y]) {
-                subgrid.data[x][y] = Object.assign(subgrid.data[x][y], data)
+            if(tile.data) {
+                tile.data = Object.assign(tile.data, data)
             } else{
-                subgrid.data[x][y] = _.cloneDeep(data)
+                tile.data = _.cloneDeep(data)
             }
         }
-        subgrid.shape[x][y] = shape
+        tile.shape = shape
 
         this._topEntity._resetMaxx()
         this._topEntity._resetMinx()
@@ -1375,6 +1355,7 @@ export class Grid extends Body {
             this._setTilesInSubGrid(
                 x, x + width,
                 y, y + height,
+                this._xdownLeft, this._ydownLeft,
                 this._subGrids as SubGrid,
                 (xx, yy, shape, data?) => info(xx + this._xdownLeft, yy + this._ydownLeft, shape, data)
             )
@@ -1406,6 +1387,7 @@ export class Grid extends Body {
                         Math.min(this._gridSize, x + width - xoff),
                         Math.max(0, y - yoff),
                         Math.min(this._gridSize, y + height - yoff),
+                        xoff2, yoff2,
                         subgrid,
                         (x, y, shape, data?) => info(x + xoff2, y + yoff2, shape, data)
                     )
@@ -1421,24 +1403,25 @@ export class Grid extends Body {
         this._topEntity._resetMaxy()
         this._topEntity._resetMiny()
     }
-    _setTilesInSubGrid(minx: number, maxx: number, miny: number, maxy: number, subgrid: SubGrid, 
+    _setTilesInSubGrid(minx: number, maxx: number, miny: number, maxy: number, xoffset, yoffset, subgrid: SubGrid, 
                         info: (x: number, y: number, shape: number, data?) => ({ shape: number, data? } | number)) {
-        for(let i = minx; i < maxx; i++) {
-            for(let j = miny; j < maxy; j++) {
-                let prevshape = subgrid.shape[i][j]
-                let res = info(i, j, prevshape, subgrid.data[i][j])
+        for(let j = miny; j < maxy; j++) {
+            for(let i = minx; i < maxx; i++) {
+                let oldData = subgrid.tiles[i][j]
+                let prevshape = oldData.shape
+                let res = info(i, j, prevshape, oldData.data)
                 if(res) {
                     if(typeof res == "number") {
-                        this._updateTileBodies(subgrid, i, j, res, undefined)
-                        subgrid.shape[i][j] = res
+                        this._updateTileBodies(subgrid, oldData, i, j, xoffset, yoffset, res, undefined)
+                        oldData.shape = res
                     } else {
-                        this._updateTileBodies(subgrid, i, j, res.shape, res.data)
-                        subgrid.shape[i][j] = res.shape
+                        this._updateTileBodies(subgrid, oldData, i, j, xoffset, yoffset, res.shape, res.data)
+                        oldData.shape = res.shape
                         if(typeof res.data != "undefined") {
-                            if(subgrid.data[i][j]) {
-                                subgrid.data[i][j] = Object.assign(subgrid.data[i][j], res.data)
+                            if(oldData.data) {
+                                oldData.data = Object.assign(oldData.data, res.data)
                             } else{
-                                subgrid.data[i][j] = _.cloneDeep(res.data)
+                                oldData.data = _.cloneDeep(res.data)
                             }
                         }
                     }
@@ -1454,7 +1437,7 @@ export class Grid extends Body {
                 up = Math.max(Math.floor(maxy / this._gridSize) - this._height + 1, 0),
                 down = Math.max(Math.ceil(-miny / this._gridSize), 0)
 
-            let grid, newWidth, newHeight
+            let grid: SubGrid[][], newWidth, newHeight
 
             if(left > 0 || right > 0 || up > 0 || down > 0) {
                 if(this._subGrids instanceof SubGrid) { 
@@ -1491,17 +1474,6 @@ export class Grid extends Body {
                     }
                 }
 
-                if(right > 0) {
-                    for(let i = down; i < down + this._height; i++) {
-                        grid[left + this._width][i].columns[0] = grid[left + this._width - 1][i].columns[this._gridSize]
-                    }
-                }
-                if(up > 0) {
-                    for(let i = left; i < left + this._width; i++) {
-                        grid[i][down + this._height].rows[0] = grid[i][down + this._height - 1].rows[this._gridSize]
-                    }
-                }
-
                 this._subGrids = grid
                 this._width = newWidth
                 this._height = newHeight
@@ -1514,27 +1486,41 @@ export class Grid extends Body {
 
 export class SubGrid {
 
-    shape: number[][]
-    data: any[][]
-
-    bodies: SmallBody[][]
-    sensors: Rect[][]
+    tiles: Tile[][]
 
     constructor(size: number) {
-        this.shape = new Array(size)
-        this.data = new Array(size)
-        this.bodies = new Array(size)
-        this.sensors = new Array(size)
+        this.tiles = new Array(size)
 
         for(let i = 0; i < size; i++) {
-            this.shape[i] = new Array(size)
-            this.data[i] = new Array(size)
-            this.bodies[i] = new Array(size)
-            this.sensors[i] = new Array(size)
+            this.tiles[i] = new Array(size)
 
             for(let j = 0; j < size; j++) {
-                this.shape[i][j] = 0
+                this.tiles[i][j] = {
+                    shape: 0,
+                    layer: 0,
+                    layerGroup: 0,
+
+                    sensorLayer: 0,
+                    sensorLayerGroup: 0,
+
+                    data: null,
+                    body: null,
+                    sensor: null
+                }
             }
         }
     }
+}
+
+interface Tile {
+    shape: number
+    layer: number
+    layerGroup: number
+
+    sensorLayer: number
+    sensorLayerGroup: number
+
+    data: any
+    body: SmallBody
+    sensor: Rect
 }

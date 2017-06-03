@@ -566,7 +566,7 @@ export class Testbed {
     }
 }
 
-import { GridScript1, GridScript2, GridScript3, GridScript4 } from './scripts/gridScripts'
+import { GridScript1, GridScript2, GridScript3, GridScript4, GridScript5 } from './scripts/gridScripts'
 import { 
     SimulScript1, SimulScript2, SimulScript3, SimulScript4, SimulScript5, SimulScript6, SimulScript7,
     SimulScript8, SimulScript9, SimulScript10, SimulScript11, SimulScript12, SimulScript13, SimulScript14
@@ -580,6 +580,7 @@ window.onload = () => {
     testbed.addScript(GridScript2)
     testbed.addScript(GridScript3)
     testbed.addScript(GridScript4)
+    testbed.addScript(GridScript5)
 
     testbed.addScript(SimulScript1)
     testbed.addScript(SimulScript2)
@@ -598,6 +599,6 @@ window.onload = () => {
 
     testbed.addScript(PerformanceScript1)
 
-    testbed.start(SimulScript14.id)
+    testbed.start(GridScript5.id)
     testbed.resetScriptList()
 }
