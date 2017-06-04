@@ -167,10 +167,15 @@ class Script5 extends Script {
         }))
         this.grid = entity.body as Grid
 
-        this.grid.setTile(0, 0, 1, null)
-        this.grid.setTile(1, 0, 1, null)
-
-        this.grid.setTile(0, 0, 0, null)
+        for(let i = 0; i < 4; i++) {
+            for(let j = 0; j < 4; j++) {
+                this.grid.setTile(j, i, 1, null)
+            }
+        }
+        this.grid.setTile(1, 3, 1, null)
+        // this.grid.setTile(1, 2, 1, null)
+        // this.grid.setTile(-1, 1, 1, null)
+        // this.grid.setTile(1, 2, 1, null)
     }
     update(time: number, delta: number) {
         

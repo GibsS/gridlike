@@ -526,6 +526,9 @@ export class Testbed {
         this.ctx.fillText("FPS: " + this._fps, 10, this.canvas.offsetHeight - 85)
         this.ctx.fillText("Step: " + this._step, 10, this.canvas.offsetHeight - 100)
         this.ctx.fillText("World time: " + this.world.time.toFixed(1), 10, this.canvas.offsetHeight - 115)
+        this.ctx.fillText("zoom: " + this.zoom.toFixed(1), 10, this.canvas.offsetHeight - 130)
+        this.ctx.fillText("camera y: " + this.xCam.toFixed(1), 10, this.canvas.offsetHeight - 145)
+        this.ctx.fillText("camera x: " + this.xCam.toFixed(1), 10, this.canvas.offsetHeight - 160)
 
         this.ctx.font="20px Arial"
         this.ctx.fillText(this.scriptDescriptor.name, 10, 30)

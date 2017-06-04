@@ -707,6 +707,10 @@ export class Grid extends Body {
                     rightBody._x -= 0.5
                     tile.body = rightBody
                     body = rightBody
+
+                    let i = this._newBodies.indexOf(oldBody)
+                    if(i >= 0) this._newBodies.splice(i, 1)
+                    else this._oldBodies.push(oldBody)
                 }
             }
 
@@ -730,6 +734,10 @@ export class Grid extends Body {
                         leftBody._width += 1
                         leftBody._x += 0.5
                         tile.body = leftBody
+
+                        let i = this._newBodies.indexOf(oldBody)
+                        if(i >= 0) this._newBodies.splice(i, 1)
+                        else this._oldBodies.push(oldBody)
                     }
                 }
             }
@@ -748,6 +756,10 @@ export class Grid extends Body {
                     upBody._y -= 0.5
                     tile.body = upBody
                     body = upBody
+
+                    let i = this._newBodies.indexOf(oldBody)
+                    if(i >= 0) this._newBodies.splice(i, 1)
+                    else this._oldBodies.push(oldBody)
                 }
             }
 
@@ -771,6 +783,10 @@ export class Grid extends Body {
                         downBody._height += 1
                         downBody._y += 0.5
                         tile.body = downBody
+
+                        let i = this._newBodies.indexOf(oldBody)
+                        if(i >= 0) this._newBodies.splice(i, 1)
+                        else this._oldBodies.push(oldBody)
                     }
                 }
             }
@@ -814,6 +830,10 @@ export class Grid extends Body {
                     oldBody._height -= newBody._height + 1
                     oldBody._y += (newBody._height + 1)/2
 
+                    for(let i = newBody._y - newBody._height/2 - yoffset; i < newBody._y + newBody._height/2 - yoffset; i++) {
+                        subgrid.tiles[x][i].body = newBody
+                    }
+
                     if (newBody._height == 1) this._horizontalBodyMerge(subgrid, subgrid.tiles[x][y-1], newBody, x, y-1, xoffset, yoffset)
                     if (oldBody._height == 1) this._horizontalBodyMerge(subgrid, subgrid.tiles[x][y+1], oldBody, x, y+1, xoffset, yoffset)
                 }
@@ -847,8 +867,12 @@ export class Grid extends Body {
                     oldBody._width -= newBody._width + 1
                     oldBody._x += (newBody._width + 1)/2
 
-                    if (newBody._height == 1) this._verticalBodyMerge(subgrid, subgrid.tiles[x-1][y], newBody, x-1, y, xoffset, yoffset)
-                    if (oldBody._height == 1) this._verticalBodyMerge(subgrid, subgrid.tiles[x+1][y], oldBody, x+1, y, xoffset, yoffset)
+                    for(let i = newBody._x - newBody._width/2 - xoffset; i < newBody._x + newBody._width/2 - xoffset; i++) {
+                        subgrid.tiles[i][y].body = newBody
+                    }
+                    
+                    if (newBody._width == 1) this._verticalBodyMerge(subgrid, subgrid.tiles[x-1][y], newBody, x-1, y, xoffset, yoffset)
+                    if (oldBody._width == 1) this._verticalBodyMerge(subgrid, subgrid.tiles[x+1][y], oldBody, x+1, y, xoffset, yoffset)
                 }
             }
         }
@@ -1009,7 +1033,7 @@ export class Grid extends Body {
                 }
             }
             if (right && right.shape == 1 && right.layerGroup == layerGroup && right.layer == layer) {
-                if (x < this._gridSize - 1 && y > 0 && y < this._gridSize - 1) {
+                if (x < this._gridSize - 2 && y > 0 && y < this._gridSize - 1) {
                     let rightTile = subgrid.tiles[x+2][y],
                         upTile = subgrid.tiles[x-1][y+1],
                         downTile = subgrid.tiles[x-1][y-1]
@@ -1022,7 +1046,7 @@ export class Grid extends Body {
                 }
             }
             if (up && up.shape == 1 && up.layerGroup == layerGroup && up.layer == layer) {
-                if (x > 1 && x < this._gridSize - 1 && y < this._gridSize - 1) {
+                if (x > 1 && x < this._gridSize - 1 && y < this._gridSize - 2) {
                     let leftTile = subgrid.tiles[x-1][y+1],
                         upTile = subgrid.tiles[x][y+2],
                         rightTile = subgrid.tiles[x+1][y+1]
@@ -1035,7 +1059,7 @@ export class Grid extends Body {
                 }
             }
             if (down && down.shape == 1 && down.layerGroup == layerGroup && down.layer == layer) {
-                if (x < this._gridSize - 1 && y > 0 && y < this._gridSize - 1) {
+                if (x < this._gridSize - 1 && x > 0 && y > 1) {
                     let rightTile = subgrid.tiles[x+1][y-1],
                         leftTile = subgrid.tiles[x-1][y-1],
                         downTile = subgrid.tiles[x][y-2]
@@ -1043,6 +1067,7 @@ export class Grid extends Body {
                     if (rightTile.shape == 1 && rightTile.layer == layer && rightTile.layerGroup == layerGroup
                         && leftTile.shape == 1 && leftTile.layer == layer && leftTile.layerGroup == layerGroup
                         && downTile.shape == 1 && downTile.layer == layer && downTile.layerGroup == layerGroup) {
+                        console.log(x, y)
                         this._removeBody(subgrid, down, x, y-1, xoffset, yoffset)
                     }
                 }
@@ -1407,21 +1432,20 @@ export class Grid extends Body {
                         info: (x: number, y: number, shape: number, data?) => ({ shape: number, data? } | number)) {
         for(let j = miny; j < maxy; j++) {
             for(let i = minx; i < maxx; i++) {
-                let oldData = subgrid.tiles[i][j]
-                let prevshape = oldData.shape
-                let res = info(i, j, prevshape, oldData.data)
+                let tile = subgrid.tiles[i][j],
+                    res = info(i, j, tile.shape, tile.data)
                 if(res) {
                     if(typeof res == "number") {
-                        this._updateTileBodies(subgrid, oldData, i, j, xoffset, yoffset, res, undefined)
-                        oldData.shape = res
+                        this._updateTileBodies(subgrid, tile, i, j, xoffset, yoffset, res, undefined)
+                        tile.shape = res
                     } else {
-                        this._updateTileBodies(subgrid, oldData, i, j, xoffset, yoffset, res.shape, res.data)
-                        oldData.shape = res.shape
+                        this._updateTileBodies(subgrid, tile, i, j, xoffset, yoffset, res.shape, res.data)
+                        tile.shape = res.shape
                         if(typeof res.data != "undefined") {
-                            if(oldData.data) {
-                                oldData.data = Object.assign(oldData.data, res.data)
+                            if(tile.data) {
+                                tile.data = Object.assign(tile.data, res.data)
                             } else{
-                                oldData.data = _.cloneDeep(res.data)
+                                tile.data = _.cloneDeep(res.data)
                             }
                         }
                     }
