@@ -1067,7 +1067,6 @@ export class Grid extends Body {
                     if (rightTile.shape == 1 && rightTile.layer == layer && rightTile.layerGroup == layerGroup
                         && leftTile.shape == 1 && leftTile.layer == layer && leftTile.layerGroup == layerGroup
                         && downTile.shape == 1 && downTile.layer == layer && downTile.layerGroup == layerGroup) {
-                        console.log(x, y)
                         this._removeBody(subgrid, down, x, y-1, xoffset, yoffset)
                     }
                 }
@@ -1178,7 +1177,7 @@ export class Grid extends Body {
                     up.body = newBody
                 }
             }
-            if (!down && down.shape == 1 && !down.body && y > 1 && x > 0 && x < this._gridSize - 1) {
+            if (down && down.shape == 1 && !down.body && y > 1 && x > 0 && x < this._gridSize - 1) {
                 let rightTile = subgrid.tiles[x+1][y-1],
                     leftTile = subgrid.tiles[x-1][y-1],
                     downTile = subgrid.tiles[x][y-2]
@@ -1348,7 +1347,7 @@ export class Grid extends Body {
             this._updateTileBodies(
                 subgrid, tile, 
                 x, y, 
-                this._xdownLeft + gridx * this._gridSize + this._xdownLeft, this._ydownLeft + gridy + this._gridSize + this._ydownLeft, 
+                this._xdownLeft + gridx * this._gridSize, this._ydownLeft + gridy * this._gridSize, 
                 shape, data
             )
         }
@@ -1372,7 +1371,8 @@ export class Grid extends Body {
         this._topEntity._resetMiny()
     }
     _setTiles(x: number, y: number, width: number, height: number, info: (x: number, y: number, shape: number, data?) => ({ shape: number, data? } | number)) {
-        var small = this._subGrids instanceof SubGrid
+        let small = this._subGrids instanceof SubGrid
+
         if(small) {
             this._newBodies = []
             this._oldBodies = []

@@ -105,8 +105,7 @@ class Script3 extends Script {
         }
     }
     update(time: number, delta: number) {
-        this.testbed.xCam += delta * 10
-        //console.log(this.line.globalx, this.line.globaly, this.rect.globalx, this.rect.globaly)
+        
     }
 }
 
@@ -167,15 +166,13 @@ class Script5 extends Script {
         }))
         this.grid = entity.body as Grid
 
-        for(let i = 0; i < 4; i++) {
-            for(let j = 0; j < 4; j++) {
+        for(let i = 0; i < 6; i++) {
+            for(let j = 0; j < 6; j++) {
                 this.grid.setTile(j, i, 1, null)
             }
         }
-        this.grid.setTile(1, 3, 1, null)
-        // this.grid.setTile(1, 2, 1, null)
-        // this.grid.setTile(-1, 1, 1, null)
-        // this.grid.setTile(1, 2, 1, null)
+        this.grid.clearTile(2, 2)
+        //this.grid.setTile(1, 3, 1, null)
     }
     update(time: number, delta: number) {
         
