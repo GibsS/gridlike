@@ -2,7 +2,7 @@ import * as _ from 'lodash'
 
 import { Script, ScriptDescriptor } from '../script'
 import { Testbed } from '../'
-import { Entity, Grid, Body } from '../../lib'
+import { Entity, Grid, Body, LEFT_ONEWAY, RIGHT_ONEWAY, UP_ONEWAY, DOWN_ONEWAY } from '../../lib'
 
 class Script1 extends Script {
 
@@ -171,8 +171,13 @@ class Script5 extends Script {
                 this.grid.setTile(j, i, 1, null)
             }
         }
-        this.grid.clearTile(2, 2)
-        //this.grid.setTile(1, 3, 1, null)
+        this.grid.setTileShape(-2, 0, UP_ONEWAY)
+        this.grid.setTileShape(-2, 1, LEFT_ONEWAY)
+        this.grid.setTileShape(-2, 2, RIGHT_ONEWAY)
+        this.grid.setTileShape(-2, 3, DOWN_ONEWAY)
+        this.grid.setTileShape(-1, 3, DOWN_ONEWAY)
+        this.grid.setTileShape(-3, 3, DOWN_ONEWAY)
+        this.grid.setTileShape(-2, 3, RIGHT_ONEWAY)
     }
     update(time: number, delta: number) {
         
