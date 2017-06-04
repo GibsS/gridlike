@@ -184,8 +184,35 @@ class Script5 extends Script {
     }
 }
 
+class Script6 extends Script {
+    grid: Grid
+
+    init() {
+        let entity = this.r(this.world.createGrid({
+            x: 0,
+            y: 0,
+            width: 10,
+            height: 10
+        }))
+        this.grid = entity.body as Grid
+
+        for(let i = 0; i < 6; i++) {
+            for(let j = 0; j < 6; j++) {
+                this.grid.setTile(j, i, 0, { isSensor: true })
+            }
+        }
+
+        this.grid.setTile(-2, 0, 0, { isSensor: true })
+        
+        this.grid.setTile(1, 1, 0, { isSensor: false })
+        this.grid.setTile(2, 1, 0, { isSensor: false })
+    }
+    update(time: number, delta: number) { }
+}
+
 export const GridScript1 = { id: "GridScript1", category: "Grid generation", name: "Grid script 1", description: null, script: () => new Script1() } as ScriptDescriptor
 export const GridScript2 = { id: "GridScript2", category: "Grid generation", name: "Grid script 2", description: null, script: () => new Script2() } as ScriptDescriptor
 export const GridScript3 = { id: "GridScript3", category: "Grid generation", name: "Grid script 3", description: null, script: () => new Script3() } as ScriptDescriptor
 export const GridScript4 = { id: "GridScript4", category: "Grid generation", name: "Grid script 4", description: null, script: () => new Script4() } as ScriptDescriptor
 export const GridScript5 = { id: "GridScript5", category: "Grid generation", name: "Grid script 5", description: null, script: () => new Script5() } as ScriptDescriptor
+export const GridScript6 = { id: "GridScript6", category: "Grid generation", name: "Grid script 6", description: null, script: () => new Script6() } as ScriptDescriptor

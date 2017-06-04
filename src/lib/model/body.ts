@@ -1291,36 +1291,38 @@ export class Grid extends Body {
     }
     _updateTileSensorBody(subgrid: SubGrid, tile: Tile, x: number, y: number, xoffset: number, yoffset: number, isSensor: boolean, sensorLayer, sensorLayerGroup) {
         let body = tile.sensor
+        
+        if(body) {
+            if(body._width == 1) {
+                let i = this._newBodies.indexOf(body)
+                if(i >= 0) this._newBodies.splice(i, 1)
+                else this._oldBodies.push(body)
+            } else if (x + xoffset == body._x - body._width/2) {
+                body._width -= 1
+                body._x += 0.5
+            } else if (x + xoffset == body._x + body._width/2 - 1) {
+                body._width -= 1
+                body._x -= 0.5
+            } else {
+                let newBody = new Rect(null, null)
+                newBody._entity = this._entity
 
-        if(body._width == 1) {
-            let i = this._newBodies.indexOf(body)
-            if(i >= 0) this._newBodies.splice(i, 1)
-            else this._oldBodies.push(body)
-        } else if (x == body._x - body._width/2) {
-            body._width -= 1
-            body._x += 0.5
-        } else if (x == body._x + body._width/2 - 1) {
-            body._width -= 1
-            body._x -= 0.5
-        } else {
-            let newBody = new Rect(null, null)
-            newBody._entity = this._entity
+                newBody._width = x + xoffset - body._x + body._width/2
+                newBody._height = 1
+                newBody._x = x - newBody._width/2 + xoffset
+                newBody._y = y + yoffset + 0.5
+                newBody._enabled = true
+                newBody._layer = sensorLayer
+                newBody._layerGroup = sensorLayerGroup
+                newBody._grid = this
+                newBody._isSensor = true
+                this._newBodies.push(newBody)
 
-            newBody._width = x + xoffset - body._x + body._width/2
-            newBody._height = 1
-            newBody._x = x - body._width/2 + xoffset
-            newBody._y = y + 0.5 + yoffset
-            newBody._enabled = true
-            newBody._layer = 0
-            newBody._layerGroup = 0
-            newBody._grid = this
-            newBody._isSensor = false
-            this._newBodies.push(newBody)
-
-            body._width -= newBody._width + 1
-            body._x += (newBody._width + 1)/2
+                body._width -= newBody._width + 1
+                body._x += (newBody._width + 1)/2
+            }
+            tile.sensor = null
         }
-        tile.sensor = null
         
         if (isSensor) {
             let rightBody: Rect, body: Rect
@@ -1374,7 +1376,7 @@ export class Grid extends Body {
                 body._layer = sensorLayer
                 body._layerGroup = sensorLayerGroup
                 body._grid = this
-                body._isSensor = false
+                body._isSensor = true
                 
                 tile.sensor = body
                 this._newBodies.push(body)
