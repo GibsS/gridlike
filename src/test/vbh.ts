@@ -151,61 +151,61 @@ function testVBH(VBHType: () => VBH<IAABB>, otherVBHs: (() => VBH<IAABB>)[]) {
 
 function testMoveVBH(vbhType: () => MoveVBH<IMoveAABB>) {
 
-    var vbh: MoveVBH<IMoveAABB>,
-    aabb1: IMoveAABB = { minX: 0, minY: 1, maxX: 2, maxY: 3, enabled: true, vx: 0, vy: 0 },
-    aabb2: IMoveAABB = { minX: 3, minY: -1, maxX: 4, maxY: 0, enabled: true, vx: 0, vy: 0 },
-    aabb3: IMoveAABB = { minX: 4.1, minY: -1, maxX: 5.1, maxY: 0, enabled: true, vx: 0, vy: 0 },
-    aabb4: IMoveAABB = { minX: -1, minY: 1, maxX: -0.1, maxY: 2, enabled: true, vx: 0, vy: 0 }
+    // var vbh: MoveVBH<IMoveAABB>,
+    // aabb1: IMoveAABB = { minX: 0, minY: 1, maxX: 2, maxY: 3, enabled: true, vx: 0, vy: 0 },
+    // aabb2: IMoveAABB = { minX: 3, minY: -1, maxX: 4, maxY: 0, enabled: true, vx: 0, vy: 0 },
+    // aabb3: IMoveAABB = { minX: 4.1, minY: -1, maxX: 5.1, maxY: 0, enabled: true, vx: 0, vy: 0 },
+    // aabb4: IMoveAABB = { minX: -1, minY: 1, maxX: -0.1, maxY: 2, enabled: true, vx: 0, vy: 0 }
 
-    beforeEach(function() {
-        vbh = vbhType()
-        vbh.bulkInsert([aabb1, aabb2, aabb3, aabb4])
-    })
+    // beforeEach(function() {
+    //     vbh = vbhType()
+    //     vbh.bulkInsert([aabb1, aabb2, aabb3, aabb4])
+    // })
 
-    describe("MoveVBH.update", function() {
-        it('should return every new collision /1', function() {
-            let res = vbh.update(4)
-        })
-        it('should return every new collision /2', function() {
-            aabb4.vx = 1
-            aabb4.vy = 1
-            aabb1.vx = -10
+    // describe("MoveVBH.update", function() {
+    //     it('should return every new collision /1', function() {
+    //         let res = vbh.update(4)
+    //     })
+    //     it('should return every new collision /2', function() {
+    //         aabb4.vx = 1
+    //         aabb4.vy = 1
+    //         aabb1.vx = -10
 
-            aabb2.vx = 4
-            let res = vbh.update(1)
+    //         aabb2.vx = 4
+    //         let res = vbh.update(1)
 
-            hasPair(res, aabb4, aabb1)
-            hasPair(res, aabb2, aabb3)
-        })
-        it('should return every new collision /3', function() {
-            aabb2.vx = -1
-            aabb2.vy = 2
+    //         hasPair(res, aabb4, aabb1)
+    //         hasPair(res, aabb2, aabb3)
+    //     })
+    //     it('should return every new collision /3', function() {
+    //         aabb2.vx = -1
+    //         aabb2.vy = 2
             
-            let res = vbh.update(1)
+    //         let res = vbh.update(1)
 
-            hasPair(res, aabb1, aabb2)
-        })
-    })
+    //         hasPair(res, aabb1, aabb2)
+    //     })
+    // })
 
-    describe("MoveVBH.updateSingle", function() {
-        it('should return every new collision /1', function() {
-            let res = vbh.updateSingle(aabb1, -1, 1)
+    // describe("MoveVBH.updateSingle", function() {
+    //     it('should return every new collision /1', function() {
+    //         let res = vbh.updateSingle(aabb1, -1, 1)
 
-            hasPair(res, aabb1, aabb4)
-        })
-        it('should return every new collision /2', function() {
-            let res = vbh.updateSingle(aabb3, -10, 1)
+    //         hasPair(res, aabb1, aabb4)
+    //     })
+    //     it('should return every new collision /2', function() {
+    //         let res = vbh.updateSingle(aabb3, -10, 1)
 
-            hasPair(res, aabb3, aabb1)
-            hasPair(res, aabb3, aabb2)
-            hasPair(res, aabb3, aabb4)
-        })
-        it('should return every new collision /3', function() {
-            let res = vbh.updateSingle(aabb4, 1, 0)
+    //         hasPair(res, aabb3, aabb1)
+    //         hasPair(res, aabb3, aabb2)
+    //         hasPair(res, aabb3, aabb4)
+    //     })
+    //     it('should return every new collision /3', function() {
+    //         let res = vbh.updateSingle(aabb4, 1, 0)
 
-            hasPair(res, aabb1, aabb4)
-        })
-    })
+    //         hasPair(res, aabb1, aabb4)
+    //     })
+    // })
 }
 
 export default function test() {

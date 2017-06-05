@@ -29,9 +29,9 @@ export function update(entity, time: number, delta: number, speed: number) {
     } else {
         entity.setParent(null)
         if(entity.moveLeft && !entity.moveRight) {
-            entity.vx -= speed * delta
+            entity.vx -= speed * delta * 2
         } else if(entity.moveRight && !entity.moveLeft) {
-            entity.vx += speed * delta
+            entity.vx += speed * delta * 2
         }
     }
 

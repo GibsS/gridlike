@@ -78,6 +78,11 @@ export class Entity implements IMoveAABB {
     _miny: number
     _maxy: number
 
+    moveMinX: number
+    moveMaxX: number
+    moveMinY: number
+    moveMaxY: number
+
     // TMP
     name: string
 

@@ -100,36 +100,36 @@ export class RBush<X extends IMoveAABB> implements MoveVBH<X> {
         items.forEach(i => this.insert(i))
     }
 
-    updateSingle(item: X, dx: number, dy: number): X[][] {
-        var parent = (item as any).parentNode,
-            minX = item.minX + Math.min(0, dx) * 2,
-            maxX = item.maxX + Math.max(0, dx) * 2,
-            minY = item.minY + Math.min(0, dy) * 2,
-            maxY = item.maxY + Math.max(0, dy) * 2
+    updateSingle(item: X): X[][] {
+        // var parent = (item as any).parentNode,
+        //     minX = item.minX + Math.min(0, dx) * 2,
+        //     maxX = item.maxX + Math.max(0, dx) * 2,
+        //     minY = item.minY + Math.min(0, dy) * 2,
+        //     maxY = item.maxY + Math.max(0, dy) * 2
 
-        if (minX < parent.minX 
-            || maxX > parent.maxX 
-            || minY < parent.minY 
-            || maxY > parent.maxY) {
-            this.remove(item)
-            // TODO: update new bounds of entity and make sure insertion is based on that
-            this.insert(item)
-        }
+        // if (minX < parent.minX 
+        //     || maxX > parent.maxX 
+        //     || minY < parent.minY 
+        //     || maxY > parent.maxY) {
+        //     this.remove(item)
+        //     // TODO: update new bounds of entity and make sure insertion is based on that
+        //     this.insert(item)
+        // }
         
         let result = []
-        this._search({
-            minX, maxX, minY, maxY
-        }).bodies.forEach(e => {
-            if (e != item) {
-                result.push(e)
-            }
-        })
+        // this._search({
+        //     minX, maxX, minY, maxY
+        // }).bodies.forEach(e => {
+        //     if (e != item) {
+        //         result.push(e)
+        //     }
+        // })
 
         return result
     }
-    update(delta: number): X[][] {
+    update(): X[][] {
         // TODO: FIX! TOTALLY INCORRECT
-        this.other.forAll(item => this.updateSingle(item, delta * item.vx * 2, delta * item.vy * 2))
+        //this.other.forAll(item => this.updateSingle(item, delta * item.vx * 2, delta * item.vy * 2))
 
         let search = [],
             node = this.data,
