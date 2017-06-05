@@ -511,29 +511,31 @@ export class World {
     _broadphase(delta: number) {
         for(let level in this._ents) {
             let ents = this._ents[level]
-            for(let ent of ents) {
-                if (ent._overlap)
-                    ent._overlap = ent._overlap.filter((p: SmallBody[]) => {
+            for(let e of ents) {
+                if (e._overlap)
+                    e._overlap = e._overlap.filter((p: SmallBody[]) => {
                         return !(p[1]._topEntity._x + p[1]._x + p[1]._width/2 < p[0]._topEntity._x + p[0]._x - p[0]._width/2
                             || p[1]._topEntity._x + p[1]._x - p[1]._width/2 > p[0]._topEntity._x + p[0]._x + p[0]._width/2
                             || p[1]._topEntity._y + p[1]._y + p[1]._height/2 < p[0]._topEntity._y + p[0]._y - p[0]._height/2
                             || p[1]._topEntity._y + p[1]._y - p[1]._height/2 > p[0]._topEntity._y + p[0]._y + p[0]._height/2)
                 })
+
+                e.moveMinX = e._x + e.minX + Math.min(0, e._vx * delta) * 2 - 0.1
+                e.moveMaxX = e._x + e.maxX + Math.max(0, e._vx * delta) * 2 + 0.1
+                e.moveMinY = e._y + e.minY + Math.min(0, e._vy * delta) * 2 - 0.1
+                e.moveMaxY = e._y + e.maxY + Math.max(0, e._vy * delta) * 2 + 0.1
             }
         }
 
         let overlapBodies: SmallBody[][] = []
-        this._vbh.update(delta).forEach(pair => {
+        
+        this._vbh.update().forEach(pair => {
+            // console.log(pair)
             let e1: Entity = pair[0], e2: Entity = pair[1]
             
             if(e2._bodies instanceof SmallBody) {
                 if(e1._bodies instanceof SmallBody) {
-                    if(!(e1.minX + Math.min(0, e1.vx * delta)*2 > e2.maxX + Math.max(0, e2.vx * delta)*2 || 
-                            e1.maxX + Math.max(0, e1.vx * delta)*2 < e2.minX + Math.min(0, e2.vx * delta)*2 || 
-                            e1.minY + Math.min(0, e1.vy * delta)*2 > e2.maxY + Math.max(0, e2.vy * delta)*2 ||
-                            e1.maxY + Math.max(0, e1.vy * delta)*2 < e2.minY + Math.min(0, e2.vy * delta)*2)) {
-                        overlapBodies.push([e1._bodies as SmallBody, e2._bodies as SmallBody])
-                    }
+                    overlapBodies.push([e1._bodies as SmallBody, e2._bodies as SmallBody])
                 } else {
                     let vbh = e1._allBodies || e1._bodies as VBH<Body>
                     overlapBodies.push.apply(overlapBodies, vbh.collideAABB(
@@ -592,11 +594,8 @@ export class World {
         .forEach(p => {
             let e1 = p[0]._topEntity, e2 = p[1]._topEntity
             if(e1._level != e2._level) {
-                if(e1._level > e2._level) {
-                    e1._potContacts.push([p[0], p[1]])
-                } else {
-                    e2._potContacts.push([p[1], p[0]])
-                }
+                if(e1._level > e2._level) e1._potContacts.push([p[0], p[1]])
+                else e2._potContacts.push([p[1], p[0]])
             } else {
                 if(!p[0]._entity._overlap || !_.some(p[0]._entity._overlap, o => o[1] == p[1])) {
                     if (!(p[1]._topEntity._x + p[1]._x + p[1]._width/2 < p[0]._topEntity._x + p[0]._x - p[0]._width/2

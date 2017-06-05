@@ -528,7 +528,7 @@ class Script11 extends Script {
     }
 
     update(time: number, delta: number) {
-        charController.update(this.rect, time, delta, 2)
+        charController.update(this.rect, time, delta, 5)
         forceController.update(this.movingGrid, time, delta, 2)
         follow(this, this.rect, time, delta)
     }

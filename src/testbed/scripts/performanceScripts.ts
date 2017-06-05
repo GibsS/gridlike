@@ -6,8 +6,8 @@ import { Entity, Grid, Body } from '../../lib'
 
 class Script1 extends Script {
 
-    width = 10
-    height = 10
+    width = 20
+    height = 50
     rects: Entity[][]
     phase: number[][]
 
@@ -24,7 +24,7 @@ class Script1 extends Script {
                     y: j * 3,
                     width: 1,
                     height: 1,
-                    level: Math.floor(Math.random() * 6)
+                    level: i + j * this.width + 1
                 }))
             }
         }
@@ -33,7 +33,7 @@ class Script1 extends Script {
     update(time: number, delta: number) {
         for(let i = 0; i < this.width; i++) {
             for(let j = 0; j < this.height; j++) {
-                this.rects[i][j].vy = 0.7 * Math.sin(this.phase[i][j] + time)
+                this.rects[i][j].vy = 1.5 * Math.sin(this.phase[i][j] + time)
             }
         }
     }

@@ -14,8 +14,10 @@ export interface IAABB {
 }
 
 export interface IMoveAABB extends IAABB {
-    vx: number // global
-    vy: number
+    moveMinX: number
+    moveMaxX: number
+    moveMinY: number
+    moveMaxY: number
 }
 
 export interface VBH<X extends IAABB> {
@@ -38,8 +40,8 @@ export interface VBH<X extends IAABB> {
 
 export interface MoveVBH<X extends IMoveAABB> extends VBH<X> {
 
-    update(delta: number): X[][]
-    updateSingle(element: X, dx: number, dy: number): X[][]
+    update(): X[][]
+    updateSingle(element: X): X[][]
 }
 
 export class SimpleVBH<X extends IAABB> implements VBH<X> {
@@ -134,47 +136,35 @@ export class SimpleVBH<X extends IAABB> implements VBH<X> {
 
 export class SimpleMoveVBH<X extends IMoveAABB> extends SimpleVBH<X> implements MoveVBH<X> {
 
-    update(delta: number): X[][] {
+    update(): X[][] {
         let res = []
 
         let len = this.elements.length
         for(let i = 0; i < len; i++) {
             let a = this.elements[i]
+            if (a.enabled) {
+                for(let j = i + 1; j < len; j++) {
+                    let b = this.elements[j]
 
-            let minx = a.minX + Math.min(0, a.vx * delta)*2,
-                maxx = a.maxX + Math.max(0, a.vx * delta)*2,
-                miny = a.minY + Math.min(0, a.vy * delta)*2,
-                maxy = a.maxY + Math.max(0, a.vy * delta)*2
-
-            for(let j = i + 1; j < len; j++) {
-                let b = this.elements[j]
-
-                if(a.enabled && b.enabled && 
-                !(minx > b.maxX + Math.max(0, b.vx * delta)*2 || maxx < b.minX + Math.min(0, b.vx * delta)*2
-                || miny > b.maxY + Math.max(0, b.vy * delta)*2 || maxy < b.minY + + Math.min(0, b.vy * delta)*2)) {
-                    res.push([a, b])
+                    if(b.enabled && a.moveMinX <= b.moveMaxX && a.moveMinY <= b.moveMaxY && a.moveMaxX >= b.moveMinX && a.moveMaxY >= b.moveMinY) {
+                        res.push([a, b])
+                    }
                 }
             }
         }
         
         return res
     }
-    updateSingle(e: X, dx: number, dy: number): X[][] {
+    updateSingle(e: X): X[][] {
         let res = []
 
-        let len = this.elements.length
+        if (e.enabled) {
+            for(let j = 0, len = this.elements.length; j < len; j++) {
+                let b = this.elements[j]
 
-        let minx = e.minX + Math.min(0, dx)*2,
-            maxx = e.maxX + Math.max(0, dx)*2,
-            miny = e.minY + Math.min(0, dy)*2,
-            maxy = e.maxY + Math.max(0, dy)*2
-
-        for(let j = 0; j < len; j++) {
-            let b = this.elements[j]
-
-            if(b != e && e.enabled && b.enabled && 
-            !(minx > b.maxX || maxx < b.minX || miny > b.maxY || maxy < b.minY)) {
-                res.push([e, b])
+                if (b != e && e.enabled && b.enabled && e.moveMinX <= b.maxX && b.minX <= e.moveMaxX && b.minY <= e.moveMaxY && e.moveMinY <= b.maxY) {
+                    res.push([e, b])
+                }
             }
         }
         
