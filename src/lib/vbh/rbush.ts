@@ -1,6 +1,6 @@
 import * as quickselect from 'quickselect'
 
-import { MoveVBH, IMoveAABB, SimpleMoveVBH } from './vbh'
+import { VBH, MoveVBH, IMoveAABB, SimpleMoveVBH } from './vbh'
 import { QueryResult, RaycastResult } from '../model/query'
 
 /* TAKEN FROM THE "RBUSH" LIBRARY */
@@ -58,23 +58,32 @@ export class RBush<X extends IMoveAABB> implements MoveVBH<X> {
     queryRect(x: number, y: number, width: number, height: number): QueryResult<X> {
         return this._search({ minX: x - width/2, maxX: x + width/2, minY: y - height/2, maxY: y + height/2 })
     }
+    _all (node: Node<X>, result: X[]) {
+        var nodesToSearch = [];
+        while (node) {
+            if (node.leaf) result.push.apply(result, node.children);
+            else nodesToSearch.push.apply(nodesToSearch, node.children);
+
+            node = nodesToSearch.pop();
+        }
+        return result;
+    }
     _search(bbox: AABB): QueryResult<X> {
         var node = this.data,
             result: X[] = []
 
         if (!intersects(bbox, node)) return { bodies: result }
 
-        var nodesToSearch = [], i, len, child
+        var nodesToSearch: Node<X>[] = [], i: number, len: number, child: Node<X> | X
 
         while (node) {
             for (i = 0, len = node.children.length; i < len; i++) {
-
-                child = node.children[i]
+                child = node.children[i] as X
 
                 if (intersects(bbox, child)) {
-                    if (node.leaf) result.push(child)
-                    else if (contains(bbox, child)) this.all()
-                    else nodesToSearch.push(child)
+                    if (node.leaf) result.push(child as X)
+                    else if (contains(bbox, child)) this._all(child as any, result)
+                    else nodesToSearch.push(child as any)
                 }
             }
             node = nodesToSearch.pop()
@@ -91,7 +100,7 @@ export class RBush<X extends IMoveAABB> implements MoveVBH<X> {
         items.forEach(i => this.insert(i))
     }
 
-    updateSingle(item: X, dx, dy): X[][] {
+    updateSingle(item: X, dx: number, dy: number): X[][] {
         var parent = (item as any).parentNode,
             minX = item.minX + Math.min(0, dx) * 2,
             maxX = item.maxX + Math.max(0, dx) * 2,
@@ -103,20 +112,23 @@ export class RBush<X extends IMoveAABB> implements MoveVBH<X> {
             || minY < parent.minY 
             || maxY > parent.maxY) {
             this.remove(item)
+            // TODO: update new bounds of entity and make sure insertion is based on that
             this.insert(item)
         }
         
-        let result = [];
-
-        ((item as any).parentNode as X[]).forEach(other => {
-            if(other != item && intersects(other, { minX, maxX, minY, maxY })) {
-                result.push(other)
+        let result = []
+        this._search({
+            minX, maxX, minY, maxY
+        }).bodies.forEach(e => {
+            if (e != item) {
+                result.push(e)
             }
         })
 
         return result
     }
     update(delta: number): X[][] {
+        // TODO: FIX! TOTALLY INCORRECT
         this.other.forAll(item => this.updateSingle(item, delta * item.vx * 2, delta * item.vy * 2))
 
         let search = [],
@@ -132,11 +144,21 @@ export class RBush<X extends IMoveAABB> implements MoveVBH<X> {
                         }
                     }
                 }
-            } else search.push.apply(search, node.children);
-            node = search.pop();
+            } else search.push.apply(search, node.children)
+            node = search.pop()
         }
 
         return result
+    }
+
+    collideVBH(other: VBH<X>, x: number, y: number, dx: number, dy: number, otherx: number, othery: number, otherdx: number, otherdy: number): X[][] {
+        // TODO: Implement
+        // TODO: Link this implementation to simplevbh
+        return null
+    }
+    collideAABB(other: X, x: number, y: number, dx: number, dy: number, otherx: number, othery: number, otherdx: number, otherdy: number): X[][] {
+        // TODO
+        return null
     }
 
     remove(item, equalsFn?) {
@@ -175,29 +197,24 @@ export class RBush<X extends IMoveAABB> implements MoveVBH<X> {
                 i = 0;
                 parent = node;
                 node = node.children[0] as Node<X>
-
             } else if (parent) { // go right
                 i++;
                 node = parent.children[i];
                 goingUp = false;
-
             } else node = null; // nothing found
         }
-
-        return this;
     }
 
     _build(items, left, right, height) {
-
         var N = right - left + 1,
             M = this._maxEntries,
-            node;
+            node
 
         if (N <= M) {
             // reached leaf level; return leaf
-            node = createNode(items.slice(left, right + 1));
-            calcBBox(node);
-            return node;
+            node = createNode(items.slice(left, right + 1))
+            calcBBox(node)
+            return node
         }
 
         if (!height) {
@@ -218,30 +235,25 @@ export class RBush<X extends IMoveAABB> implements MoveVBH<X> {
             N1 = N2 * Math.ceil(Math.sqrt(M)),
             i, j, right2, right3;
 
-        multiSelect(items, left, right, N1, this.compareMinX);
+        multiSelect(items, left, right, N1, this.compareMinX)
 
         for (i = left; i <= right; i += N1) {
-
             right2 = Math.min(i + N1 - 1, right);
 
-            multiSelect(items, i, right2, N2, this.compareMinY);
+            multiSelect(items, i, right2, N2, this.compareMinY)
 
             for (j = i; j <= right2; j += N2) {
-
-                right3 = Math.min(j + N2 - 1, right2);
+                right3 = Math.min(j + N2 - 1, right2)
 
                 // pack each entry recursively
-                node.children.push(this._build(items, j, right3, height - 1));
+                node.children.push(this._build(items, j, right3, height - 1))
             }
         }
 
-        calcBBox(node);
-
-        return node;
+        calcBBox(node)
     }
 
     _chooseSubtree(bbox, node, level, path) {
-
         var i, len, child, targetNode, area, enlargement, minArea, minEnlargement;
 
         while (true) {
@@ -335,7 +347,7 @@ export class RBush<X extends IMoveAABB> implements MoveVBH<X> {
     _chooseSplitIndex(node, m, M) {
         var i, bbox1, bbox2, overlap, area, minOverlap, minArea, index
 
-        minOverlap = minArea = Infinity;
+        minOverlap = minArea = Infinity
 
         for (i = m; i <= M - m; i++) {
             bbox1 = distBBox(node, 0, i)
@@ -368,7 +380,7 @@ export class RBush<X extends IMoveAABB> implements MoveVBH<X> {
         var compareMinX = node.leaf ? this.compareMinX : compareNodeMinX,
             compareMinY = node.leaf ? this.compareMinY : compareNodeMinY,
             xMargin = this._allDistMargin(node, m, M, compareMinX),
-            yMargin = this._allDistMargin(node, m, M, compareMinY);
+            yMargin = this._allDistMargin(node, m, M, compareMinY)
 
         // if total distributions margin value is minimal for x, sort by minX,
         // otherwise it's already sorted by minY
@@ -415,8 +427,9 @@ export class RBush<X extends IMoveAABB> implements MoveVBH<X> {
                     siblings = path[i - 1].children
                     siblings.splice(siblings.indexOf(path[i]), 1)
 
-                } else this.clear()
-
+                } else {
+                    this.data = createNode<X>([])
+                }
             } else calcBBox(path[i])
         }
     }
@@ -438,7 +451,7 @@ function calcBBox(node) {
 
 // min bounding rectangle of node children from k to p-1
 function distBBox(node, k, p, destNode?) {
-    if (!destNode) destNode = createNode(null);
+    if (!destNode) destNode = createNode(null)
     destNode.minX = Infinity
     destNode.minY = Infinity
     destNode.maxX = -Infinity
@@ -492,8 +505,7 @@ function intersectionArea(a: AABB, b: AABB) {
         maxX = Math.min(a.maxX, b.maxX),
         maxY = Math.min(a.maxY, b.maxY);
 
-    return Math.max(0, maxX - minX) *
-        Math.max(0, maxY - minY)
+    return Math.max(0, maxX - minX) * Math.max(0, maxY - minY)
 }
 
 function contains(a: AABB, b: AABB) {

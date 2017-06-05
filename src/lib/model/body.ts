@@ -62,7 +62,7 @@ export abstract class Body implements IAABB {
 
     get enabled(): boolean { return this._enabled }
     set enabled(val: boolean) {
-        if(val != this._enabled && !val) {
+        if (val != this._enabled && !val) {
             this._clearContacts()
         }
         this._enabled = val
@@ -74,14 +74,14 @@ export abstract class Body implements IAABB {
     get globalx(): number { return this._x + this._topEntity._x }
     get globaly(): number { return this._y + this._topEntity._y }
 
-    set x(val: number) { 
+    set x(val: number) {
         let x = this.x, topEntity = this._entity
-        while(topEntity != this._topEntity) { x += topEntity._x }
+        while (topEntity != this._topEntity) { x += topEntity._x }
         this._topx = val
     }
     set y(val: number) {
         let y = this.y, topEntity = this._entity
-        while(topEntity != this._topEntity) { y += topEntity._y }
+        while (topEntity != this._topEntity) { y += topEntity._y }
         this._topy = val
     }
     set _topx(val: number) {
@@ -129,7 +129,7 @@ export abstract class Body implements IAABB {
     abstract maxY: number
 
     constructor(entity: Entity, args?: BodyArgs) {
-        if(args) {
+        if (args) {
             this._entity = entity
 
             this._x = args.x || 0
@@ -139,12 +139,12 @@ export abstract class Body implements IAABB {
     }
 
     localToGlobal(x: number | { x: number, y: number }, y?: number): { x: number, y: number } {
-        if(typeof x !== "number") {
+        if (typeof x !== "number") {
             y = x.y
             x = x.x
         }
         let topParent = this._entity
-        while(topParent != this._topEntity) {
+        while (topParent != this._topEntity) {
             x += topParent._x
             y += topParent._y
             topParent = topParent._parent
@@ -155,12 +155,12 @@ export abstract class Body implements IAABB {
         }
     }
     globalToLocal(x: number | { x: number, y: number }, y?: number): { x: number, y: number } {
-        if(typeof x !== "number") {
+        if (typeof x !== "number") {
             y = x.y
             x = x.x
         }
         let topParent = this._entity
-        while(topParent != this._topEntity) {
+        while (topParent != this._topEntity) {
             x -= topParent._x
             y -= topParent._y
             topParent = topParent._parent
@@ -172,30 +172,30 @@ export abstract class Body implements IAABB {
     }
 
     _clearContacts() {
-        for(let t of ["_upLower", "_downLower", "_leftLower", "_rightLower"]) {
+        for (let t of ["_upLower", "_downLower", "_leftLower", "_rightLower"]) {
             let c: Contact = this._topEntity[t]
 
-            if(c) {
+            if (c) {
                 let i = c.otherBody._higherContacts.indexOf(c)
                 c.otherBody._higherContacts.splice(i, 1)
                 this._topEntity[t] = null
             }
         }
 
-        if(this._higherContacts) {
+        if (this._higherContacts) {
             let len = this._higherContacts.length,
                 toremove = []
 
-            for(let i = 0; i < len; i++) {
+            for (let i = 0; i < len; i++) {
                 let c = this._higherContacts[i]
-                
-                if(c.side == "left") {
+
+                if (c.side == "left") {
                     c.otherBody._topEntity._rightLower = null
                     toremove.push(i)
-                } else if(c.side == "right") {
+                } else if (c.side == "right") {
                     c.otherBody._topEntity._leftLower = null
                     toremove.push(i)
-                } else if(c.side == "up") {
+                } else if (c.side == "up") {
                     c.otherBody._topEntity._downLower = null
                     toremove.push(i)
                 } else {
@@ -214,10 +214,10 @@ export abstract class Body implements IAABB {
         resetmaxy = this._topEntity.maxY == this.maxY
     }
     _resetBounds() {
-        if(resetminx) { this._topEntity._resetMinx() }
-        if(resetmaxx) { this._topEntity._resetMaxx() }
-        if(resetminy) { this._topEntity._resetMiny() }
-        if(resetmaxy) { this._topEntity._resetMaxy() }
+        if (resetminx) { this._topEntity._resetMinx() }
+        if (resetmaxx) { this._topEntity._resetMaxx() }
+        if (resetminy) { this._topEntity._resetMiny() }
+        if (resetmaxy) { this._topEntity._resetMaxy() }
     }
 }
 
@@ -241,13 +241,13 @@ export abstract class SmallBody extends Body {
     }
     set layer(val: string) {
         let l = this._entity._world._getLayer(val)
-        if(l != this._layer) {
+        if (l != this._layer) {
             this._layer = l
             this._clearContacts()
         }
     }
     set layerGroup(val: number) {
-        if(val != this._layerGroup) {
+        if (val != this._layerGroup) {
             this._layerGroup = val
             this._clearContacts()
         }
@@ -264,7 +264,7 @@ export abstract class SmallBody extends Body {
     constructor(entity: Entity, args?: SmallBodyArgs) {
         super(entity, args)
 
-        if(args) {
+        if (args) {
             this._isSensor = args.isSensor || false
             this._layer = args.layer ? this._entity._world._getLayer(args.layer) : 0
             this._layerGroup = args.layerGroup || 0
@@ -282,23 +282,23 @@ export class Rect extends SmallBody {
     get width(): number { return this._width }
     get height(): number { return this._height }
 
-    set width(val: number) { 
+    set width(val: number) {
         this._testResetBounds()
         this._width = val
         this._resetBounds()
         this._clearContacts()
     }
-    set height(val: number) { 
+    set height(val: number) {
         this._testResetBounds()
         this._height = val
         this._resetBounds()
         this._clearContacts()
     }
 
-    get minX(): number { return this._x - this._width/2 }
-    get maxX(): number { return this._x + this._width/2 }
-    get minY(): number { return this._y - this._height/2 }
-    get maxY(): number { return this._y + this._height/2 }
+    get minX(): number { return this._x - this._width / 2 }
+    get maxX(): number { return this._x + this._width / 2 }
+    get minY(): number { return this._y - this._height / 2 }
+    get maxY(): number { return this._y + this._height / 2 }
 
     get _leftCollide(): boolean { return true }
     get _rightCollide(): boolean { return true }
@@ -308,7 +308,7 @@ export class Rect extends SmallBody {
     constructor(entity: Entity, args: RectArgs) {
         super(entity, args)
 
-        if(args) {
+        if (args) {
             this._width = args.width
             this._height = args.height
         }
@@ -335,37 +335,37 @@ export class Line extends SmallBody {
 
     get isHorizontal(): boolean { return this._isHorizontal }
     get isVertical(): boolean { return !this._isHorizontal }
-    set isHorizontal(val: boolean) { console.log("[ERROR] Can't set Line.isHorizontal")}
-    set isVertical(val: boolean) { console.log("[ERROR] Can't set Line.isVertical")}
+    set isHorizontal(val: boolean) { console.log("[ERROR] Can't set Line.isHorizontal") }
+    set isVertical(val: boolean) { console.log("[ERROR] Can't set Line.isVertical") }
 
-    get side(): string { 
-        return this._oneway == 0 ? "all" : 
-            (this._isHorizontal ? (this._oneway == 1 ? "up" : "down") : (this._oneway == 1 ? "right" : "left")) 
+    get side(): string {
+        return this._oneway == 0 ? "all" :
+            (this._isHorizontal ? (this._oneway == 1 ? "up" : "down") : (this._oneway == 1 ? "right" : "left"))
     }
-    set side(val: string) { 
-        if(this.isHorizontal) {
-            if(val == "all") {
+    set side(val: string) {
+        if (this.isHorizontal) {
+            if (val == "all") {
                 this._oneway = 0
-            } else if(val == "down") {
+            } else if (val == "down") {
                 this._oneway = 2
-            } else if(val == "up") {
+            } else if (val == "up") {
                 this._oneway = 1
             }
         } else {
-            if(val == "all") {
+            if (val == "all") {
                 this._oneway = 0
-            } else if(val == "right") {
+            } else if (val == "right") {
                 this._oneway = 1
-            } else if(val == "left") {
+            } else if (val == "left") {
                 this._oneway = 2
             }
         }
     }
 
-    get minX(): number { return this._x - (this._isHorizontal && this._size/2) }
-    get maxX(): number { return this._x + (this._isHorizontal && this._size/2) }
-    get minY(): number { return this._y - (!this._isHorizontal && this._size/2) }
-    get maxY(): number { return this._y + (!this._isHorizontal && this._size/2) }
+    get minX(): number { return this._x - (this._isHorizontal && this._size / 2) }
+    get maxX(): number { return this._x + (this._isHorizontal && this._size / 2) }
+    get minY(): number { return this._y - (!this._isHorizontal && this._size / 2) }
+    get maxY(): number { return this._y + (!this._isHorizontal && this._size / 2) }
 
     get _width(): number { return this._isHorizontal ? this._size : 0 }
     get _height(): number { return this._isHorizontal ? 0 : this._size }
@@ -380,10 +380,10 @@ export class Line extends SmallBody {
     constructor(entity: Entity, args: LineArgs) {
         super(entity, args)
 
-        if(args) {
+        if (args) {
             this._size = args.size
             this._isHorizontal = args.isHorizontal
-            if(args.side) {
+            if (args.side) {
                 this.side = args.side
             } else {
                 this._oneway = 0
@@ -437,7 +437,7 @@ export class Grid extends Body {
 
     _newBodies: Body[]
     _oldBodies: Body[]
-    
+
     get minX(): number { console.log('Grid.minx not implemented'); return 0 }
     get maxX(): number { console.log('Grid.maxx not implemented'); return 0 }
     get minY(): number { console.log('Grid.miny not implemented'); return 0 }
@@ -460,14 +460,14 @@ export class Grid extends Body {
 
         // GET MIN AND MAX
         let minx, maxx, miny, maxy
-        if(args.tiles != null) {
-            if((args.tiles as TileList).length != null) {
+        if (args.tiles != null) {
+            if ((args.tiles as TileList).length != null) {
                 minx = args.tiles[0].x
                 miny = args.tiles[0].y
                 maxx = args.tiles[0].x
                 maxy = args.tiles[0].y
 
-                for(let tile of args.tiles as any[]) {
+                for (let tile of args.tiles as any[]) {
                     minx = Math.min(minx, tile.x)
                     miny = Math.min(miny, tile.y)
                     maxx = Math.max(maxx, tile.x)
@@ -483,14 +483,14 @@ export class Grid extends Body {
         } else {
             args.width = args.width || (this._gridSize - 15)
             args.height = args.height || (this._gridSize - 15)
-            minx = -Math.floor(args.width/2)
+            minx = -Math.floor(args.width / 2)
             maxx = minx + args.width
-            miny = -Math.floor(args.height/2)
+            miny = -Math.floor(args.height / 2)
             maxy = miny + args.height
         }
 
         // INIT EMPTY GRID
-        if(maxx - minx > subGridThreshold || maxy - miny > subGridThreshold) {
+        if (maxx - minx > subGridThreshold || maxy - miny > subGridThreshold) {
             minx -= 10
             miny -= 10
             maxx += 10
@@ -499,9 +499,9 @@ export class Grid extends Body {
             let w = Math.ceil((maxx - minx) / this._gridSize), h = Math.ceil((maxy - miny) / this._gridSize)
 
             this._subGrids = new Array(w)
-            for(let i = 0; i < w; i++) {
+            for (let i = 0; i < w; i++) {
                 this._subGrids[i] = new Array(h)
-                for(let j = 0; j < h; j++) {
+                for (let j = 0; j < h; j++) {
                     this._subGrids[i][j] = new SubGrid(this._gridSize)
                 }
             }
@@ -512,29 +512,29 @@ export class Grid extends Body {
             this._height = h
         } else {
             this._subGrids = new SubGrid(this._gridSize)
-            this._xdownLeft = Math.floor((maxx - subGridThreshold)/2)
-            this._ydownLeft = Math.floor((maxy - subGridThreshold)/2)
+            this._xdownLeft = Math.floor((maxx - subGridThreshold) / 2)
+            this._ydownLeft = Math.floor((maxy - subGridThreshold) / 2)
             this._width = 1
             this._height = 1
         }
 
-        if(args.tiles != null) {
-            if((args.tiles as TileList).length != null) {
+        if (args.tiles != null) {
+            if ((args.tiles as TileList).length != null) {
                 let len = (args.tiles as TileList).length
-                for(let t of args.tiles as TileList) {
+                for (let t of args.tiles as TileList) {
                     this._setTile(
-                        t.x - this._xdownLeft, 
-                        t.y - this._ydownLeft, 
-                        t.shape, 
+                        t.x - this._xdownLeft,
+                        t.y - this._ydownLeft,
+                        t.shape,
                         t.data
                     )
                 }
             } else {
                 this._setTiles(
-                    (args.tiles as TileGrid).x - this._xdownLeft, 
-                    (args.tiles as TileGrid).y - this._ydownLeft, 
-                    (args.tiles as TileGrid).info.length, 
-                    (args.tiles as TileGrid).info[0].length, 
+                    (args.tiles as TileGrid).x - this._xdownLeft,
+                    (args.tiles as TileGrid).y - this._ydownLeft,
+                    (args.tiles as TileGrid).info.length,
+                    (args.tiles as TileGrid).info[0].length,
                     (x, y) => (args.tiles as TileGrid).info[x - (args.tiles as TileGrid).x][y - (args.tiles as TileGrid).y]
                 )
             }
@@ -551,17 +551,17 @@ export class Grid extends Body {
         y -= this._ydownLeft
         let subgrid: SubGrid
 
-        if(this._subGrids instanceof SubGrid) {
-            if(x >= 0 && y >= 0 && x < this._gridSize && y < this._gridSize) {
+        if (this._subGrids instanceof SubGrid) {
+            if (x >= 0 && y >= 0 && x < this._gridSize && y < this._gridSize) {
                 subgrid = this._subGrids
             } else {
                 return { shape: 0, data: null }
             }
         } else {
             let gridx = Math.floor(x / this._gridSize), gridy = Math.floor(y / this._gridSize)
-            if(gridx >= 0 && gridy >= 0 && gridx < this._width && gridy < this._height) {
+            if (gridx >= 0 && gridy >= 0 && gridx < this._width && gridy < this._height) {
                 subgrid = this._subGrids[gridx][gridy]
-                if(!subgrid) {
+                if (!subgrid) {
                     return { shape: 0, data: null }
                 }
                 x -= gridx * this._gridSize
@@ -586,7 +586,7 @@ export class Grid extends Body {
         x -= this._xdownLeft
         y -= this._ydownLeft
 
-        if(x >= 0 && y >= 0 && x < this._gridSize * this._width && y < this._gridSize * this._height) {
+        if (x >= 0 && y >= 0 && x < this._gridSize * this._width && y < this._gridSize * this._height) {
             this._setTile(x, y, 0, null)
         }
     }
@@ -594,9 +594,9 @@ export class Grid extends Body {
     setTiles(args: TileArgs) {
         let minx, maxx, miny, maxy,
             list = (args as TileList).length != null
-        if(list) {
+        if (list) {
             let t = args as TileList
-            if(!t.length) {
+            if (!t.length) {
                 return
             }
             minx = t[0].x
@@ -604,7 +604,7 @@ export class Grid extends Body {
             maxx = t[0].x
             maxy = t[0].y
 
-            for(let tile of t as any[]) {
+            for (let tile of t as any[]) {
                 minx = Math.min(minx, tile.x)
                 miny = Math.min(miny, tile.y)
                 maxx = Math.max(maxx, tile.x)
@@ -625,14 +625,14 @@ export class Grid extends Body {
 
         this._expandGrid(minx, maxx, miny, maxy)
 
-        if(list) {
-            for(let t of args as TileList) {
+        if (list) {
+            for (let t of args as TileList) {
                 this._setTile(t.x - this._xdownLeft, t.y - this._ydownLeft, t.shape, t.data)
             }
         } else {
             this._setTiles(
-                minx, miny, 
-                (args as any).info.length, (args as TileGrid).info[0].length, 
+                minx, miny,
+                (args as any).info.length, (args as TileGrid).info[0].length,
                 (x, y) => {
                     return (args as TileGrid).info[x - (args as any).x][y - (args as any).y]
                 }
@@ -642,11 +642,11 @@ export class Grid extends Body {
     clearTiles(args: { x: number, y: number, width: number, height: number } | { x: number, y: number }[]) {
         this._clearTiles(args, { shape: 0, data: null })
     }
-    forTiles(x: number, y: number, width: number, height: number, lambda: (x: number, y: number, shape: number, data) => ({ shape: number, data? } | number)) {
+    forTiles(x: number, y: number, width: number, height: number, lambda: (x: number, y: number, shape: number, data) => ({ shape: number, data?} | number)) {
         this._expandGrid(x - this._xdownLeft, y - this._ydownLeft, x + width - this._xdownLeft, y + height - this._ydownLeft)
 
         this._setTiles(
-            x - this._xdownLeft, y - this._ydownLeft, 
+            x - this._xdownLeft, y - this._ydownLeft,
             width, height, (xx, yy, shape, data) => lambda(xx, yy, shape, data)
         )
     }
@@ -665,7 +665,7 @@ export class Grid extends Body {
     clearTileShape(x: number, y: number) {
         x -= this._xdownLeft
         y -= this._ydownLeft
-        if(x >= 0 && y >= 0 && x < this._width * this._gridSize && y < this._height * this._gridSize) {
+        if (x >= 0 && y >= 0 && x < this._width * this._gridSize && y < this._height * this._gridSize) {
             this._setTile(x, y, 0)
         }
     }
@@ -673,14 +673,14 @@ export class Grid extends Body {
     clearTileShapes(args: { x: number, y: number }[] | { x: number, y: number, width: number, height: number }) {
         this._clearTiles(args, 0)
     }
-    _clearTiles(args: { x: number, y: number }[] | { x: number, y: number, width: number, height: number }, zero: number | { shape: number, data? }) {
-        if((args as any).length != null) {
-            if(typeof zero === "number") {
-                for(let t of args as any[]) {
+    _clearTiles(args: { x: number, y: number }[] | { x: number, y: number, width: number, height: number }, zero: number | { shape: number, data?}) {
+        if ((args as any).length != null) {
+            if (typeof zero === "number") {
+                for (let t of args as any[]) {
                     this.clearTileShape(t.x, t.y)
                 }
             } else {
-                for(let t of args as any[]) {
+                for (let t of args as any[]) {
                     this.clearTile(t.x, t.y)
                 }
             }
@@ -690,18 +690,18 @@ export class Grid extends Body {
             (args as any).width = Math.min(this._width * this._gridSize, (args as any).x + (args as any).width) - x - this._xdownLeft;
             (args as any).height = Math.min(this._height * this._gridSize, (args as any).y + (args as any).height) - y - this._ydownLeft;
 
-            if((args as any).width > 0 && (args as any).height > 0) {
+            if ((args as any).width > 0 && (args as any).height > 0) {
                 this._setTiles(x, y, (args as any).width, (args as any).height, (x, y) => zero)
             }
         }
     }
 
     _horizontalBodyMerge(subgrid: SubGrid, tile: Tile, oldBody: SmallBody, x: number, y: number, xoffset: number, yoffset: number) {
-        if(tile.shape == 1 || tile.shape == 2 || tile.shape == 4) {
+        if (tile.shape == 1 || tile.shape == 2 || tile.shape == 4) {
             let body: SmallBody
 
             if (x < this._gridSize - 1) {
-                let rightTile = subgrid.tiles[x+1][y],
+                let rightTile = subgrid.tiles[x + 1][y],
                     rightBody = rightTile.body
 
                 if (rightBody && rightTile.shape == tile.shape
@@ -712,26 +712,26 @@ export class Grid extends Body {
                     body = rightBody
 
                     let i = this._newBodies.indexOf(oldBody)
-                    if(i >= 0) this._newBodies.splice(i, 1)
+                    if (i >= 0) this._newBodies.splice(i, 1)
                     else this._oldBodies.push(oldBody)
                 }
             }
 
             if (x > 0) {
-                let leftTile = subgrid.tiles[x-1][y],
+                let leftTile = subgrid.tiles[x - 1][y],
                     leftBody = leftTile.body
 
                 if (leftBody && leftTile.shape == tile.shape
                     && leftTile.layer == tile.layer && leftTile.layerGroup == tile.layerGroup && (leftBody._height == 1 || tile.shape != 1)) {
                     if (body) {
                         let i = this._newBodies.indexOf(leftBody)
-                        if(i >= 0) this._newBodies.splice(i, 1)
+                        if (i >= 0) this._newBodies.splice(i, 1)
                         else this._oldBodies.push(leftBody)
 
                         body._width += leftBody._width
-                        body._x -= leftBody._width/2
+                        body._x -= leftBody._width / 2
 
-                        for(let i = leftBody._x - xoffset - leftBody._width/2; i < x; i++) {
+                        for (let i = leftBody._x - xoffset - leftBody._width / 2; i < x; i++) {
                             subgrid.tiles[i][y].body = body
                         }
                     } else {
@@ -740,7 +740,7 @@ export class Grid extends Body {
                         tile.body = leftBody
 
                         let i = this._newBodies.indexOf(oldBody)
-                        if(i >= 0) this._newBodies.splice(i, 1)
+                        if (i >= 0) this._newBodies.splice(i, 1)
                         else this._oldBodies.push(oldBody)
                     }
                 }
@@ -748,11 +748,11 @@ export class Grid extends Body {
         }
     }
     _verticalBodyMerge(subgrid: SubGrid, tile: Tile, oldBody: SmallBody, x: number, y: number, xoffset: number, yoffset: number) {
-        if(tile.shape == 1 || tile.shape == 3 || tile.shape == 5) {
+        if (tile.shape == 1 || tile.shape == 3 || tile.shape == 5) {
             let body: SmallBody
 
             if (y < this._gridSize - 1) {
-                let upTile = subgrid.tiles[x][y+1],
+                let upTile = subgrid.tiles[x][y + 1],
                     upBody = upTile.body
 
                 if (upBody && upTile.shape == tile.shape
@@ -763,26 +763,26 @@ export class Grid extends Body {
                     body = upBody
 
                     let i = this._newBodies.indexOf(oldBody)
-                    if(i >= 0) this._newBodies.splice(i, 1)
+                    if (i >= 0) this._newBodies.splice(i, 1)
                     else this._oldBodies.push(oldBody)
                 }
             }
 
             if (x > 0) {
-                let downTile = subgrid.tiles[x][y-1],
+                let downTile = subgrid.tiles[x][y - 1],
                     downBody = downTile.body
 
-                if (downBody && downTile.shape == tile.shape 
+                if (downBody && downTile.shape == tile.shape
                     && downTile.layer == tile.layer && downTile.layerGroup == tile.layerGroup && (downBody._width == 1 || tile.shape != 1)) {
                     if (body) {
                         let i = this._newBodies.indexOf(downBody)
-                        if(i >= 0) this._newBodies.splice(i, 1)
+                        if (i >= 0) this._newBodies.splice(i, 1)
                         else this._oldBodies.push(downBody)
 
                         body._height += downBody._height
-                        body._y -= downBody._height/2
+                        body._y -= downBody._height / 2
 
-                        for(let i = downBody._y - yoffset - downBody._height/2; i < y; i++) {
+                        for (let i = downBody._y - yoffset - downBody._height / 2; i < y; i++) {
                             subgrid.tiles[x][i].body = body
                         }
                     } else {
@@ -791,7 +791,7 @@ export class Grid extends Body {
                         tile.body = downBody
 
                         let i = this._newBodies.indexOf(oldBody)
-                        if(i >= 0) this._newBodies.splice(i, 1)
+                        if (i >= 0) this._newBodies.splice(i, 1)
                         else this._oldBodies.push(oldBody)
                     }
                 }
@@ -808,34 +808,34 @@ export class Grid extends Body {
                     let i = this._newBodies.indexOf(oldBody)
                     if (i >= 0) this._newBodies.splice(i, 1)
                     else this._oldBodies.push(oldBody)
-                } else if (y + yoffset == oldBody._y - oldBody._height/2) {
+                } else if (y + yoffset == oldBody._y - oldBody._height / 2) {
                     oldBody._height -= 1
                     oldBody._y += 0.5
 
-                    if (oldBody._height == 1) this._horizontalBodyMerge(subgrid, subgrid.tiles[x][y+1], oldBody, x, y+1, xoffset, yoffset)
-                } else if (y + yoffset == oldBody._y + oldBody._height/2 - 1) {
+                    if (oldBody._height == 1) this._horizontalBodyMerge(subgrid, subgrid.tiles[x][y + 1], oldBody, x, y + 1, xoffset, yoffset)
+                } else if (y + yoffset == oldBody._y + oldBody._height / 2 - 1) {
                     oldBody._height -= 1
                     oldBody._y -= 0.5
 
-                    if (oldBody._height == 1) this._horizontalBodyMerge(subgrid, subgrid.tiles[x][y-1], oldBody, x, y-1, xoffset, yoffset)
+                    if (oldBody._height == 1) this._horizontalBodyMerge(subgrid, subgrid.tiles[x][y - 1], oldBody, x, y - 1, xoffset, yoffset)
                 } else {
                     let newBody: SmallBody
                     if (tile.shape == 1) {
                         newBody = new Rect(null, null)
 
-                        newBody._height = y + yoffset - oldBody._y + oldBody._height/2
+                        newBody._height = y + yoffset - oldBody._y + oldBody._height / 2
                         newBody._width = 1
-                        newBody._y = y - newBody._height/2 + yoffset
+                        newBody._y = y - newBody._height / 2 + yoffset
                         newBody._x = x + 0.5 + xoffset
 
                         oldBody._height -= newBody._height + 1
-                        oldBody._y += (newBody._height + 1)/2
+                        oldBody._y += (newBody._height + 1) / 2
                     } else {
                         newBody = new Line(null, null);
 
-                        (newBody as Line)._size = y + yoffset - oldBody._y + (oldBody as Line)._size/2;
+                        (newBody as Line)._size = y + yoffset - oldBody._y + (oldBody as Line)._size / 2;
                         (newBody as Line)._isHorizontal = false;
-                        (newBody as Line)._y = y - (newBody as Line)._size/2 + yoffset;
+                        (newBody as Line)._y = y - (newBody as Line)._size / 2 + yoffset;
                         if (tile.shape == 3) {
                             (newBody as Line)._oneway = 2;
                             (newBody as Line)._x = x + xoffset;
@@ -845,9 +845,9 @@ export class Grid extends Body {
                         }
 
                         (oldBody as Line)._size -= (newBody as Line)._size + 1;
-                        (oldBody as Line)._y += ((newBody as Line)._size + 1)/2;
+                        (oldBody as Line)._y += ((newBody as Line)._size + 1) / 2;
                     }
-                    
+
                     newBody._entity = this._entity
                     newBody._enabled = true
                     newBody._layer = oldBody._layer
@@ -856,42 +856,42 @@ export class Grid extends Body {
                     newBody._isSensor = false
                     this._newBodies.push(newBody)
 
-                    for(let i = newBody._y - newBody._height/2 - yoffset; i < newBody._y + newBody._height/2 - yoffset; i++) {
+                    for (let i = newBody._y - newBody._height / 2 - yoffset; i < newBody._y + newBody._height / 2 - yoffset; i++) {
                         subgrid.tiles[x][i].body = newBody
                     }
 
-                    if (newBody._height == 1) this._horizontalBodyMerge(subgrid, subgrid.tiles[x][y-1], newBody, x, y-1, xoffset, yoffset)
-                    if (oldBody._height == 1) this._horizontalBodyMerge(subgrid, subgrid.tiles[x][y+1], oldBody, x, y+1, xoffset, yoffset)
+                    if (newBody._height == 1) this._horizontalBodyMerge(subgrid, subgrid.tiles[x][y - 1], newBody, x, y - 1, xoffset, yoffset)
+                    if (oldBody._height == 1) this._horizontalBodyMerge(subgrid, subgrid.tiles[x][y + 1], oldBody, x, y + 1, xoffset, yoffset)
                 }
             } else {
-                if (x + xoffset == oldBody._x - oldBody._width/2) {
+                if (x + xoffset == oldBody._x - oldBody._width / 2) {
                     oldBody._width -= 1
                     oldBody._x += 0.5
 
-                    if (oldBody._width == 1) this._verticalBodyMerge(subgrid, subgrid.tiles[x+1][y], oldBody, x+1, y, xoffset, yoffset)
-                } else if (x + xoffset == oldBody._x + oldBody._width/2 - 1) {
+                    if (oldBody._width == 1) this._verticalBodyMerge(subgrid, subgrid.tiles[x + 1][y], oldBody, x + 1, y, xoffset, yoffset)
+                } else if (x + xoffset == oldBody._x + oldBody._width / 2 - 1) {
                     oldBody._width -= 1
                     oldBody._x -= 0.5
 
-                    if (oldBody._height == 1) this._verticalBodyMerge(subgrid, subgrid.tiles[x-1][y], oldBody, x-1, y, xoffset, yoffset)
+                    if (oldBody._height == 1) this._verticalBodyMerge(subgrid, subgrid.tiles[x - 1][y], oldBody, x - 1, y, xoffset, yoffset)
                 } else {
                     let newBody: SmallBody
                     if (tile.shape == 1) {
                         newBody = new Rect(null, null)
 
-                        newBody._width = x + xoffset - oldBody._x + oldBody._width/2
+                        newBody._width = x + xoffset - oldBody._x + oldBody._width / 2
                         newBody._height = 1
-                        newBody._x = x - newBody._width/2 + xoffset
+                        newBody._x = x - newBody._width / 2 + xoffset
                         newBody._y = y + 0.5 + yoffset
 
                         oldBody._width -= newBody._width + 1
-                        oldBody._x += (newBody._width + 1)/2
+                        oldBody._x += (newBody._width + 1) / 2
                     } else {
                         newBody = new Line(null, null);
 
-                        (newBody as Line)._size = x + xoffset - oldBody._x + (oldBody as Line)._size/2;
+                        (newBody as Line)._size = x + xoffset - oldBody._x + (oldBody as Line)._size / 2;
                         (newBody as Line)._isHorizontal = true;
-                        newBody._x = x - (newBody as Line)._size/2 + xoffset
+                        newBody._x = x - (newBody as Line)._size / 2 + xoffset
 
                         if (tile.shape == 2) {
                             (newBody as Line)._oneway = 2;
@@ -902,7 +902,7 @@ export class Grid extends Body {
                         }
 
                         (oldBody as Line)._size -= (newBody as Line)._size + 1
-                        oldBody._x += (newBody._width + 1)/2
+                        oldBody._x += (newBody._width + 1) / 2
                     }
 
                     newBody._entity = this._entity
@@ -913,44 +913,44 @@ export class Grid extends Body {
                     newBody._isSensor = false
                     this._newBodies.push(newBody)
 
-                    for(let i = newBody._x - newBody._width/2 - xoffset; i < newBody._x + newBody._width/2 - xoffset; i++) {
+                    for (let i = newBody._x - newBody._width / 2 - xoffset; i < newBody._x + newBody._width / 2 - xoffset; i++) {
                         subgrid.tiles[i][y].body = newBody
                     }
-                    
-                    if (newBody._width == 1) this._verticalBodyMerge(subgrid, subgrid.tiles[x-1][y], newBody, x-1, y, xoffset, yoffset)
-                    if (oldBody._width == 1) this._verticalBodyMerge(subgrid, subgrid.tiles[x+1][y], oldBody, x+1, y, xoffset, yoffset)
+
+                    if (newBody._width == 1) this._verticalBodyMerge(subgrid, subgrid.tiles[x - 1][y], newBody, x - 1, y, xoffset, yoffset)
+                    if (oldBody._width == 1) this._verticalBodyMerge(subgrid, subgrid.tiles[x + 1][y], oldBody, x + 1, y, xoffset, yoffset)
                 }
             }
         }
         tile.body = null
     }
-    
+
     _updateTileBody(subgrid: SubGrid, tile: Tile, x: number, y: number, xoffset: number, yoffset: number, shape: number, layer: number, layerGroup: number) {
         // REMOVE CURRENTLY PRESENT BODY
         this._removeBody(subgrid, tile, x, y, xoffset, yoffset)
 
         // TRY TO EXTEND EXISTING ADJACENT BODIES
-        let left = x > 0 && subgrid.tiles[x-1][y],
-            right = x < this._gridSize - 1 && subgrid.tiles[x+1][y],
-            up = y < this._gridSize - 1 && subgrid.tiles[x][y+1],
-            down = y > 0 && subgrid.tiles[x][y-1]
+        let left = x > 0 && subgrid.tiles[x - 1][y],
+            right = x < this._gridSize - 1 && subgrid.tiles[x + 1][y],
+            up = y < this._gridSize - 1 && subgrid.tiles[x][y + 1],
+            down = y > 0 && subgrid.tiles[x][y - 1]
 
-        if (shape > 1 || shape == 1 
-            && ((x == 0 || !left || left.shape != 1 || left.layer != layer || left.layerGroup != layerGroup) 
-            || (x == this._gridSize-1 || !right || right.shape != 1 || right.layer != layer || left.layerGroup != layerGroup) 
-            || (y == 0 || !down || down.shape != 1 || down.layer != layer || down.layerGroup != layerGroup)
-            || (y == this._gridSize-1 || !up || up.shape != 1 || up.layer != layer || up.layerGroup != layerGroup))) {
+        if (shape > 1 || shape == 1
+            && ((x == 0 || !left || left.shape != 1 || left.layer != layer || left.layerGroup != layerGroup)
+                || (x == this._gridSize - 1 || !right || right.shape != 1 || right.layer != layer || left.layerGroup != layerGroup)
+                || (y == 0 || !down || down.shape != 1 || down.layer != layer || down.layerGroup != layerGroup)
+                || (y == this._gridSize - 1 || !up || up.shape != 1 || up.layer != layer || up.layerGroup != layerGroup))) {
 
             let fail = false
 
-            if(shape == 1 || shape == 2 || shape == 4) {
+            if (shape == 1 || shape == 2 || shape == 4) {
                 let body: SmallBody
 
                 if (x < this._gridSize - 1) {
-                    let rightTile = subgrid.tiles[x+1][y],
+                    let rightTile = subgrid.tiles[x + 1][y],
                         rightBody = rightTile.body
 
-                    if (rightBody && rightTile.shape == shape 
+                    if (rightBody && rightTile.shape == shape
                         && rightTile.layer == layer && rightTile.layerGroup == layerGroup && (rightBody._height == 1 || shape != 1)) {
                         rightBody._width += 1
                         rightBody._x -= 0.5
@@ -960,19 +960,19 @@ export class Grid extends Body {
                 }
 
                 if (x > 0) {
-                    let leftTile = subgrid.tiles[x-1][y], leftBody = leftTile.body
+                    let leftTile = subgrid.tiles[x - 1][y], leftBody = leftTile.body
 
-                    if (leftBody && leftTile.shape == shape 
+                    if (leftBody && leftTile.shape == shape
                         && leftTile.layer == layer && leftTile.layerGroup == layerGroup && (leftBody._height == 1 || shape != 1)) {
                         if (body) {
                             let i = this._newBodies.indexOf(leftBody)
-                            if(i >= 0) this._newBodies.splice(i, 1)
+                            if (i >= 0) this._newBodies.splice(i, 1)
                             else this._oldBodies.push(leftBody)
 
                             body._width += leftBody._width
-                            body._x -= leftBody._width/2
+                            body._x -= leftBody._width / 2
 
-                            for(let i = leftBody._x - xoffset - leftBody._width/2; i < x; i++) {
+                            for (let i = leftBody._x - xoffset - leftBody._width / 2; i < x; i++) {
                                 subgrid.tiles[i][y].body = body
                             }
                         } else {
@@ -984,8 +984,8 @@ export class Grid extends Body {
                     }
                 }
 
-                if(!body) {
-                    if(shape == 1) {
+                if (!body) {
+                    if (shape == 1) {
                         fail = true
                     } else {
                         body = new Line(null, null);
@@ -1008,20 +1008,20 @@ export class Grid extends Body {
                         body._layerGroup = layerGroup
                         body._grid = this
                         body._isSensor = false
-                        
+
                         tile.body = body
                         this._newBodies.push(body)
                     }
                 }
-            } 
-            
-            if(shape == 3 || shape == 5 || shape == 1 && fail) {
+            }
+
+            if (shape == 3 || shape == 5 || shape == 1 && fail) {
                 let body: SmallBody
 
                 if (y < this._gridSize - 1) {
-                    let upTile = subgrid.tiles[x][y+1], upBody = upTile.body
+                    let upTile = subgrid.tiles[x][y + 1], upBody = upTile.body
 
-                    if (upBody && upTile.shape == shape 
+                    if (upBody && upTile.shape == shape
                         && upTile.layer == layer && upTile.layerGroup == layerGroup && (upBody._width == 1 || shape != 1)) {
                         upBody._height += 1
                         upBody._y -= 0.5
@@ -1031,19 +1031,19 @@ export class Grid extends Body {
                 }
 
                 if (y > 0) {
-                    let downTile = subgrid.tiles[x][y-1], downBody = downTile.body
+                    let downTile = subgrid.tiles[x][y - 1], downBody = downTile.body
 
-                    if (downBody && downTile.shape == shape 
+                    if (downBody && downTile.shape == shape
                         && downTile.layer == layer && downTile.layerGroup == layerGroup && (downBody._width == 1 || shape != 1)) {
                         if (body) {
                             let i = this._newBodies.indexOf(downBody)
-                            if(i >= 0) this._newBodies.splice(i, 1)
+                            if (i >= 0) this._newBodies.splice(i, 1)
                             else this._oldBodies.push(downBody)
 
                             body._height += downBody._height
-                            body._y -= downBody._height/2
+                            body._y -= downBody._height / 2
 
-                            for(let i = downBody._y - yoffset - downBody._height/2; i < y; i++) {
+                            for (let i = downBody._y - yoffset - downBody._height / 2; i < y; i++) {
                                 subgrid.tiles[x][i].body = body
                             }
                         } else {
@@ -1085,7 +1085,7 @@ export class Grid extends Body {
                     body._layerGroup = layerGroup
                     body._grid = this
                     body._isSensor = false
-                    
+
                     this._newBodies.push(body)
                     tile.body = body
                 }
@@ -1096,61 +1096,61 @@ export class Grid extends Body {
         if (shape == 1) {
             if (left && left.shape == 1 && left.layerGroup == layerGroup && left.layer == layer) {
                 if (x > 1 && y > 0 && y < this._gridSize - 1) {
-                    let leftTile = subgrid.tiles[x-2][y],
-                        upTile = subgrid.tiles[x-1][y+1],
-                        downTile = subgrid.tiles[x-1][y-1]
+                    let leftTile = subgrid.tiles[x - 2][y],
+                        upTile = subgrid.tiles[x - 1][y + 1],
+                        downTile = subgrid.tiles[x - 1][y - 1]
 
                     if (leftTile.shape == 1 && leftTile.layer == layer && leftTile.layerGroup == layerGroup
                         && upTile.shape == 1 && upTile.layer == layer && upTile.layerGroup == layerGroup
                         && downTile.shape == 1 && downTile.layer == layer && downTile.layerGroup == layerGroup) {
-                        this._removeBody(subgrid, left, x-1, y, xoffset, yoffset)
+                        this._removeBody(subgrid, left, x - 1, y, xoffset, yoffset)
                     }
                 }
             }
             if (right && right.shape == 1 && right.layerGroup == layerGroup && right.layer == layer) {
                 if (x < this._gridSize - 2 && y > 0 && y < this._gridSize - 1) {
-                    let rightTile = subgrid.tiles[x+2][y],
-                        upTile = subgrid.tiles[x-1][y+1],
-                        downTile = subgrid.tiles[x-1][y-1]
+                    let rightTile = subgrid.tiles[x + 2][y],
+                        upTile = subgrid.tiles[x - 1][y + 1],
+                        downTile = subgrid.tiles[x - 1][y - 1]
 
                     if (rightTile.shape == 1 && rightTile.layer == layer && rightTile.layerGroup == layerGroup
                         && upTile.shape == 1 && upTile.layer == layer && upTile.layerGroup == layerGroup
                         && downTile.shape == 1 && downTile.layer == layer && downTile.layerGroup == layerGroup) {
-                        this._removeBody(subgrid, right, x+1, y, xoffset, yoffset)
+                        this._removeBody(subgrid, right, x + 1, y, xoffset, yoffset)
                     }
                 }
             }
             if (up && up.shape == 1 && up.layerGroup == layerGroup && up.layer == layer) {
                 if (x > 1 && x < this._gridSize - 1 && y < this._gridSize - 2) {
-                    let leftTile = subgrid.tiles[x-1][y+1],
-                        upTile = subgrid.tiles[x][y+2],
-                        rightTile = subgrid.tiles[x+1][y+1]
+                    let leftTile = subgrid.tiles[x - 1][y + 1],
+                        upTile = subgrid.tiles[x][y + 2],
+                        rightTile = subgrid.tiles[x + 1][y + 1]
 
                     if (leftTile.shape == 1 && leftTile.layer == layer && leftTile.layerGroup == layerGroup
                         && upTile.shape == 1 && upTile.layer == layer && upTile.layerGroup == layerGroup
                         && rightTile.shape == 1 && rightTile.layer == layer && rightTile.layerGroup == layerGroup) {
-                        this._removeBody(subgrid, up, x, y+1, xoffset, yoffset)
+                        this._removeBody(subgrid, up, x, y + 1, xoffset, yoffset)
                     }
                 }
             }
             if (down && down.shape == 1 && down.layerGroup == layerGroup && down.layer == layer) {
                 if (x < this._gridSize - 1 && x > 0 && y > 1) {
-                    let rightTile = subgrid.tiles[x+1][y-1],
-                        leftTile = subgrid.tiles[x-1][y-1],
-                        downTile = subgrid.tiles[x][y-2]
+                    let rightTile = subgrid.tiles[x + 1][y - 1],
+                        leftTile = subgrid.tiles[x - 1][y - 1],
+                        downTile = subgrid.tiles[x][y - 2]
 
                     if (rightTile.shape == 1 && rightTile.layer == layer && rightTile.layerGroup == layerGroup
                         && leftTile.shape == 1 && leftTile.layer == layer && leftTile.layerGroup == layerGroup
                         && downTile.shape == 1 && downTile.layer == layer && downTile.layerGroup == layerGroup) {
-                        this._removeBody(subgrid, down, x, y-1, xoffset, yoffset)
+                        this._removeBody(subgrid, down, x, y - 1, xoffset, yoffset)
                     }
                 }
             }
         } else {
             if (left && left.shape == 1 && !left.body && x > 1 && y > 0 && y < this._gridSize - 1) {
-                let leftTile = subgrid.tiles[x-2][y],
-                    upTile = subgrid.tiles[x-1][y+1],
-                    downTile = subgrid.tiles[x-1][y-1]
+                let leftTile = subgrid.tiles[x - 2][y],
+                    upTile = subgrid.tiles[x - 1][y + 1],
+                    downTile = subgrid.tiles[x - 1][y - 1]
 
                 if (leftTile.body && leftTile.shape == 1 && leftTile.layer == layer && leftTile.layerGroup == layerGroup && leftTile.body._height == 1) {
                     leftTile.body._width += 1
@@ -1183,9 +1183,9 @@ export class Grid extends Body {
                 }
             }
             if (right && right.shape == 1 && !right.body && x < this._gridSize - 2 && y > 0 && y < this._gridSize - 1) {
-                let rightTile = subgrid.tiles[x+2][y],
-                    upTile = subgrid.tiles[x+1][y+1],
-                    downTile = subgrid.tiles[x+1][y-1]
+                let rightTile = subgrid.tiles[x + 2][y],
+                    upTile = subgrid.tiles[x + 1][y + 1],
+                    downTile = subgrid.tiles[x + 1][y - 1]
 
                 if (rightTile.body && rightTile.shape == 1 && rightTile.layer == layer && rightTile.layerGroup == layerGroup && rightTile.body._height == 1) {
                     rightTile.body._width += 1
@@ -1218,9 +1218,9 @@ export class Grid extends Body {
                 }
             }
             if (up && up.shape == 1 && !up.body && y < this._gridSize - 2 && x > 0 && x < this._gridSize - 1) {
-                let rightTile = subgrid.tiles[x+1][y+1],
-                    leftTile = subgrid.tiles[x-1][y+1],
-                    upTile = subgrid.tiles[x][y+2]
+                let rightTile = subgrid.tiles[x + 1][y + 1],
+                    leftTile = subgrid.tiles[x - 1][y + 1],
+                    upTile = subgrid.tiles[x][y + 2]
 
                 if (rightTile.body && rightTile.shape == 1 && rightTile.layer == layer && rightTile.layerGroup == layerGroup && rightTile.body._height == 1) {
                     rightTile.body._width += 1
@@ -1253,9 +1253,9 @@ export class Grid extends Body {
                 }
             }
             if (down && down.shape == 1 && !down.body && y > 1 && x > 0 && x < this._gridSize - 1) {
-                let rightTile = subgrid.tiles[x+1][y-1],
-                    leftTile = subgrid.tiles[x-1][y-1],
-                    downTile = subgrid.tiles[x][y-2]
+                let rightTile = subgrid.tiles[x + 1][y - 1],
+                    leftTile = subgrid.tiles[x - 1][y - 1],
+                    downTile = subgrid.tiles[x][y - 2]
 
                 if (rightTile.body && rightTile.shape == 1 && rightTile.layer == layer && rightTile.layerGroup == layerGroup && rightTile.body._height == 1) {
                     rightTile.body._width += 1
@@ -1291,25 +1291,25 @@ export class Grid extends Body {
     }
     _updateTileSensorBody(subgrid: SubGrid, tile: Tile, x: number, y: number, xoffset: number, yoffset: number, isSensor: boolean, sensorLayer, sensorLayerGroup) {
         let body = tile.sensor
-        
-        if(body) {
-            if(body._width == 1) {
+
+        if (body) {
+            if (body._width == 1) {
                 let i = this._newBodies.indexOf(body)
-                if(i >= 0) this._newBodies.splice(i, 1)
+                if (i >= 0) this._newBodies.splice(i, 1)
                 else this._oldBodies.push(body)
-            } else if (x + xoffset == body._x - body._width/2) {
+            } else if (x + xoffset == body._x - body._width / 2) {
                 body._width -= 1
                 body._x += 0.5
-            } else if (x + xoffset == body._x + body._width/2 - 1) {
+            } else if (x + xoffset == body._x + body._width / 2 - 1) {
                 body._width -= 1
                 body._x -= 0.5
             } else {
                 let newBody = new Rect(null, null)
                 newBody._entity = this._entity
 
-                newBody._width = x + xoffset - body._x + body._width/2
+                newBody._width = x + xoffset - body._x + body._width / 2
                 newBody._height = 1
-                newBody._x = x - newBody._width/2 + xoffset
+                newBody._x = x - newBody._width / 2 + xoffset
                 newBody._y = y + yoffset + 0.5
                 newBody._enabled = true
                 newBody._layer = sensorLayer
@@ -1319,16 +1319,16 @@ export class Grid extends Body {
                 this._newBodies.push(newBody)
 
                 body._width -= newBody._width + 1
-                body._x += (newBody._width + 1)/2
+                body._x += (newBody._width + 1) / 2
             }
             tile.sensor = null
         }
-        
+
         if (isSensor) {
             let rightBody: Rect, body: Rect
 
             if (x < this._gridSize - 1) {
-                let rightTile = subgrid.tiles[x+1][y]
+                let rightTile = subgrid.tiles[x + 1][y]
                 rightBody = rightTile.sensor
 
                 if (rightBody && rightTile.sensorLayer == sensorLayer && rightTile.sensorLayerGroup == sensorLayerGroup) {
@@ -1340,19 +1340,19 @@ export class Grid extends Body {
             }
 
             if (x > 0) {
-                let leftTile = subgrid.tiles[x-1][y]
+                let leftTile = subgrid.tiles[x - 1][y]
                 let leftBody: Rect = leftTile.sensor
 
                 if (leftBody && leftTile.sensorLayer == sensorLayer && leftTile.sensorLayerGroup == sensorLayerGroup) {
-                    if(body) {
+                    if (body) {
                         let i = this._newBodies.indexOf(leftBody)
-                        if(i >= 0) this._newBodies.splice(i, 1)
+                        if (i >= 0) this._newBodies.splice(i, 1)
                         else this._oldBodies.push(leftBody)
 
                         rightBody._width += leftBody._width
-                        rightBody._x -= leftBody._width/2
+                        rightBody._x -= leftBody._width / 2
 
-                        for(let i = leftBody._y - xoffset - leftBody._width; i < x; i++) {
+                        for (let i = leftBody._y - xoffset - leftBody._width; i < x; i++) {
                             subgrid.tiles[i][y].sensor = rightBody
                         }
                     } else {
@@ -1377,7 +1377,7 @@ export class Grid extends Body {
                 body._layerGroup = sensorLayerGroup
                 body._grid = this
                 body._isSensor = true
-                
+
                 tile.sensor = body
                 this._newBodies.push(body)
             }
@@ -1390,7 +1390,7 @@ export class Grid extends Body {
             newIsSensor = data && typeof data.isSensor != "undefined" ? data.isSensor : tile.sensor,
             newIsSensorLayer = data && typeof data.sensorLayer != "undefined" ? data.sensorLayer : tile.sensorLayer,
             newIsSensorLayerGroup = data && typeof data.sensorLayerGroup != "undefined" ? data.sensorLayerGroup : tile.sensorLayerGroup
-            
+
         if (shape != tile.shape || newLayer != tile.layer || newLayerGroup != tile.layerGroup) {
             this._updateTileBody(subgrid, tile, x, y, xoffset, yoffset, shape, newLayer, newLayerGroup)
         }
@@ -1408,7 +1408,7 @@ export class Grid extends Body {
         this._newBodies = []
 
         // FIND WHICH SUBGRID TO AFFECT + AJUST X/Y POSITION
-        if(this._subGrids instanceof SubGrid) {
+        if (this._subGrids instanceof SubGrid) {
             subgrid = this._subGrids
             tile = subgrid.tiles[x][y]
             this._updateTileBodies(subgrid, tile, x, y, this._xdownLeft, this._ydownLeft, shape, data)
@@ -1416,27 +1416,27 @@ export class Grid extends Body {
             let gridx = Math.floor(x / this._gridSize), gridy = Math.floor(y / this._gridSize)
 
             subgrid = this._subGrids[gridx][gridy]
-            
+
             x -= gridx * this._gridSize
             y -= gridy * this._gridSize
 
             tile = subgrid.tiles[x][y]
             this._updateTileBodies(
-                subgrid, tile, 
-                x, y, 
-                this._xdownLeft + gridx * this._gridSize, this._ydownLeft + gridy * this._gridSize, 
+                subgrid, tile,
+                x, y,
+                this._xdownLeft + gridx * this._gridSize, this._ydownLeft + gridy * this._gridSize,
                 shape, data
             )
         }
 
-        for(let b of this._oldBodies) { this._entity.removeBody(b) }
-        for(let b of this._newBodies) { this._entity._addBody(b) }
+        for (let b of this._oldBodies) { this._entity.removeBody(b) }
+        for (let b of this._newBodies) { this._entity._addBody(b) }
 
         // DATA MODIFICATION
-        if(typeof data != "undefined") {
-            if(tile.data) {
+        if (typeof data != "undefined") {
+            if (tile.data) {
                 tile.data = Object.assign(tile.data, data)
-            } else{
+            } else {
                 tile.data = _.cloneDeep(data)
             }
         }
@@ -1447,10 +1447,10 @@ export class Grid extends Body {
         this._topEntity._resetMaxy()
         this._topEntity._resetMiny()
     }
-    _setTiles(x: number, y: number, width: number, height: number, info: (x: number, y: number, shape: number, data?) => ({ shape: number, data? } | number)) {
+    _setTiles(x: number, y: number, width: number, height: number, info: (x: number, y: number, shape: number, data?) => ({ shape: number, data?} | number)) {
         let small = this._subGrids instanceof SubGrid
 
-        if(small) {
+        if (small) {
             this._newBodies = []
             this._oldBodies = []
 
@@ -1462,8 +1462,8 @@ export class Grid extends Body {
                 (xx, yy, shape, data?) => info(xx + this._xdownLeft, yy + this._ydownLeft, shape, data)
             )
 
-            for(let b of this._oldBodies) { this._entity.removeBody(b) }
-            for(let b of this._newBodies) { this._entity._addBody(b) }
+            for (let b of this._oldBodies) { this._entity.removeBody(b) }
+            for (let b of this._newBodies) { this._entity._addBody(b) }
         } else {
             this._newBodies = []
             this._oldBodies = []
@@ -1473,13 +1473,13 @@ export class Grid extends Body {
                 gridmaxx = Math.floor((x + width) / this._gridSize),
                 gridmaxy = Math.floor((y + height) / this._gridSize)
 
-            for(let gridx = gridminx; gridx <= gridmaxx; gridx++) {
-                for(let gridy = gridminy; gridy <= gridmaxy; gridy++) {
+            for (let gridx = gridminx; gridx <= gridmaxx; gridx++) {
+                for (let gridy = gridminy; gridy <= gridmaxy; gridy++) {
                     let xoff = gridx * this._gridSize, yoff = gridy * this._gridSize
                     let xoff2 = xoff + this._xdownLeft, yoff2 = yoff + this._ydownLeft
 
                     let subgrid: SubGrid = this._subGrids[gridx][gridy]
-                    if(!subgrid) {
+                    if (!subgrid) {
                         subgrid = new SubGrid(this._gridSize)
                         this._subGrids[gridx][gridy] = subgrid
                     }
@@ -1496,8 +1496,8 @@ export class Grid extends Body {
                 }
             }
 
-            for(let b of this._oldBodies) { this._entity.removeBody(b) }
-            for(let b of this._newBodies) { this._entity._addBody(b) }
+            for (let b of this._oldBodies) { this._entity.removeBody(b) }
+            for (let b of this._newBodies) { this._entity._addBody(b) }
         }
 
         this._topEntity._resetMaxx()
@@ -1505,34 +1505,34 @@ export class Grid extends Body {
         this._topEntity._resetMaxy()
         this._topEntity._resetMiny()
     }
-    _setTilesInSubGrid(minx: number, maxx: number, miny: number, maxy: number, xoffset, yoffset, subgrid: SubGrid, 
-                        info: (x: number, y: number, shape: number, data?) => ({ shape: number, data? } | number)) {
-        for(let j = miny; j < maxy; j++) {
-            for(let i = minx; i < maxx; i++) {
+    _setTilesInSubGrid(minx: number, maxx: number, miny: number, maxy: number, xoffset, yoffset, subgrid: SubGrid,
+        info: (x: number, y: number, shape: number, data?) => ({ shape: number, data?} | number)) {
+        for (let j = miny; j < maxy; j++) {
+            for (let i = minx; i < maxx; i++) {
                 let tile = subgrid.tiles[i][j],
                     res = info(i, j, tile.shape, tile.data)
-                if(res) {
-                    if(typeof res == "number") {
+                if (res) {
+                    if (typeof res == "number") {
                         this._updateTileBodies(subgrid, tile, i, j, xoffset, yoffset, res, undefined)
                         tile.shape = res
                     } else {
                         this._updateTileBodies(subgrid, tile, i, j, xoffset, yoffset, res.shape, res.data)
                         tile.shape = res.shape
-                        if(typeof res.data != "undefined") {
-                            if(tile.data) {
+                        if (typeof res.data != "undefined") {
+                            if (tile.data) {
                                 tile.data = Object.assign(tile.data, res.data)
-                            } else{
+                            } else {
                                 tile.data = _.cloneDeep(res.data)
                             }
                         }
                     }
                 }
             }
-        }            
+        }
     }
-    
+
     _expandGrid(minx: number, miny: number, maxx: number, maxy: number) {
-        if(minx < 0 || miny < 0 || maxx >= this._gridSize * this._width || maxy >= this._gridSize * this._height) {
+        if (minx < 0 || miny < 0 || maxx >= this._gridSize * this._width || maxy >= this._gridSize * this._height) {
             let left = Math.max(Math.ceil(-minx / this._gridSize), 0),
                 right = Math.max(Math.floor(maxx / this._gridSize) - this._width + 1, 0),
                 up = Math.max(Math.floor(maxy / this._gridSize) - this._height + 1, 0),
@@ -1540,17 +1540,17 @@ export class Grid extends Body {
 
             let grid: SubGrid[][], newWidth, newHeight
 
-            if(left > 0 || right > 0 || up > 0 || down > 0) {
-                if(this._subGrids instanceof SubGrid) { 
+            if (left > 0 || right > 0 || up > 0 || down > 0) {
+                if (this._subGrids instanceof SubGrid) {
                     newWidth = left + 1 + right
                     newHeight = down + 1 + up
                     grid = new Array(newWidth)
-                    for(let i = 0; i < newWidth; i++) {
+                    for (let i = 0; i < newWidth; i++) {
                         grid[i] = new Array(newHeight)
                     }
-                    for(let i = 0; i < newWidth; i++) {
-                        for(let j = 0; j < newHeight; j++) {
-                            if(i == left && j == down) {
+                    for (let i = 0; i < newWidth; i++) {
+                        for (let j = 0; j < newHeight; j++) {
+                            if (i == left && j == down) {
                                 grid[i][j] = this._subGrids
                             } else {
                                 grid[i][j] = new SubGrid(this._gridSize)
@@ -1561,12 +1561,12 @@ export class Grid extends Body {
                     newWidth = left + this._width + right
                     newHeight = down + this._height + up
                     grid = new Array(newWidth)
-                    for(let i = 0; i < newWidth; i++) {
+                    for (let i = 0; i < newWidth; i++) {
                         grid[i] = new Array(newHeight)
                     }
-                    for(let i = 0; i < newWidth; i++) {
-                        for(let j = 0; j < newHeight; j++) {
-                            if(i >= left && j >= down && i < left + this._width && j < down + this._height) {
+                    for (let i = 0; i < newWidth; i++) {
+                        for (let j = 0; j < newHeight; j++) {
+                            if (i >= left && j >= down && i < left + this._width && j < down + this._height) {
                                 grid[i][j] = this._subGrids[i - left][j - down]
                             } else {
                                 grid[i][j] = new SubGrid(this._gridSize)
@@ -1592,10 +1592,10 @@ export class SubGrid {
     constructor(size: number) {
         this.tiles = new Array(size)
 
-        for(let i = 0; i < size; i++) {
+        for (let i = 0; i < size; i++) {
             this.tiles[i] = new Array(size)
 
-            for(let j = 0; j < size; j++) {
+            for (let j = 0; j < size; j++) {
                 this.tiles[i][j] = {
                     shape: 0,
                     layer: 0,
