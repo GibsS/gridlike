@@ -541,7 +541,7 @@ export class World {
                     overlapBodies.push.apply(overlapBodies, vbh.collideAABB(
                         e2._bodies as SmallBody,
                         e1.globalx, e1.globaly, e1.globalvx, e1.globalvy,
-                        e2.globalx, e2.globaly, e2.globalvx, e2.globalvy
+                        e2.globalx, e2.globaly + e2._bodies._y, e2.globalvx, e2.globalvy
                     ))
                 }
             } else {

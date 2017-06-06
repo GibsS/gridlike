@@ -116,15 +116,15 @@ export class SimpleVBH<X extends IAABB> implements VBH<X> {
         otherdx -= dx
         otherdy -= dy
 
-        let maxxOffset = otherx + Math.max(0, otherdx)*2,
-            minxOffset = otherx + Math.min(0, otherdx)*2,
-            maxyOffset = othery + Math.max(0, otherdy)*2,
-            minyOffset = othery + Math.min(0, otherdy)*2
+        let maxxOffset = other.minX + otherx + Math.max(0, otherdx)*2,
+            minxOffset = other.maxX + otherx + Math.min(0, otherdx)*2,
+            maxyOffset = other.minY + othery + Math.max(0, otherdy)*2,
+            minyOffset = other.maxY + othery + Math.min(0, otherdy)*2
 
         for(let a of this.elements) {
             if(a.enabled && other.enabled && 
-                !(a.minX > other.maxX + maxxOffset || a.maxX < other.minX + minxOffset 
-                || a.minY > other.maxY + maxyOffset || a.maxY < other.minY + minyOffset)) {
+                !(a.minX > maxxOffset || a.maxX < minxOffset 
+                || a.minY > maxyOffset || a.maxY < minyOffset)) {
                 res.push([a, other])
             }
         }
