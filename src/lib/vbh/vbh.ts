@@ -96,11 +96,10 @@ export class SimpleVBH<X extends IAABB> implements VBH<X> {
             maxyOffset = othery + Math.max(0, otherdy)*2,
             minyOffset = othery + Math.min(0, otherdy)*2
 
-        for(let a of this.elements) {
-            for(let b of (other as SimpleVBH<X>).elements) {
-                if(a.enabled && b.enabled && 
-                !(a.minX > b.maxX + maxxOffset || a.maxX < b.minX + minxOffset 
-                || a.minY > b.maxY + maxyOffset || a.maxY < b.minY + minyOffset)) {
+        for (let a of this.elements) {
+            for (let b of (other as SimpleVBH<X>).elements) {
+                if (a.enabled && b.enabled 
+                    && a.minX <= b.maxX + maxxOffset && b.minX + minxOffset <= a.maxX && a.minY <= b.maxY + maxyOffset && b.minY + minyOffset <= a.maxY) {
                     res.push([a, b])
                 }
             }

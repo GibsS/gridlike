@@ -514,10 +514,10 @@ export class World {
             for(let e of ents) {
                 if (e._overlap)
                     e._overlap = e._overlap.filter((p: SmallBody[]) => {
-                        return !(p[1]._topEntity._x + p[1]._x + p[1]._width/2 < p[0]._topEntity._x + p[0]._x - p[0]._width/2
-                            || p[1]._topEntity._x + p[1]._x - p[1]._width/2 > p[0]._topEntity._x + p[0]._x + p[0]._width/2
-                            || p[1]._topEntity._y + p[1]._y + p[1]._height/2 < p[0]._topEntity._y + p[0]._y - p[0]._height/2
-                            || p[1]._topEntity._y + p[1]._y - p[1]._height/2 > p[0]._topEntity._y + p[0]._y + p[0]._height/2)
+                        return p[1]._topEntity._x + p[1]._x + p[1]._width/2 >= p[0]._topEntity._x + p[0]._x - p[0]._width/2
+                            && p[1]._topEntity._x + p[1]._x - p[1]._width/2 <= p[0]._topEntity._x + p[0]._x + p[0]._width/2
+                            && p[1]._topEntity._y + p[1]._y + p[1]._height/2 >= p[0]._topEntity._y + p[0]._y - p[0]._height/2
+                            && p[1]._topEntity._y + p[1]._y - p[1]._height/2 <= p[0]._topEntity._y + p[0]._y + p[0]._height/2
                 })
 
                 e.moveMinX = e._x + e.minX + Math.min(0, e._vx * delta) * 2 - 0.1
