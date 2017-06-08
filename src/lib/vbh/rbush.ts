@@ -102,113 +102,133 @@ export class RBush<X extends IMoveAABB> implements MoveVBH<X> {
     }
 
     updateSingle(item: X): X[][] {
-        // var parent = (item as any).parentNode,
-        //     minX = item.minX + Math.min(0, dx) * 2,
-        //     maxX = item.maxX + Math.max(0, dx) * 2,
-        //     minY = item.minY + Math.min(0, dy) * 2,
-        //     maxY = item.maxY + Math.max(0, dy) * 2
+        let parent = (item as any).parentNode,
+            result = [],
+            moveAABB = { minX: item.moveMinX, maxX: item.moveMaxX, minY: item.moveMinY, maxY: item.moveMaxY }
 
-        // if (minX < parent.minX 
-        //     || maxX > parent.maxX 
-        //     || minY < parent.minY 
-        //     || maxY > parent.maxY) {
-        //     this.remove(item)
-        //     // TODO: update new bounds of entity and make sure insertion is based on that
-        //     this.insert(item)
-        // }
+        if (item.moveMinX < parent.minX || item.moveMaxX > parent.maxX || item.moveMinY < parent.minY || item.moveMaxY > parent.maxY) {
+            this._remove(item)
+            this._insert(item, this.data.height - 1, moveAABB)
+        }
         
-        let result = []
-        // this._search({
-        //     minX, maxX, minY, maxY
-        // }).bodies.forEach(e => {
-        //     if (e != item) {
-        //         result.push(e)
-        //     }
-        // })
+        this._search(moveAABB).bodies.forEach(e => {
+            if (e != item) { result.push(e) }
+        })
 
         return result
     }
     update(): X[][] {
-        let result: X[][] = []
-        
-        if (this.data.leaf) {
-            for (let i = 0, len1 = this.data.children.length; i < len1; i++) {
-                let a = this.data.children[i] as X
+        this.other.forAll(e => {
+            let parent = (e as any).parentNode
 
-                if (a.enabled) {
-                    for (let j = 0, len2 = this.data.children.length; j < len2; j++) {
-                        let b = this.data.children[j] as X
+            if (e.moveMinX < parent.minX || e.moveMaxX > parent.maxX || e.moveMinY < parent.minY || e.moveMaxY > parent.maxY) {
+                this._remove(e)
+                this._insert(e, this.data.height - 1, { minX: e.moveMinX, maxX: e.moveMaxX, minY: e.moveMinY, maxY: e.moveMaxY })
+            }
+        })
 
-                        if (b.enabled && a.moveMinX <= b.moveMaxX && b.moveMinX <= a.moveMaxX 
-                            && a.moveMinY <= b.moveMaxY && b.moveMinY <= a.moveMaxY) {
-                            result.push([a, b])
+        let result: X[][] = [],
+            set = [],
+            node = this.data
+
+        while (node) {
+            if (node.leaf) {
+                for (let i = 0, len = node.children.length; i < len; i++) {
+                    let a = node.children[i] as X
+
+                    if (a.enabled) {
+                        for (let j = 0; j < len; j++) {
+                            let b = node.children[j] as X
+
+                            if (b.enabled && a.moveMinX <= b.moveMaxX && b.moveMinX <= a.moveMaxX 
+                                && a.moveMinY <= b.moveMaxY && b.moveMinY <= a.moveMaxY) {
+                                result.push([a, b])
+                            }
                         }
                     }
                 }
-            }
-        } else {
-            let pairs = _.flatten(this.data.children.map(c1 => this.data.children.map(c2 => {
-                    if (c1 != c2) { return [c1, c2] }
-                }))) as Node<X>[][],
-                pair = pairs.length && pairs[0]
+            } else {
+                let pairs = []
 
-            while (pair) {
-                if ((pair[0] as Node<X>).leaf) {
-                    if ((pair[1] as Node<X>).leaf) {
-                        for (let i = 0, len1 = pair[0].children.length; i < len1; i++) {
-                            let a = pair[0].children[i] as X
+                for (let i = 0, len = node.children.length; i < len; i++) {
+                    let a = node.children[i] as Node<X>
 
-                            if (a.enabled) {
-                                for (let j = 0, len2 = pair[1].children.length; j < len2; j++) {
-                                    let b = pair[1].children[j] as X
+                    for (let j = 0; j < len; j++) {
+                        let b = node.children[j] as Node<X>
 
-                                    if (b.enabled && a.moveMinX <= b.moveMaxX && b.moveMinX <= a.moveMaxX 
-                                                  && a.moveMinY <= b.moveMaxY && b.moveMinY <= a.moveMaxY) {
-                                        result.push([a, b])
+                        if (a.minX <= b.maxX && b.minX <= a.maxX 
+                            && a.minY <= b.maxY && b.minY <= a.maxY) {
+                            pairs.push([a, b])
+                        }
+                    }
+                }
+
+                let pair = pairs.length && pairs[0]
+
+                while (pair) {
+                    if ((pair[0] as Node<X>).leaf) {
+                        if ((pair[1] as Node<X>).leaf) {
+                            for (let i = 0, len1 = pair[0].children.length; i < len1; i++) {
+                                let a = pair[0].children[i] as X
+
+                                if (a.enabled) {
+                                    for (let j = 0, len2 = pair[1].children.length; j < len2; j++) {
+                                        let b = pair[1].children[j] as X
+
+                                        if (b.enabled && a.moveMinX <= b.moveMaxX && b.moveMinX <= a.moveMaxX 
+                                                    && a.moveMinY <= b.moveMaxY && b.moveMinY <= a.moveMaxY) {
+                                            result.push([a, b])
+                                        }
                                     }
                                 }
                             }
-                        }
-                    } else {
-                        let a = pair[0] as Node<X>
+                        } else {
+                            let a = pair[0] as Node<X>
 
-                        for (let i = 0, len1 = pair[1].children.length; i < len1; i++) {
-                            let b = pair[1].children[i] as Node<X>
-
-                            if (a.minX <= b.maxX && b.minX <= a.maxX && a.minY <= b.maxY && b.minY <= a.maxY) {
-                                pairs.push([a, b])
-                            }
-                        }
-                    }
-                } else {
-                    if ((pair[1] as Node<X>).leaf) {
-                        let b = pair[1] as Node<X>
-
-                        for (let i = 0, len1 = pair[0].children.length; i < len1; i++) {
-                            let a = pair[0].children[i] as Node<X>
-
-                            if (a.minX <= b.maxX && b.minX <= a.maxX && a.minY <= b.maxY && b.minY <= a.maxY) {
-                                pairs.push([a, b])
-                            }
-                        }
-                    } else {
-                        for (let i = 0, len1 = pair[0].children.length; i < len1; i++) {
-                            let a = pair[0].children[i] as Node<X>
-
-                            for (let j = 0, len2 = pair[1].children.length; j < len2; j++) {
-                                let b = pair[1].children[j] as Node<X>
+                            for (let i = 0, len1 = pair[1].children.length; i < len1; i++) {
+                                let b = pair[1].children[i] as Node<X>
 
                                 if (a.minX <= b.maxX && b.minX <= a.maxX && a.minY <= b.maxY && b.minY <= a.maxY) {
                                     pairs.push([a, b])
                                 }
                             }
                         }
+                    } else {
+                        if ((pair[1] as Node<X>).leaf) {
+                            let b = pair[1] as Node<X>
+
+                            for (let i = 0, len1 = pair[0].children.length; i < len1; i++) {
+                                let a = pair[0].children[i] as Node<X>
+
+                                if (a.minX <= b.maxX && b.minX <= a.maxX && a.minY <= b.maxY && b.minY <= a.maxY) {
+                                    pairs.push([a, b])
+                                }
+                            }
+                        } else {
+                            for (let i = 0, len1 = pair[0].children.length; i < len1; i++) {
+                                let a = pair[0].children[i] as Node<X>
+
+                                for (let j = 0, len2 = pair[1].children.length; j < len2; j++) {
+                                    let b = pair[1].children[j] as Node<X>
+
+                                    if (a.minX <= b.maxX && b.minX <= a.maxX && a.minY <= b.maxY && b.minY <= a.maxY) {
+                                        pairs.push([a, b])
+                                    }
+                                }
+                            }
+                        }
                     }
+                    pair = pairs.pop()
                 }
-                pair = pairs.pop()
+                set.push.apply(set, node.children)
             }
+            node = set.pop()
         }
+
         return result
+    }
+
+    _update(node: Node<X>, result: X[][]) {
     }
 
     collideVBH(other: VBH<X>, x: number, y: number, dx: number, dy: number, otherx: number, othery: number, otherdx: number, otherdy: number): X[][] {
@@ -323,48 +343,49 @@ export class RBush<X extends IMoveAABB> implements MoveVBH<X> {
         }
         return res
     }
-
-    remove(item, equalsFn?) {
+    remove(item) {
         this.other.remove(item)
-        if (!item) return this;
+        this._remove(item)
+    }
 
+    _remove(item) {
         var node = this.data,
             path = [],
             indexes = [],
-            i, parent, index, goingUp;
+            i, parent, index, goingUp
 
         // depth-first iterative tree traversal
         while (node || path.length) {
             if (!node) { // go up
-                node = path.pop();
-                parent = path[path.length - 1];
-                i = indexes.pop();
-                goingUp = true;
+                node = path.pop()
+                parent = path[path.length - 1]
+                i = indexes.pop()
+                goingUp = true
             }
 
             if (node.leaf) { // check current node
-                index = findItem(item, node.children, equalsFn);
+                index = node.children.indexOf(item)
 
                 if (index !== -1) {
                     // item found, remove the item and condense tree upwards
-                    node.children.splice(index, 1);
-                    path.push(node);
-                    this._condense(path);
-                    return this;
+                    node.children.splice(index, 1)
+                    path.push(node)
+                    this._condense(path)
+                    return
                 }
             }
 
             if (!goingUp && !node.leaf && contains(node, item)) { // go down
-                path.push(node);
-                indexes.push(i);
-                i = 0;
-                parent = node;
+                path.push(node)
+                indexes.push(i)
+                i = 0
+                parent = node
                 node = node.children[0] as Node<X>
             } else if (parent) { // go right
                 i++;
-                node = parent.children[i];
-                goingUp = false;
-            } else node = null; // nothing found
+                node = parent.children[i]
+                goingUp = false
+            } else node = null // nothing found
         }
     }
 
@@ -415,7 +436,7 @@ export class RBush<X extends IMoveAABB> implements MoveVBH<X> {
         calcBBox(node)
     }
 
-    _chooseSubtree(bbox, node, level, path) {
+    _chooseSubtree(bbox: AABB, node, level, path) {
         var i, len, child, targetNode, area, enlargement, minArea, minEnlargement;
 
         while (true) {
@@ -451,18 +472,18 @@ export class RBush<X extends IMoveAABB> implements MoveVBH<X> {
         return node;
     }
 
-    _insert(item: X, level: number, isNode?: boolean) {
+    _insert(item: X, level: number, aabb?: AABB) {
 
         var insertPath = [];
 
         // find the best node for accommodating the item, saving all nodes along the path too
-        var node = this._chooseSubtree(item, this.data, level, insertPath);
+        var node = this._chooseSubtree(aabb || item, this.data, level, insertPath);
 
         // put the item into the node
         node.children.push(item);
         (item as any).parentNode = node;
 
-        extendEps(node, item, 0);
+        extendEps(node, aabb || item, 0);
 
         // split on node overflow; propagate upwards if necessary
         while (level >= 0) {
@@ -473,7 +494,7 @@ export class RBush<X extends IMoveAABB> implements MoveVBH<X> {
         }
 
         // adjust bboxes along the insertion path
-        this._adjustParentBBoxes(item, insertPath, level);
+        this._adjustParentBBoxes(aabb || item, insertPath, level);
     }
 
     // split overflowed node into two
@@ -595,15 +616,6 @@ export class RBush<X extends IMoveAABB> implements MoveVBH<X> {
             } else calcBBox(path[i])
         }
     }
-}
-
-function findItem(item, items, equalsFn) {
-    if (!equalsFn) return items.indexOf(item)
-
-    for (var i = 0; i < items.length; i++) {
-        if (equalsFn(item, items[i])) return i
-    }
-    return -1
 }
 
 // calculate node's bbox from bboxes of its children
