@@ -73,10 +73,10 @@ export class Entity implements IMoveAABB {
     _invalidOverlap: Body[][]
     _overlap: Body[][]
 
-    _minx: number
-    _maxx: number
-    _miny: number
-    _maxy: number
+    _cacheMinX: number
+    _cacheMaxX: number
+    _cacheMinY: number
+    _cacheMaxY: number
 
     moveMinX: number
     moveMaxX: number
@@ -333,9 +333,9 @@ export class Entity implements IMoveAABB {
         return false
     }
 
-    get minX(): number {
-        if(this._minx != null) {
-            return this._minx
+    get _minX(): number {
+        if(this._cacheMinX != null) {
+            return this._cacheMinX
         } else {
             let tmp = Infinity
             this._forAllBodies(b => {
@@ -344,9 +344,9 @@ export class Entity implements IMoveAABB {
             return tmp
         }
     }
-    get minY(): number {
-        if(this._miny != null) {
-            return this._miny
+    get _minY(): number {
+        if(this._cacheMinY != null) {
+            return this._cacheMinY
         } else {
             let tmp = Infinity
             this._forAllBodies(b => {
@@ -355,9 +355,9 @@ export class Entity implements IMoveAABB {
             return tmp
         }
     }
-    get maxX(): number {
-        if(this._maxx != null) {
-            return this._maxx
+    get _maxX(): number {
+        if(this._cacheMaxX != null) {
+            return this._cacheMaxX
         } else {
             let tmp = -Infinity
             this._forAllBodies(b => {
@@ -366,9 +366,9 @@ export class Entity implements IMoveAABB {
             return tmp
         }
     }
-    get maxY(): number {
-        if(this._maxy != null) {
-            return this._maxy
+    get _maxY(): number {
+        if(this._cacheMaxY != null) {
+            return this._cacheMaxY
         } else {
             let tmp = -Infinity
             this._forAllBodies(b => {
@@ -377,6 +377,11 @@ export class Entity implements IMoveAABB {
             return tmp
         }
     }
+
+    get minX(): number { return this._minX + this._x }
+    get maxX(): number { return this._maxX + this._x }
+    get minY(): number { return this._minY + this._y }
+    get maxY(): number { return this._maxY + this._y }
 
     constructor(world: World, args: EntityArgs) {
         this._world = world
@@ -466,10 +471,10 @@ export class Entity implements IMoveAABB {
         if(topEntity._allBodies) {
             topEntity._allBodies.remove(body)
         }
-        if(topEntity._minx == body.minX) { topEntity._resetMinx() }
-        if(topEntity._maxx == body.maxX) { topEntity._resetMaxx() }
-        if(topEntity._miny == body.minY) { topEntity._resetMiny() }
-        if(topEntity._maxy == body.maxY) { topEntity._resetMaxy() }
+        if(topEntity._cacheMinX == body.minX) { topEntity._resetMinx() }
+        if(topEntity._cacheMaxX == body.maxX) { topEntity._resetMaxx() }
+        if(topEntity._cacheMinY == body.minY) { topEntity._resetMiny() }
+        if(topEntity._cacheMaxY == body.maxY) { topEntity._resetMaxy() }
 
         if(body._higherContacts) {
             let len = body._higherContacts.length
@@ -531,10 +536,10 @@ export class Entity implements IMoveAABB {
         }
 
         if(!(topEntity._bodies instanceof Body)) {
-            topEntity._minx = Math.min(topEntity._minx || Infinity, body.minX)
-            topEntity._maxx = Math.max(topEntity._maxx || -Infinity, body.maxX)
-            topEntity._miny = Math.min(topEntity._miny || Infinity, body.minY)
-            topEntity._maxy = Math.max(topEntity._maxy || -Infinity, body.maxY)
+            topEntity._cacheMinX = Math.min(topEntity._cacheMinX || Infinity, body.minX)
+            topEntity._cacheMaxX = Math.max(topEntity._cacheMaxX || -Infinity, body.maxX)
+            topEntity._cacheMinY = Math.min(topEntity._cacheMinY || Infinity, body.minY)
+            topEntity._cacheMaxY = Math.max(topEntity._cacheMaxY || -Infinity, body.maxY)
         }
     }
     _forAllBodies(lambda: (b: Body) => void) {
@@ -628,10 +633,10 @@ export class Entity implements IMoveAABB {
                     let child = this
 
                     let resetminx = false, resetmaxx = false, resetmaxy = false, resetminy = false
-                    this._minx = Infinity
-                    this._maxx = -Infinity
-                    this._miny = Infinity
-                    this._maxy = -Infinity
+                    this._cacheMinX = Infinity
+                    this._cacheMaxX = -Infinity
+                    this._cacheMinY = Infinity
+                    this._cacheMaxY = -Infinity
 
                     while(child) {
                         child._topEntity = this
@@ -641,17 +646,17 @@ export class Entity implements IMoveAABB {
                             if(this._allBodies) {
                                 this._allBodies.insert(b)
                             }
-                            resetminx = resetminx || topEntity.minX == b.minX
-                            resetmaxx = resetmaxx || topEntity.maxX == b.maxX
-                            resetminy = resetminy || topEntity.minY == b.maxY
-                            resetmaxy = resetmaxy || topEntity.maxY == b.maxY
+                            resetminx = resetminx || topEntity._minX == b.minX
+                            resetmaxx = resetmaxx || topEntity._maxX == b.maxX
+                            resetminy = resetminy || topEntity._minY == b.maxY
+                            resetmaxy = resetmaxy || topEntity._maxY == b.maxY
 
                             b._x -= x
                             b._y -= y
-                            this._minx = Math.min(this._minx, b.minX)
-                            this._maxx = Math.max(this._maxx, b.maxX)
-                            this._miny = Math.min(this._miny, b.minY)
-                            this._maxy = Math.max(this._maxy, b.maxY)
+                            this._cacheMinX = Math.min(this._cacheMinX, b.minX)
+                            this._cacheMaxX = Math.max(this._cacheMaxX, b.maxX)
+                            this._cacheMinY = Math.min(this._cacheMinY, b.minY)
+                            this._cacheMaxY = Math.max(this._cacheMaxY, b.maxY)
                         })
 
                         // CHANGE OWNERSHIP OF CONTACTS
@@ -894,27 +899,27 @@ export class Entity implements IMoveAABB {
     }
 
     _resetMinx() {
-        this._minx = Infinity
+        this._cacheMinX = Infinity
         this._forAllBodies(b => {
-            this._minx = Math.min(this._minx, b.minX)
+            this._cacheMinX = Math.min(this._cacheMinX, b.minX)
         })
     }
     _resetMiny() {
-        this._miny = Infinity
+        this._cacheMinY = Infinity
         this._forAllBodies(b => {
-            this._miny = Math.min(this._miny, b.minY)
+            this._cacheMinY = Math.min(this._cacheMinY, b.minY)
         })
     }
     _resetMaxx() {
-        this._maxx = -Infinity
+        this._cacheMaxX = -Infinity
         this._forAllBodies(b => {
-            this._maxx = Math.max(this._maxx, b.maxX)
+            this._cacheMaxX = Math.max(this._cacheMaxX, b.maxX)
         })
     }
     _resetMaxy() {
-        this._maxy = -Infinity
+        this._cacheMaxY = -Infinity
         this._forAllBodies(b => {
-            this._maxy = Math.max(this._maxy, b.maxY)
+            this._cacheMaxY = Math.max(this._cacheMaxY, b.maxY)
         })
     }
 

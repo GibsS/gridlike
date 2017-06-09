@@ -5,6 +5,7 @@ import { Body, SmallBody, Rect, Line, RectArgs, LineArgs, GridArgs } from './bod
 
 import { RaycastResult, QueryResult } from './query'
 import { MoveVBH, SimpleMoveVBH, VBH } from '../vbh/vbh'
+import { RBush } from '../vbh/rbush'
 import { LayerCollision } from './enums'
 
 export const EPS = 0.001
@@ -37,13 +38,9 @@ export class World {
             this._layers[i] = 0xFFFFFFFF
         }
 
-        // for(let i = 1; i < 32; i++) {
-        //     this._layers[i] = 0x3
-        //     this._layers[i+32] = 0x0
-        // }
-
         this._ents = []
 
+        // this._vbh = new RBush<Entity>(10000)
         this._vbh = new SimpleMoveVBH<Entity>()
     }
 
@@ -520,10 +517,10 @@ export class World {
                             && p[1]._topEntity._y + p[1]._y - p[1]._height/2 <= p[0]._topEntity._y + p[0]._y + p[0]._height/2
                 })
 
-                e.moveMinX = e._x + e.minX + Math.min(0, e._vx * delta) * 2 - 0.1
-                e.moveMaxX = e._x + e.maxX + Math.max(0, e._vx * delta) * 2 + 0.1
-                e.moveMinY = e._y + e.minY + Math.min(0, e._vy * delta) * 2 - 0.1
-                e.moveMaxY = e._y + e.maxY + Math.max(0, e._vy * delta) * 2 + 0.1
+                e.moveMinX = e.minX + Math.min(0, e._vx * delta) * 2 - 0.1
+                e.moveMaxX = e.maxX + Math.max(0, e._vx * delta) * 2 + 0.1
+                e.moveMinY = e.minY + Math.min(0, e._vy * delta) * 2 - 0.1
+                e.moveMaxY = e.maxY + Math.max(0, e._vy * delta) * 2 + 0.1
             }
         }
 

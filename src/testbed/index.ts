@@ -6,6 +6,7 @@ import { Script, ScriptDescriptor } from './script'
 
 import { World, Entity, Body, BodyType, Rect, Line, Grid, Contact } from '../lib'
 import { SmallBody } from '../lib/model/body'
+import { RBush } from '../lib/vbh/rbush'
 
 export class Testbed {
 
@@ -368,10 +369,34 @@ export class Testbed {
         }
     }
     _draw() {
-        this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height)
-
         let bx = -this.xCam * this.zoom + this.canvas.width/2
         let by = this.yCam * this.zoom + this.canvas.height/2
+
+        this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height)
+
+        if (this.world._vbh instanceof RBush) {
+            let list = [],
+                node = (this.world._vbh as RBush<Entity>).data
+
+            this.ctx.strokeStyle="#00FF00"
+            let nodeCount = 0
+            while (node) {
+                nodeCount++
+                if (!node.leaf) {
+                    this.ctx.strokeRect(
+                        node.minX * this.zoom + bx,
+                        -node.maxY * this.zoom + by,
+                        (node.maxX - node.minX) * this.zoom,
+                        (node.maxY - node.minY) * this.zoom
+                    )
+                    list.push.apply(list, node.children)
+                }
+                node = list.pop()
+            }
+            this.ctx.strokeStyle="#000000"
+            console.log("node count:", nodeCount)
+        }
+
         this.ctx.font="9px Arial";
         for(let e of this.entities) {
             if(this.showEntity) {
@@ -603,6 +628,6 @@ window.onload = () => {
 
     testbed.addScript(PerformanceScript1)
 
-    testbed.start(GridScript6.id)
+    testbed.start(PerformanceScript1.id)
     testbed.resetScriptList()
 }

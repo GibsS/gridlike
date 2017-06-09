@@ -208,10 +208,10 @@ export abstract class Body implements IAABB {
     }
 
     _testResetBounds() {
-        resetminx = this._topEntity.minX == this.minX
-        resetmaxx = this._topEntity.maxX == this.maxX
-        resetminy = this._topEntity.minY == this.minY
-        resetmaxy = this._topEntity.maxY == this.maxY
+        resetminx = this._topEntity._minX == this.minX
+        resetmaxx = this._topEntity._maxX == this.maxX
+        resetminy = this._topEntity._minY == this.minY
+        resetmaxy = this._topEntity._maxY == this.maxY
     }
     _resetBounds() {
         if (resetminx) { this._topEntity._resetMinx() }

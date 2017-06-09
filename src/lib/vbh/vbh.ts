@@ -76,7 +76,7 @@ export class SimpleVBH<X extends IAABB> implements VBH<X> {
         let res = []
 
         for(let e of this.elements) {
-            if(e.enabled && !(e.minX > x + width || e.maxX < x || e.minY > y + height || e.maxY < y)) {
+            if(e.enabled && !(e.minX > x + width || e.maxX < x || e.minY > y + height || e.maxY < y - height)) {
                 res.push(e)
             }
         }
