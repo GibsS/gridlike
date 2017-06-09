@@ -54,12 +54,14 @@ export class Testbed {
     _showEntityRadio
     _showBodyRadio
     _showContactRadio
-    _useRbushRadio
+    _useBinaryTreeRadio
+    _showBroadphaseStructure
 
     showEntity: boolean
     showBody: boolean
     showContact: boolean
     useRBush: boolean
+    showBroadphaseStructure: boolean
 
     constructor() {
         this.xCam = 0
@@ -128,11 +130,14 @@ export class Testbed {
         this._showEntityRadio = document.getElementById("show-entity-info-radio")
         this._showBodyRadio = document.getElementById("show-body-info-radio")
         this._showContactRadio = document.getElementById("show-contacts-radio")
-        this._useRbushRadio = document.getElementById("use-rbush")
+        this._useBinaryTreeRadio = document.getElementById("use-rbush")
+        this._showBroadphaseStructure = document.getElementById("show-broadphase-structure")
 
         this.showEntity = this._showEntityRadio.checked || false
         this.showBody = this._showBodyRadio.checked || false
         this.showContact = this._showContactRadio.checked || false
+        this.useRBush = this._useBinaryTreeRadio.checked || false
+        this.showBroadphaseStructure = this._showBroadphaseStructure.checked || false
 
         this._showEntityRadio.onclick = () => {
             this.showEntity = !this.showEntity
@@ -146,12 +151,16 @@ export class Testbed {
             this.showContact = !this.showContact
             this._showContactRadio.checked = this.showContact
         }
-        this._useRbushRadio.onclick = () => {
+        this._useBinaryTreeRadio.onclick = () => {
             this.useRBush = !this.useRBush
-            this._useRbushRadio.checked = this.useRBush
+            this._useBinaryTreeRadio.checked = this.useRBush
             if(this.scriptDescriptor != null) {
                 this.start(this.scriptDescriptor.id)
             }
+        }
+        this._showBroadphaseStructure.onclick = () => {
+            this.showBroadphaseStructure = !this.showBroadphaseStructure
+            this._showBroadphaseStructure.checked = this.showBroadphaseStructure
         }
 
         wheel(this.canvas, (dx, dy) => {
@@ -385,7 +394,7 @@ export class Testbed {
 
         this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height)
 
-        if (this.world._vbh instanceof BinaryTree) {
+        if (this.world._vbh instanceof BinaryTree && this.showBroadphaseStructure) {
             let list = [],
                 node = (this.world._vbh as BinaryTree<Entity>)._data
 
