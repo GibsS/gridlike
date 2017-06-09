@@ -6,8 +6,8 @@ import { Entity, Grid, Body } from '../../lib'
 
 class Script1 extends Script {
 
-    width = 5
-    height = 5
+    width = 20
+    height = 20
     rects: Entity[][]
     phase: number[][]
 

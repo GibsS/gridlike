@@ -6,6 +6,7 @@ import { Body, SmallBody, Rect, Line, RectArgs, LineArgs, GridArgs } from './bod
 import { RaycastResult, QueryResult } from './query'
 import { MoveVBH, SimpleMoveVBH, VBH } from '../vbh/vbh'
 import { RBush } from '../vbh/rbush'
+import { BinaryTree } from '../vbh/binaryTree'
 import { LayerCollision } from './enums'
 
 export const EPS = 0.001
@@ -25,7 +26,7 @@ export class World {
     _broadphaseTime: number = 0
     _narrowphaseTime: number = 0
 
-    constructor() {
+    constructor(userRbush?: boolean) {
         this._time = 0
 
         this._layerIds = {}
@@ -40,8 +41,11 @@ export class World {
 
         this._ents = []
 
-        this._vbh = new RBush<Entity>(5)
-        // this._vbh = new SimpleMoveVBH<Entity>()
+        if (userRbush) {
+            this._vbh = new BinaryTree<Entity>()
+        } else {
+            this._vbh = new SimpleMoveVBH<Entity>()
+        }
     }
 
     // ##### TIME

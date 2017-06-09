@@ -7,6 +7,7 @@ import { Script, ScriptDescriptor } from './script'
 import { World, Entity, Body, BodyType, Rect, Line, Grid, Contact } from '../lib'
 import { SmallBody } from '../lib/model/body'
 import { RBush } from '../lib/vbh/rbush'
+import { BinaryTree } from '../lib/vbh/binaryTree'
 
 export class Testbed {
 
@@ -53,10 +54,12 @@ export class Testbed {
     _showEntityRadio
     _showBodyRadio
     _showContactRadio
+    _useRbushRadio
 
     showEntity: boolean
     showBody: boolean
     showContact: boolean
+    useRBush: boolean
 
     constructor() {
         this.xCam = 0
@@ -125,6 +128,7 @@ export class Testbed {
         this._showEntityRadio = document.getElementById("show-entity-info-radio")
         this._showBodyRadio = document.getElementById("show-body-info-radio")
         this._showContactRadio = document.getElementById("show-contacts-radio")
+        this._useRbushRadio = document.getElementById("use-rbush")
 
         this.showEntity = this._showEntityRadio.checked || false
         this.showBody = this._showBodyRadio.checked || false
@@ -141,6 +145,13 @@ export class Testbed {
         this._showContactRadio.onclick = () => {
             this.showContact = !this.showContact
             this._showContactRadio.checked = this.showContact
+        }
+        this._useRbushRadio.onclick = () => {
+            this.useRBush = !this.useRBush
+            this._useRbushRadio.checked = this.useRBush
+            if(this.scriptDescriptor != null) {
+                this.start(this.scriptDescriptor.id)
+            }
         }
 
         wheel(this.canvas, (dx, dy) => {
@@ -261,7 +272,7 @@ export class Testbed {
         }
         
         this.script = this.scriptDescriptor.script()
-        this.world = new World()
+        this.world = new World(this.useRBush)
         this.script._world = this.world
         this.script._testbed = this
         this.lastUpdate = new Date().getTime()
@@ -374,25 +385,22 @@ export class Testbed {
 
         this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height)
 
-        if (this.world._vbh instanceof RBush) {
+        if (this.world._vbh instanceof BinaryTree) {
             let list = [],
-                node = (this.world._vbh as RBush<Entity>).data
+                node = (this.world._vbh as BinaryTree<Entity>)._data
 
             this.ctx.strokeStyle="#00FF00"
-            let nodeCount = 0
             while (node) {
-                nodeCount++
                 this.ctx.strokeRect(
                     node.minX * this.zoom + bx,
                     -node.maxY * this.zoom + by,
                     (node.maxX - node.minX) * this.zoom,
                     (node.maxY - node.minY) * this.zoom
                 )
-                if (!node.leaf) list.push.apply(list, node.children)
+                if (!node.element) list.push(node.left, node.right)
                 node = list.pop()
             }
             this.ctx.strokeStyle="#000000"
-            console.log("node count:", nodeCount)
         }
 
         this.ctx.font="9px Arial";
