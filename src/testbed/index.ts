@@ -382,15 +382,13 @@ export class Testbed {
             let nodeCount = 0
             while (node) {
                 nodeCount++
-                if (!node.leaf) {
-                    this.ctx.strokeRect(
-                        node.minX * this.zoom + bx,
-                        -node.maxY * this.zoom + by,
-                        (node.maxX - node.minX) * this.zoom,
-                        (node.maxY - node.minY) * this.zoom
-                    )
-                    list.push.apply(list, node.children)
-                }
+                this.ctx.strokeRect(
+                    node.minX * this.zoom + bx,
+                    -node.maxY * this.zoom + by,
+                    (node.maxX - node.minX) * this.zoom,
+                    (node.maxY - node.minY) * this.zoom
+                )
+                if (!node.leaf) list.push.apply(list, node.children)
                 node = list.pop()
             }
             this.ctx.strokeStyle="#000000"

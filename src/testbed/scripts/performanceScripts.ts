@@ -6,8 +6,8 @@ import { Entity, Grid, Body } from '../../lib'
 
 class Script1 extends Script {
 
-    width = 10
-    height = 10
+    width = 5
+    height = 5
     rects: Entity[][]
     phase: number[][]
 
@@ -20,8 +20,8 @@ class Script1 extends Script {
             for(let j = 0; j < this.height; j++) {
                 this.phase[i][j] = Math.random() * 3
                 this.rects[i][j] = this.r(this.world.createRect({
-                    x: i * 3,
-                    y: j * 3,
+                    x: i * 4,
+                    y: j * 4,
                     width: 1,
                     height: 1,
                     level: i + j * this.width + 1

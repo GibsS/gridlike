@@ -40,8 +40,8 @@ export class World {
 
         this._ents = []
 
-        // this._vbh = new RBush<Entity>(10000)
-        this._vbh = new SimpleMoveVBH<Entity>()
+        this._vbh = new RBush<Entity>(5)
+        // this._vbh = new SimpleMoveVBH<Entity>()
     }
 
     // ##### TIME
