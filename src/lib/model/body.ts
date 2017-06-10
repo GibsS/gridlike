@@ -1,6 +1,6 @@
 import * as _ from 'lodash'
 
-import { IAABB } from '../vbh/vbh'
+import { EnabledAABB } from '../vbh/vbh'
 import { Entity } from './entity'
 import { Contact, Overlap } from './contact'
 
@@ -42,7 +42,7 @@ export type TileArgs = TileList | TileGrid
 
 let resetminx = false, resetmaxx = false, resetminy = false, resetmaxy = false
 
-export abstract class Body implements IAABB {
+export abstract class Body implements EnabledAABB {
 
     type: number
 

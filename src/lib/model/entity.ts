@@ -1,6 +1,6 @@
 import * as _ from 'lodash'
 
-import { VBH, SimpleVBH, IMoveAABB, IAABB } from '../vbh/vbh'
+import { VBH, SimpleVBH, MoveAABB, EnabledAABB } from '../vbh/vbh'
 
 import { Body, RectArgs, LineArgs, GridArgs } from './body'
 import { World } from './world'
@@ -42,7 +42,7 @@ export interface EntityListener {
     gridOverlapEnd?(body: Body, grid: Grid, x: number, y: number, side: string)
 }
 
-export class Entity implements IMoveAABB {
+export class Entity implements MoveAABB {
 
     _listener: EntityListener
 
@@ -95,7 +95,7 @@ export class Entity implements IMoveAABB {
     get enabled(): boolean { return true }
 
     get world(): World { return this._world }
-    set world(val: World) { console.log("[ERROR] can't set Entity.world") }
+    set world(val: World) { console.error("can't set Entity.world") }
 
     get listener(): EntityListener { return this._listener }
     set listener(val: EntityListener) { this._listener = val }
@@ -329,9 +329,7 @@ export class Entity implements IMoveAABB {
         }
     }
 
-    get isCrushed(): boolean {
-        return false
-    }
+    get isCrushed(): boolean { return this._invalidOverlap.length > 0 }
 
     get _minX(): number {
         if(this._cacheMinX != null) {

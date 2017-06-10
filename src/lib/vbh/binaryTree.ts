@@ -1,20 +1,18 @@
 import * as _ from 'lodash'
 
-import { VBH, MoveVBH, IMoveAABB, SimpleMoveVBH } from './vbh'
+import { VBH, MoveVBH, AABB, EnabledAABB, MoveAABB, SimpleVBH, SimpleMoveVBH } from './vbh'
 import { QueryResult } from '../model/query'
 
-type AABB = { minX: number, maxX: number, minY: number, maxY: number }
+let tmpAABB: AABB = { minX: 0, minY: 0, maxX: 0, maxY: 0 }
 
-let tmpAABB = { minX: 0, minY: 0, maxX: 0, maxY: 0 }
+export class BinaryTree<X extends EnabledAABB> implements VBH<X> {
 
-export class BinaryTree<X extends IMoveAABB> implements MoveVBH<X> {
-
-    _otherVBH: MoveVBH<X>
+    _otherVBH: VBH<X>
 
     _data: Node<X>
 
     constructor() {
-        this._otherVBH = new SimpleMoveVBH<X>()
+        this._otherVBH = new SimpleVBH<X>()
     }
     all(): X[] { return this._otherVBH.all() }
     forAll(lambda: (b: X) => void) { this._otherVBH.forAll(lambda) }
@@ -66,52 +64,6 @@ export class BinaryTree<X extends IMoveAABB> implements MoveVBH<X> {
     }
     collideAABB(other: X, x: number, y: number, dx: number, dy: number, otherx: number, othery: number, otherdx: number, otherdy: number): X[][] {
         console.log("[collideAABB] not implemented")
-        return null
-    }
-
-    update(): X[][] {
-        this._otherVBH.forAll(e => this._move(e, e.moveMinX, e.moveMaxX, e.moveMinY, e.moveMaxY))
-
-        let set: Node<X>[] = [],
-            node = this._data,
-            res: X[][] = []
-
-        if (!node.element) {
-            while (node) {
-                let pairs: Node<X>[][] = [],
-                    pair = [node.left, node.right]
-
-                while(pair) {
-                    let f = pair[0], s = pair[1]
-
-                    if (f.minX <= s.maxX && f.maxX >= s.minX && f.minY <= s.maxY && f.maxY >= s.minY) {
-                        if (f.element) {
-                            if (s.element) {
-                                res.push([s.element, f.element])
-                            } else {
-                                pairs.push([s.left, f], [s.right, f])
-                            }
-                        } else {
-                            if (s.element) {
-                                pairs.push([f.left, s], [f.right, s])
-                            } else {
-                                pairs.push([f.left, s.left], [f.left, s.right], [f.right, s.left], [f.right, s.right])
-                            }
-                        }
-                    }
-
-                    pair = pairs.pop()
-                }
-                if (!node.left.element) set.push(node.left)
-                if (!node.right.element) set.push(node.right)
-                node = set.pop()
-            }
-        }
-
-        return res
-    }
-    updateSingle(element: X): X[][] {
-        console.log("[updateSingle] not implemented")
         return null
     }
 
@@ -251,6 +203,55 @@ export class BinaryTree<X extends IMoveAABB> implements MoveVBH<X> {
     }
 }
 
+export class MoveBinaryTree<X extends MoveAABB> extends BinaryTree<X> implements MoveVBH<X> {
+
+    update(): X[][] {
+        this._otherVBH.forAll(e => this._move(e, e.moveMinX, e.moveMaxX, e.moveMinY, e.moveMaxY))
+
+        let set: Node<X>[] = [],
+            node = this._data,
+            res: X[][] = []
+
+        if (!node.element) {
+            while (node) {
+                let pairs: Node<X>[][] = [],
+                    pair = [node.left, node.right]
+
+                while(pair) {
+                    let f = pair[0], s = pair[1]
+
+                    if (f.minX <= s.maxX && f.maxX >= s.minX && f.minY <= s.maxY && f.maxY >= s.minY) {
+                        if (f.element) {
+                            if (s.element) {
+                                res.push([s.element, f.element])
+                            } else {
+                                pairs.push([s.left, f], [s.right, f])
+                            }
+                        } else {
+                            if (s.element) {
+                                pairs.push([f.left, s], [f.right, s])
+                            } else {
+                                pairs.push([f.left, s.left], [f.left, s.right], [f.right, s.left], [f.right, s.right])
+                            }
+                        }
+                    }
+
+                    pair = pairs.pop()
+                }
+                if (!node.left.element) set.push(node.left)
+                if (!node.right.element) set.push(node.right)
+                node = set.pop()
+            }
+        }
+
+        return res
+    }
+    updateSingle(element: X): X[][] {
+        console.log("[updateSingle] not implemented")
+        return null
+    }
+}
+
 interface Node<X> {
     parent: Node<X>
     left: Node<X>
@@ -264,7 +265,7 @@ interface Node<X> {
     minY: number
     maxY: number
 }
-function createNode<X extends IMoveAABB>(parent: Node<X>, left: Node<X>, right: Node<X>): Node<X> {
+function createNode<X extends EnabledAABB>(parent: Node<X>, left: Node<X>, right: Node<X>): Node<X> {
     return {
         parent,
         left, right, element: null,
@@ -277,7 +278,7 @@ function createNode<X extends IMoveAABB>(parent: Node<X>, left: Node<X>, right: 
         maxY: Math.max(left.maxY, right.maxY)
     }
 }
-function createLeafNode<X extends IMoveAABB>(parent: Node<X>, e: X): Node<X> {
+function createLeafNode<X extends EnabledAABB>(parent: Node<X>, e: X): Node<X> {
     let node = {
         parent,
         left: null,

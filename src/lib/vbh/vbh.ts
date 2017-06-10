@@ -4,7 +4,15 @@ import { RaycastResult, QueryResult } from '../model/query'
 
 import { EPS } from '../model/world'
 
-export interface IAABB {
+
+export interface AABB { 
+    minX: number
+    maxX: number
+    minY: number
+    maxY: number 
+}
+
+export interface EnabledAABB {
     minX: number
     maxX: number
     minY: number
@@ -13,14 +21,14 @@ export interface IAABB {
     enabled: boolean
 }
 
-export interface IMoveAABB extends IAABB {
+export interface MoveAABB extends EnabledAABB {
     moveMinX: number
     moveMaxX: number
     moveMinY: number
     moveMaxY: number
 }
 
-export interface VBH<X extends IAABB> {
+export interface VBH<X extends EnabledAABB> {
 
     // ACCESS
     all(): X[]
@@ -38,13 +46,13 @@ export interface VBH<X extends IAABB> {
     collideAABB(other: X, x: number, y: number, dx: number, dy: number, otherx: number, othery: number, otherdx: number, otherdy: number): X[][]
 }
 
-export interface MoveVBH<X extends IMoveAABB> extends VBH<X> {
+export interface MoveVBH<X extends MoveAABB> extends VBH<X> {
 
     update(): X[][]
     updateSingle(element: X): X[][]
 }
 
-export class SimpleVBH<X extends IAABB> implements VBH<X> {
+export class SimpleVBH<X extends EnabledAABB> implements VBH<X> {
 
     elements: X[]
 
@@ -133,7 +141,7 @@ export class SimpleVBH<X extends IAABB> implements VBH<X> {
     }
 }
 
-export class SimpleMoveVBH<X extends IMoveAABB> extends SimpleVBH<X> implements MoveVBH<X> {
+export class SimpleMoveVBH<X extends MoveAABB> extends SimpleVBH<X> implements MoveVBH<X> {
 
     update(): X[][] {
         let res = []

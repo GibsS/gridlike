@@ -1,7 +1,7 @@
 import * as quickselect from 'quickselect'
 import * as _ from 'lodash'
 
-import { VBH, MoveVBH, IMoveAABB, SimpleMoveVBH } from './vbh'
+import { VBH, MoveVBH, MoveAABB, SimpleMoveVBH } from './vbh'
 import { QueryResult, RaycastResult } from '../model/query'
 
 /* TAKEN FROM THE "RBUSH" LIBRARY */
@@ -30,7 +30,7 @@ function createNode<X>(children): Node<X> {
     };
 }
 
-export class RBush<X extends IMoveAABB> implements MoveVBH<X> {
+export class RBush<X extends MoveAABB> implements MoveVBH<X> {
 
     other: SimpleMoveVBH<X>
     data: Node<X>
