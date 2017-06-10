@@ -13,6 +13,10 @@ export default function test() {
         beforeEach(function() {
             world = new World()
         })
+
+        describe('new Entity()', function() {
+            
+        })
         
         describe('Position', function() {
             it('Correct global position for nested entity', function() {

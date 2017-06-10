@@ -1,4 +1,4 @@
-export { World, EPS } from './model/world'
+export { World, createWorld, EPS } from './model/world'
 export { Entity, EntityListener } from './model/entity'
 export { Contact } from './model/contact'
 export { Rect, Line, Grid, Body, BodyType, EMPTY, BLOCK_TILE, DOWN_ONEWAY, UP_ONEWAY, LEFT_ONEWAY, RIGHT_ONEWAY } from './model/body'

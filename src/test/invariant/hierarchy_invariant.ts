@@ -2,7 +2,7 @@ import * as _ from 'lodash'
 import * as assert from 'assert'
 import * as util from 'util'
 
-import { World, Grid, Body } from '../../lib'
+import { World, Grid, Body, Entity } from '../../lib'
 import { SmallBody } from '../../lib/model/body'
 import { VBH } from '../../lib/vbh/vbh'
 
@@ -20,7 +20,7 @@ export default function invariant(world: World) {
 
         for(let e of ents) {
             let topEntity = e
-            while(topEntity._parent && topEntity._parentType == 1) {
+            while(topEntity._parent && topEntity._parentType == 0) {
                 topEntity = topEntity._parent
             }
             
@@ -66,13 +66,45 @@ export default function invariant(world: World) {
 
             // If an entity e is a top entity, its allBody property contains every body of it's static childs
             assert(!e._bodies || e._bodies instanceof Body && e._topEntity._allBodies.all().indexOf(e._bodies) >= 0
-                              || !(e._bodies instanceof Body) && _.difference(e._bodies.all(), e._topEntity._allBodies.all()).length === 0,
-                  )
+                              || !(e._bodies instanceof Body) && _.difference(e._bodies.all(), e._topEntity._allBodies.all()).length === 0)
 
             // Bodies of an entity have said entity has its entity
             assert(!e._bodies || e._bodies instanceof Body && e._bodies._entity == e 
                               || !(e._bodies instanceof Body) && _.every(e._bodies.all(), b => b._entity == e),
                    "entity.body.entity == entity")
+
+            if (e._topEntity == e) {          
+                let allBody = (e: Entity) => {
+                    if(e._bodies) {
+                        if(e._bodies instanceof Body) {
+                            return [e._bodies]
+                        } else {
+                            return e._bodies.all()
+                        }
+                    } else {
+                        return []
+                    }
+                }
+                let minx = Infinity, maxx = -Infinity, miny = Infinity, maxy = -Infinity, count = 0
+
+                allBody(e).forEach(b => {
+                    count ++
+                    minx = Math.min(minx, b.minX)
+                    maxx = Math.max(maxx, b.maxX)
+                    miny = Math.min(miny, b.minY)
+                    maxy = Math.max(maxy, b.maxY)
+                })
+
+                assert.equal(e._minX, minx, "e._minx = minimum of body minx")
+                assert.equal(e._maxX, maxx, "e._maxx = maximum of body maxx")
+                assert.equal(e._minY, miny, "e._miny = minimum of body minx")
+                assert.equal(e._maxY, maxy, "e._maxy = maximum of body maxx")
+
+                assert.equal(e.minX, minx + e._x, "e.minx = minimum of body minx + e position")
+                assert.equal(e.maxX, maxx + e._x, "e.maxx = minimum of body maxx + e position")
+                assert.equal(e.minY, miny + e._y, "e.miny = minimum of body miny + e position")
+                assert.equal(e.maxY, maxy + e._y, "e.maxy = minimum of body maxy + e position")
+            }
         }
     }
 }

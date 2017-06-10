@@ -1,5 +1,5 @@
-import contactInvariant from './contactInvariant'
-import hierarchyInvariant from './hierarchyInvariant'
+import contactInvariant from './contact_invariant'
+import hierarchyInvariant from './hierarchy_invariant'
 
 import { World } from '../../lib'
 

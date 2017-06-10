@@ -1,13 +1,13 @@
-import layerTest from './layer'
-import worldTest from './world'
-import entityTest from './entity'
-import contactTest from './contacts'
-import gridTest from './grid'
-import vbhTest from './vbh'
+import worldTest from './world_spec'
+import entityTest from './entity_spec'
+import contactTest from './contacts_spec'
+import gridTest from './body/grid_spec'
+import bodyTest from './body/body_spec'
+import vbhTest from './vbh_spec'
 
-layerTest()
 worldTest()
 entityTest()
 // contactTest()
 gridTest()
+bodyTest()
 vbhTest()

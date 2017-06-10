@@ -19,9 +19,9 @@ export default function invariant(world: World) {
                    "A left contact is not misassociated")
             assert(!e._rightLower || (e._rightLower.body._topEntity == e && e._rightLower.otherBody._topEntity != e), 
                    "A right contact is not misassociated")
-            assert(!e._upLower || (e._upLower.body._topEntity == e &&  e._upLower.otherBody._topEntity != e), 
+            assert(!e._upLower || (e._upLower.body._topEntity == e && e._upLower.otherBody._topEntity != e), 
                    "A up contact is not misassociated")
-            assert(!e._downLower || (e._downLower.body._topEntity == e &&  e._downLower.otherBody._topEntity != e), 
+            assert(!e._downLower || (e._downLower.body._topEntity == e && e._downLower.otherBody._topEntity != e), 
                    "A down contact is not misassociated")
 
             let allBody = (e: Entity) => {
@@ -39,7 +39,6 @@ export default function invariant(world: World) {
             assert(_.every(allBody(e), b => _.every(b._higherContacts, c => c.body._topEntity == e._topEntity && c.otherBody._topEntity != e._topEntity)), 
                    "higher contacts body is one of the considered entity's bodies")
 
-            // FIX !!!!!!!!!!!!!!!!!!!!!!!! SIDE
             // every lower contact has a higher counterpart
             assert(!e._leftLower || _.some(e._leftLower.otherBody._higherContacts, c => c.body == e._leftLower.otherBody && c.otherBody == e._leftLower.body && e._leftLower.side == c.side), 
                    "A lower left contact has a higher counterpart")

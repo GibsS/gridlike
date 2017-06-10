@@ -134,7 +134,7 @@ export abstract class Body implements IAABB {
 
             this._x = args.x || 0
             this._y = args.y || 0
-            this._enabled = args.enabled || true
+            this._enabled = args.enabled != null ? args.enabled : true
         }
     }
 
@@ -240,13 +240,14 @@ export abstract class SmallBody extends Body {
         this._clearContacts()
     }
     set layer(val: string) {
-        let l = this._entity._world._getLayer(val)
+        let l = (val && this._entity._world._getLayer(val)) || 0
         if (l != this._layer) {
             this._layer = l
             this._clearContacts()
         }
     }
     set layerGroup(val: number) {
+        val = val || 0
         if (val != this._layerGroup) {
             this._layerGroup = val
             this._clearContacts()
@@ -344,7 +345,7 @@ export class Line extends SmallBody {
     }
     set side(val: string) {
         if (this.isHorizontal) {
-            if (val == "all") {
+            if (!val || val == "all") {
                 this._oneway = 0
             } else if (val == "down") {
                 this._oneway = 2
@@ -352,7 +353,7 @@ export class Line extends SmallBody {
                 this._oneway = 1
             }
         } else {
-            if (val == "all") {
+            if (!val || val == "all") {
                 this._oneway = 0
             } else if (val == "right") {
                 this._oneway = 1
@@ -1435,7 +1436,7 @@ export class Grid extends Body {
         // DATA MODIFICATION
         if (typeof data != "undefined") {
             if (tile.data) {
-                tile.data = Object.assign(tile.data, data)
+                tile.data = data && Object.assign(tile.data, data)
             } else {
                 tile.data = _.cloneDeep(data)
             }
@@ -1520,7 +1521,7 @@ export class Grid extends Body {
                         tile.shape = res.shape
                         if (typeof res.data != "undefined") {
                             if (tile.data) {
-                                tile.data = Object.assign(tile.data, res.data)
+                                tile.data = res.data && Object.assign(tile.data, res.data)
                             } else {
                                 tile.data = _.cloneDeep(res.data)
                             }

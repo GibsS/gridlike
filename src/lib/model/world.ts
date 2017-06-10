@@ -11,6 +11,10 @@ import { LayerCollision } from './enums'
 
 export const EPS = 0.001
 
+export function createWorld() {
+    return new World()
+}
+
 export class World {
 
     _time: number
@@ -225,9 +229,9 @@ export class World {
         this._time += delta
 
         // I. GET ALL POTENTIAL COLLISION, FILTERED OUT
-        let t0 = performance.now()
+        // let t0 = performance.now()
         this._broadphase(delta)
-        let t1 = performance.now()
+        // let t1 = performance.now()
 
         // II. SOLVE INVALID STATE + SOLVE MOVEMENT OF ALL ENTITIES: DEFINE NEW X, Y, VX, VY AND CONTACTS
         for(let level in this._ents) {
@@ -500,9 +504,9 @@ export class World {
             }
         }
 
-        let t2 = performance.now()
-        this._broadphaseTime = t1 - t0
-        this._narrowphaseTime = t2 - t1
+        // let t2 = performance.now()
+        // this._broadphaseTime = t1 - t0
+        // this._narrowphaseTime = t2 - t1
     }
     _move(entity: Entity, dx: number, dy: number) {
 

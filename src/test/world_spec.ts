@@ -12,6 +12,10 @@ export default function test() {
             world = new World()
         })
 
+        describe('new World', function() {
+            
+        })
+
         // TIME
         describe('World.simulate', function() {
             it('should update time correctly', function() {

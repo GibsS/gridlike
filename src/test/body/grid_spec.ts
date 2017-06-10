@@ -1,11 +1,11 @@
 import * as assert from 'assert'
 import * as _ from 'lodash'
-import { nearEqual } from './helper'
+import { nearEqual } from './../helper'
 import * as util from 'util'
 
-import invariant from './invariant'
+import invariant from './../invariant'
 
-import { World, Entity, Grid } from '../lib/index'
+import { World, Entity, Grid } from './../../lib/index'
 
 function assertTileEqual(tile, shape, data) {
     assert.equal(tile.shape, shape)
@@ -19,7 +19,7 @@ function assertTileEqual(tile, shape, data) {
 export default function test() {
     describe('Grid', function() {
 
-        describe('init', function() {
+        describe('new Grid', function() {
             var world: World,
                 grid: Grid
 
@@ -27,7 +27,7 @@ export default function test() {
                 world = new World()
             })
 
-            describe('init by Array', function() {
+            describe('init with array', function() {
                 it('should create a grid where every tile match with the got counterpart', function() {
                     var tiles 
                     tiles = new Array(50)
@@ -168,7 +168,7 @@ export default function test() {
                 invariant(world)
             })
 
-            it('clear tile works /1', function() {
+            it('clear tile works /2', function() {
                 grid.setTile(1, 1, 2, { foo: 'test' })
                 grid.setTile(1, 2, 2, { foo: 'test' })
                 grid.clearTile(1, 2)
@@ -267,5 +267,3 @@ export default function test() {
         })
     })
 }
-
-//test()
