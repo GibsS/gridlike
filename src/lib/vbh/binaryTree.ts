@@ -202,11 +202,18 @@ export class BinaryTree<X extends EnabledAABB> implements VBH<X> {
         }
     }
 }
+let updateCount: number = 0
+let moveTime: number
+let searchTime: number
 
 export class MoveBinaryTree<X extends MoveAABB> extends BinaryTree<X> implements MoveVBH<X> {
 
     update(): X[][] {
+        updateCount++
+        if (updateCount % 240 == 0) { console.log("moveTime:", moveTime, "searchTime:", searchTime) }
+        let t0 = typeof window !== "undefined" && performance.now()
         this._otherVBH.forAll(e => this._move(e, e.moveMinX, e.moveMaxX, e.moveMinY, e.moveMaxY))
+        let t1 = typeof window !== "undefined" && performance.now()
 
         let set: Node<X>[] = [],
             node = this._data,
@@ -214,37 +221,39 @@ export class MoveBinaryTree<X extends MoveAABB> extends BinaryTree<X> implements
 
         if (!node.element) {
             while (node) {
-                let pairs: Node<X>[][] = [],
-                    pair = [node.left, node.right]
-
-                while(pair) {
-                    let f = pair[0], s = pair[1]
-
-                    if (f.minX <= s.maxX && f.maxX >= s.minX && f.minY <= s.maxY && f.maxY >= s.minY) {
-                        if (f.element) {
-                            if (s.element) {
-                                res.push([s.element, f.element])
-                            } else {
-                                pairs.push([s.left, f], [s.right, f])
-                            }
-                        } else {
-                            if (s.element) {
-                                pairs.push([f.left, s], [f.right, s])
-                            } else {
-                                pairs.push([f.left, s.left], [f.left, s.right], [f.right, s.left], [f.right, s.right])
-                            }
-                        }
-                    }
-
-                    pair = pairs.pop()
-                }
+                this._findPairs(node.left, node.right, res)
                 if (!node.left.element) set.push(node.left)
                 if (!node.right.element) set.push(node.right)
                 node = set.pop()
             }
         }
 
+        moveTime = t1 - t0
+        searchTime = typeof window !== "undefined" && performance.now() - t1
+
         return res
+    }
+    _findPairs(f: Node<X>, s: Node<X>, result: X[][]) {
+        if (f.minX <= s.maxX && f.maxX >= s.minX && f.minY <= s.maxY && f.maxY >= s.minY) {
+            if (f.element) {
+                if (s.element) {
+                    result.push([s.element, f.element])
+                } else {
+                    this._findPairs(s.left, f, result)
+                    this._findPairs(s.right, f, result)
+                }
+            } else {
+                if (s.element) {
+                    this._findPairs(f.left, s, result)
+                    this._findPairs(f.right, s, result)
+                } else {
+                    this._findPairs(f.left, s.left, result)
+                    this._findPairs(f.left, s.right, result)
+                    this._findPairs(f.right, s.left, result)
+                    this._findPairs(f.right, s.right, result)
+                }
+            }
+        }
     }
     updateSingle(element: X): X[][] {
         console.log("[updateSingle] not implemented")

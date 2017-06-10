@@ -73,10 +73,10 @@ export class Entity implements MoveAABB {
     _invalidOverlap: Body[][]
     _overlap: Body[][]
 
-    _cacheMinX: number
-    _cacheMaxX: number
-    _cacheMinY: number
-    _cacheMaxY: number
+    _minX: number = Infinity
+    _maxX: number = -Infinity
+    _minY: number = Infinity
+    _maxY: number = -Infinity
 
     moveMinX: number
     moveMaxX: number
@@ -331,51 +331,6 @@ export class Entity implements MoveAABB {
 
     get isCrushed(): boolean { return this._invalidOverlap.length > 0 }
 
-    get _minX(): number {
-        if(this._cacheMinX != null) {
-            return this._cacheMinX
-        } else {
-            let tmp = Infinity
-            this._forAllBodies(b => {
-                tmp = Math.min(tmp, b.minX)
-            })
-            return tmp
-        }
-    }
-    get _minY(): number {
-        if(this._cacheMinY != null) {
-            return this._cacheMinY
-        } else {
-            let tmp = Infinity
-            this._forAllBodies(b => {
-                tmp = Math.min(tmp, b.minY)
-            })
-            return tmp
-        }
-    }
-    get _maxX(): number {
-        if(this._cacheMaxX != null) {
-            return this._cacheMaxX
-        } else {
-            let tmp = -Infinity
-            this._forAllBodies(b => {
-                tmp = Math.max(tmp, b.maxX)
-            })
-            return tmp
-        }
-    }
-    get _maxY(): number {
-        if(this._cacheMaxY != null) {
-            return this._cacheMaxY
-        } else {
-            let tmp = -Infinity
-            this._forAllBodies(b => {
-                tmp = Math.max(tmp, b.maxY)
-            })
-            return tmp
-        }
-    }
-
     get minX(): number { return this._minX + this._x }
     get maxX(): number { return this._maxX + this._x }
     get minY(): number { return this._minY + this._y }
@@ -469,10 +424,10 @@ export class Entity implements MoveAABB {
         if(topEntity._allBodies) {
             topEntity._allBodies.remove(body)
         }
-        if(topEntity._cacheMinX == body.minX) { topEntity._resetMinx() }
-        if(topEntity._cacheMaxX == body.maxX) { topEntity._resetMaxx() }
-        if(topEntity._cacheMinY == body.minY) { topEntity._resetMiny() }
-        if(topEntity._cacheMaxY == body.maxY) { topEntity._resetMaxy() }
+        if(topEntity._minX == body.minX) { topEntity._resetMinx() }
+        if(topEntity._maxX == body.maxX) { topEntity._resetMaxx() }
+        if(topEntity._minY == body.minY) { topEntity._resetMiny() }
+        if(topEntity._maxY == body.maxY) { topEntity._resetMaxy() }
 
         if(body._higherContacts) {
             let len = body._higherContacts.length
@@ -533,12 +488,10 @@ export class Entity implements MoveAABB {
             topEntity._allBodies.insert(body)
         }
 
-        if(!(topEntity._bodies instanceof Body)) {
-            topEntity._cacheMinX = Math.min(topEntity._cacheMinX || Infinity, body.minX)
-            topEntity._cacheMaxX = Math.max(topEntity._cacheMaxX || -Infinity, body.maxX)
-            topEntity._cacheMinY = Math.min(topEntity._cacheMinY || Infinity, body.minY)
-            topEntity._cacheMaxY = Math.max(topEntity._cacheMaxY || -Infinity, body.maxY)
-        }
+        topEntity._minX = Math.min(topEntity._minX, body.minX)
+        topEntity._maxX = Math.max(topEntity._maxX, body.maxX)
+        topEntity._minY = Math.min(topEntity._minY, body.minY)
+        topEntity._maxY = Math.max(topEntity._maxY, body.maxY)
     }
     _forAllBodies(lambda: (b: Body) => void) {
         if(this._allBodies) {
@@ -631,10 +584,10 @@ export class Entity implements MoveAABB {
                     let child = this
 
                     let resetminx = false, resetmaxx = false, resetmaxy = false, resetminy = false
-                    this._cacheMinX = Infinity
-                    this._cacheMaxX = -Infinity
-                    this._cacheMinY = Infinity
-                    this._cacheMaxY = -Infinity
+                    this._minX = Infinity
+                    this._maxX = -Infinity
+                    this._minY = Infinity
+                    this._maxY = -Infinity
 
                     while(child) {
                         child._topEntity = this
@@ -651,10 +604,10 @@ export class Entity implements MoveAABB {
 
                             b._x -= x
                             b._y -= y
-                            this._cacheMinX = Math.min(this._cacheMinX, b.minX)
-                            this._cacheMaxX = Math.max(this._cacheMaxX, b.maxX)
-                            this._cacheMinY = Math.min(this._cacheMinY, b.minY)
-                            this._cacheMaxY = Math.max(this._cacheMaxY, b.maxY)
+                            this._minX = Math.min(this._minX, b.minX)
+                            this._maxX = Math.max(this._maxX, b.maxX)
+                            this._minY = Math.min(this._minY, b.minY)
+                            this._maxY = Math.max(this._maxY, b.maxY)
                         })
 
                         // CHANGE OWNERSHIP OF CONTACTS
@@ -897,27 +850,27 @@ export class Entity implements MoveAABB {
     }
 
     _resetMinx() {
-        this._cacheMinX = Infinity
+        this._minX = Infinity
         this._forAllBodies(b => {
-            this._cacheMinX = Math.min(this._cacheMinX, b.minX)
+            this._minX = Math.min(this._minX, b.minX)
         })
     }
     _resetMiny() {
-        this._cacheMinY = Infinity
+        this._minY = Infinity
         this._forAllBodies(b => {
-            this._cacheMinY = Math.min(this._cacheMinY, b.minY)
+            this._minY = Math.min(this._minY, b.minY)
         })
     }
     _resetMaxx() {
-        this._cacheMaxX = -Infinity
+        this._maxX = -Infinity
         this._forAllBodies(b => {
-            this._cacheMaxX = Math.max(this._cacheMaxX, b.maxX)
+            this._maxX = Math.max(this._maxX, b.maxX)
         })
     }
     _resetMaxy() {
-        this._cacheMaxY = -Infinity
+        this._maxY = -Infinity
         this._forAllBodies(b => {
-            this._cacheMaxY = Math.max(this._cacheMaxY, b.maxY)
+            this._maxY = Math.max(this._maxY, b.maxY)
         })
     }
 
