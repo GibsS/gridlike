@@ -857,10 +857,10 @@ export class Entity implements MoveAABB {
         return ent
     }
     destroyChild(ent: Entity) {
-        this._world.destroyEntity(ent)
+        this._world.removeEntity(ent)
     }
     destroy() {
-        this._world.destroyEntity(this)
+        this._world.removeEntity(this)
     }
 
     move(dx: number, dy: number) {

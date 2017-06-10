@@ -27,7 +27,7 @@ export default function test() {
                 world = new World()
             })
 
-            describe('init with array', function() {
+            describe('with array', function() {
                 it('should create a grid where every tile match with the got counterpart', function() {
                     var tiles 
                     tiles = new Array(50)
@@ -54,7 +54,7 @@ export default function test() {
                 })
             })
 
-            describe('init by list', function() {
+            describe('with list', function() {
                 it('should create a grid where every tile match with the got counterpart', function() {
                     var tiles = []
                     for(let i = 0; i < 50; i++) {
@@ -73,7 +73,7 @@ export default function test() {
                 })
             })
 
-            describe('init by dimension', function() {
+            describe('with dimensions', function() {
                 it('should create a grid where every tile match with the got counterpart /1', function() {
                     grid = world.createGrid({
                         x: 0,
@@ -108,7 +108,7 @@ export default function test() {
             })
         })
 
-        describe('set individual cell shape/data', function() {
+        describe('.setTile', function() {
             var world: World,
                 grid: Grid
 
@@ -121,54 +121,96 @@ export default function test() {
                 }).body as Grid
             })
 
-            it('a tile\'s value should be equal to the value it is attributed /1', function() {
+            it('when p=[0, 0], shape=0, data=null', function() {
                 grid.setTile(0, 0, 0, null)
                 assertTileEqual(grid.getTile(0, 0), 0, null)
                 invariant(world)
             })
-            it('a tile\'s value should be equal to the value it is attributed /2', function() {
+            it('when p=[1, 1], shape=1, data={ foo: "test" }', function() {
                 grid.setTile(1, 1, 2, { foo: 'test' })
-                assertTileEqual(grid.getTile(1, 1), 2,  { foo: 'test' })
+                assertTileEqual(grid.getTile(1, 1), 2, { foo: 'test' })
                 invariant(world)
             })
-            it('a tile\'s value should be equal to the value it is attributed /3', function() {
+            it('when p=[-10, 1], shape=2, data=null', function() {
+                grid.setTile(-10, 1, 2, null)
+                assertTileEqual(grid.getTile(-10, 1), 2, null)
+                invariant(world)
+            })
+            it('when p=[-10, 1], shape=2, data=null, previously data={ foo: "test" }', function() {
                 grid.setTile(-10, 1, 2, { foo: 'test' })
-                assertTileEqual(grid.getTile(-10, 1), 2,  { foo: 'test' })
+                grid.setTile(-10, 1, 2, null)
+                assertTileEqual(grid.getTile(-10, 1), 2, null)
                 invariant(world)
             })
-            it('a tile\'s value should be equal to the value it is attributed /4', function() {
+            it('when p=[-100, 1] shape=2, data={ foo: "test" }', function() {
                 grid.setTile(-100, 1, 2, { foo: 'test' })
-                assertTileEqual(grid.getTile(-100, 1), 2,  { foo: 'test' })
+                assertTileEqual(grid.getTile(-100, 1), 2, { foo: 'test' })
                 invariant(world)
             })
-            it('a tile\'s value should be equal to the value it is attributed /5', function() {
+            it('when p=[-100, 100] shape=2, data={ foo: "test" }', function() {
                 grid.setTile(-100, 100, 2, { foo: 'test' })
-                assertTileEqual(grid.getTile(-100, 100), 2,  { foo: 'test' })
+                assertTileEqual(grid.getTile(-100, 100), 2, { foo: 'test' })
                 invariant(world)
             })
-            it('a tile\'s value should be equal to the value it is attributed /6', function() {
+            it('when p=[0, 0] and [0, 1] shape=2, data={ foo: "test" }', function() {
                 grid.setTile(0, 0, 2, { foo: 'test' })
                 grid.setTile(0, 1, 2, { foo: 'test' })
-                assertTileEqual(grid.getTile(0, 0), 2,  { foo: 'test' })
-                assertTileEqual(grid.getTile(0, 1), 2,  { foo: 'test' })
+                assertTileEqual(grid.getTile(0, 0), 2, { foo: 'test' })
+                assertTileEqual(grid.getTile(0, 1), 2, { foo: 'test' })
                 invariant(world)
             })
-            it('a tile\'s value should be equal to the value it is attributed /7', function() {
+            it('when p=[0, 0] and [0, 1] shape=2, data={ foo: "test" }', function() {
                 grid.setTile(2, 3, 2, { foo: 'test' })
                 grid.setTile(2, 2, 2, { foo: 'test' })
-                assertTileEqual(grid.getTile(2, 3), 2,  { foo: 'test' })
-                assertTileEqual(grid.getTile(2, 2), 2,  { foo: 'test' })
+                assertTileEqual(grid.getTile(2, 3), 2, { foo: 'test' })
+                assertTileEqual(grid.getTile(2, 2), 2, { foo: 'test' })
                 invariant(world)
             })
+        })
+        describe('.setTileShape', function() {
+            var world: World,
+                grid: Grid
 
-            it('clear tile works /1', function() {
+            beforeEach(function() {
+                world = new World()
+                
+                grid = world.createGrid({
+                    width: 5,
+                    height: 5
+                }).body as Grid
+            })
+
+            it('when p=[0, 0], shape=1', function() {
+                grid.setTileShape(0, 0, 1)
+                assertTileEqual(grid.getTile(0, 0), 1, null)
+            })
+            it('when p=[-100, 10], shape=1, previously shape = 2, data={ foo: "foo" }', function() {
+                grid.setTile(-100, 10, 2, { foo: "test" })
+                grid.setTileShape(-100, 10, 1)
+                assertTileEqual(grid.getTile(-100, 10), 1, { foo: "test" })
+            })
+        })
+        describe('.clearTile', function() {
+            var world: World,
+                grid: Grid
+
+            beforeEach(function() {
+                world = new World()
+                
+                grid = world.createGrid({
+                    width: 5,
+                    height: 5
+                }).body as Grid
+            })
+
+            it('when p=[1, 1] and previous shape=2, data={ foo: "test" }', function() {
                 grid.setTile(1, 1, 2, { foo: 'test' })
                 grid.clearTile(1, 1)
                 assertTileEqual(grid.getTile(1, 1), 0,  null)
                 invariant(world)
             })
 
-            it('clear tile works /2', function() {
+            it('when p=[1, 2] and two previous sets', function() {
                 grid.setTile(1, 1, 2, { foo: 'test' })
                 grid.setTile(1, 2, 2, { foo: 'test' })
                 grid.clearTile(1, 2)
@@ -178,7 +220,26 @@ export default function test() {
             })
         })
 
-        describe('set group cell shape/data', function() {
+        describe.skip('.clearTileShape', function() {
+            it('when p=[1, 1], nothing done yet', function() {
+
+            })
+            it('when p=[10, -10], shape=1, data=null', function() {
+
+            })
+            it('when p=[-1000, 1], shape=2, data={ test: "foo" }', function() {
+
+            })
+        })
+
+        describe.skip('.globalToTile', function() {
+            
+            it('returns the index position associated to the tile that contains the provided point', function() {
+
+            })
+        })
+
+        describe('.setTiles', function() {
             var world: World,
                 grid: Grid
 
@@ -191,78 +252,107 @@ export default function test() {
                 }).body as Grid
             })
 
-            describe('grid.forTiles', function() {
-                it('should be provided the correct information', function() {
-                    grid.setTile(3, 3, 2, { foo: "ok" })
-                    grid.setTile(1, 2, 5, { test: "foo" })
+            it('should allow to set data on an array', function() {
+                grid.setTiles({
+                    x: 1, y: 1,
+                    info: _.range(10).map(i => _.range(10).map(j => 3))
+                })
 
-                    grid.forTiles(1, 1, 10, 10, (x, y, shape, data) => {
-                        if(x == 3 && y == 3) {
-                            assert.equal(shape, 2, "discrepancy at: " + x + " " + y)
-                            assert.deepEqual(data, { foo: "ok" }, "discrepancy at: " + x + " " + y)
-                        } else if(x == 1 && y == 2) {
-                            assert.equal(shape, 5, "discrepancy at: " + x + " " + y)
-                            assert.deepEqual(data, { test: "foo" }, "discrepancy at: " + x + " " + y)
+                for(let i = -3; i < 13; i++) {
+                    for(let j = -4; j < 14; j++) {
+                        if(i >= 1 && j >= 1 && i < 11 && j < 11) {
+                            assertTileEqual(grid.getTile(i, j), 3, null)
                         } else {
-                            assert.equal(shape, 0, "discrepancy at: " + x + " " + y)
-                            assert.equal(data, null, "discrepancy at: " + x + " " + y)
-                        }
-
-                        return null
-                    })
-                    invariant(world)
-                })
-
-                it('should allow the modification of the tiles it goes through', function() {
-                    grid.forTiles(-30, -30, 10, 10, (x, y, shape, data) => {
-                        return { shape: x + y, data: { x, y } }
-                    })
-
-                    for(let i = -30; i < -20; i++) {
-                        for(let j = -30; j < -20; j++) {
-                            assertTileEqual(grid.getTile(i, j), i + j, { x: i, y: j })
+                            assertTileEqual(grid.getTile(i, j), 0, null)
                         }
                     }
-                    invariant(world)
-                })
+                }
+                invariant(world)
+            })
+        })
+
+        describe('.clearTiles', function() {
+            var world: World,
+                grid: Grid
+
+            beforeEach(function() {
+                world = new World()
+                
+                grid = world.createGrid({
+                    width: 100,
+                    height: 100
+                }).body as Grid
             })
 
-            describe('grid.setTiles', function() {
-                it('should allow to set data on an array', function() {
-                    grid.setTiles({
-                        x: 1, y: 1,
-                        info: _.range(10).map(i => _.range(10).map(j => 3))
-                    })
+            it('should set shape to 0 and data to null', function() {
+                grid.setTiles({
+                    x: 2, y: 2, 
+                    info: _.range(10).map(i => _.range(10).map(j => { return { shape: 3, data: { foo: "test" } }}))
+                })
+                grid.clearTiles({
+                    x: 3, y: 3, width: 8, height: 8
+                })
+                assertTileEqual(grid.getTile(2, 2), 3, { foo: "test" })
+                assertTileEqual(grid.getTile(4, 4), 0, null)
+                assertTileEqual(grid.getTile(11, 11), 3, { foo: "test" })
+                assertTileEqual(grid.getTile(11, 2), 3, { foo: "test" })
+                
+                invariant(world)
+            })
+        })
 
-                    for(let i = -3; i < 13; i++) {
-                        for(let j = -4; j < 14; j++) {
-                            if(i >= 1 && j >= 1 && i < 11 && j < 11) {
-                                assertTileEqual(grid.getTile(i, j), 3, null)
-                            } else {
-                                assertTileEqual(grid.getTile(i, j), 0, null)
-                            }
-                        }
+        describe.skip('.setTileShapes', function() {
+
+        })
+
+        describe.skip('.clearTileShapes', function() {
+
+        })
+        describe('.forTiles', function() {
+            var world: World,
+                grid: Grid
+
+            beforeEach(function() {
+                world = new World()
+                
+                grid = world.createGrid({
+                    width: 100,
+                    height: 100
+                }).body as Grid
+            })
+
+            it('should be provided the correct information', function() {
+                grid.setTile(3, 3, 2, { foo: "ok" })
+                grid.setTile(1, 2, 5, { test: "foo" })
+
+                grid.forTiles(1, 1, 10, 10, (x, y, shape, data) => {
+                    if(x == 3 && y == 3) {
+                        assert.equal(shape, 2, "discrepancy at: " + x + " " + y)
+                        assert.deepEqual(data, { foo: "ok" }, "discrepancy at: " + x + " " + y)
+                    } else if(x == 1 && y == 2) {
+                        assert.equal(shape, 5, "discrepancy at: " + x + " " + y)
+                        assert.deepEqual(data, { test: "foo" }, "discrepancy at: " + x + " " + y)
+                    } else {
+                        assert.equal(shape, 0, "discrepancy at: " + x + " " + y)
+                        assert.equal(data, null, "discrepancy at: " + x + " " + y)
                     }
-                    invariant(world)
+
+                    return null
                 })
+                invariant(world)
             })
 
-            describe('grid.clearTiles', function() {
-                it('should set shape to 0 and data to null', function() {
-                    grid.setTiles({
-                        x: 2, y: 2, 
-                        info: _.range(10).map(i => _.range(10).map(j => { return { shape: 3, data: { foo: "test" } }}))
-                    })
-                    grid.clearTiles({
-                        x: 3, y: 3, width: 8, height: 8
-                    })
-                    assertTileEqual(grid.getTile(2, 2), 3, { foo: "test" })
-                    assertTileEqual(grid.getTile(4, 4), 0, null)
-                    assertTileEqual(grid.getTile(11, 11), 3, { foo: "test" })
-                    assertTileEqual(grid.getTile(11, 2), 3, { foo: "test" })
-                    
-                    invariant(world)
+            it('should allow the modification of the tiles it goes through', function() {
+                grid.forTiles(-30, -30, 10, 10, (x, y, shape, data) => {
+                    return { shape: x + y, data: { x, y } }
                 })
+
+                for(let i = -30; i < -20; i++) {
+                    for(let j = -30; j < -20; j++) {
+                        assertTileEqual(grid.getTile(i, j), i + j, { x: i, y: j })
+                    }
+                }
+                invariant(world)
             })
         })
     })

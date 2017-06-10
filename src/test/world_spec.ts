@@ -12,20 +12,105 @@ export default function test() {
             world = new World()
         })
 
-        describe('new World', function() {
-            
+        // CONSTRUCTOR
+        describe.skip('constructor', function() {
+            it('creates a world with no entities', function() {
+
+            })
+
+            it('creates a world with only one layer: default', function() {
+
+            })
+
+            it('has its time set to 0', function() {
+
+            })
+        })
+
+        // ENTITIES
+        describe.skip('.createEntity', function() {
+            it('creates an empty entity', function() {
+
+            })
+
+            it('adds the entity to its list of top entities', function() {
+
+            })
+        })
+
+        describe.skip('.createRect', function() {
+            it('creates a well form entity with a Rect', function() {
+
+            })
+            it('adds the entity to its list of top entities', function() {
+
+            })
+        })
+        describe.skip('.createLine', function() {
+            it('creates a well form entity with a Line', function() {
+
+            })
+            it('adds the entity to its list of top entities', function() {
+
+            })
+        })
+        describe.skip('.createGrid', function() {
+            it('creates a well form entity with a Grid', function() {
+
+            })
+            it('adds the entity to its list of top entities', function() {
+
+            })
+        })
+
+        describe.skip('.removeEntity', function() {
+            it('removes the entity from the world', function() {
+
+            })
+        })
+
+        // QUERYING
+        describe.skip('.raycast', function() {
+            describe('when nothing is in the path', function() {
+
+            })
+            describe('when two object are in the path, one close than the other', function() {
+                
+            })
+        })
+        describe.skip('.queryRect', function() {
+            describe('when nothing is in the path', function() {
+
+            })
+            describe('when one object is in the path', function() {
+                
+            })
+            describe('when two objects is in the path', function() {
+                
+            })
+        })
+        describe.skip('.queryPoint', function() {
+            describe('when nothing is in the path', function() {
+
+            })
+            describe('when one object is in the path', function() {
+                
+            })
+            describe('when two objects is in the path', function() {
+                
+            })
         })
 
         // TIME
-        describe('World.simulate', function() {
-            it('should update time correctly', function() {
+        describe('.simulate', function() {
+            it('updates time correctly', function() {
                 world.simulate(1.0)
                 nearEqual(world.time, 1.0)
             })
         })
         
         // LAYERS
-        describe('World.setLayerRule', function() {
+        describe('.setLayerRule', function() {
             for(let rule of [LayerCollision.ALWAYS, LayerCollision.EQUAL_GROUP, LayerCollision.NEVER, LayerCollision.UNEQUAL_GROUP]) {
                 context('when you set the rule of two new layers to ' + rule, function() {
                     beforeEach(function() {
@@ -50,7 +135,7 @@ export default function test() {
             })
         })
         
-        describe('world.getLayerRule', function() {            
+        describe('.getLayerRule', function() {            
             beforeEach(function() {
                 world.setLayerRule("layer1", "layer2", LayerCollision.ALWAYS)
                 world.setLayerRule("layer2", "layer3", LayerCollision.UNEQUAL_GROUP)
@@ -91,7 +176,7 @@ export default function test() {
             })
         })
         
-        describe('world.layers', function() {
+        describe('.layers', function() {
             it('should return the list of all layers', function() {
                 world.addLayer("a_layer")
                 world.setLayerRule("layer3", "layer4", LayerCollision.NEVER)

@@ -247,7 +247,7 @@ export declare class World {
     createRect(args: RectArgs): Entity
     createLine(args: LineArgs): Entity
     createGrid(args: GridArgs): Entity
-    destroyEntity(entity: Entity)
+    removeEntity(entity: Entity)
 
     // ##### QUERYING
     raycast(x: number, y: number, dx: number, dy: number): RaycastResult

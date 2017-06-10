@@ -22,23 +22,17 @@ export default function test() {
             world.setLayerRule("l1", "l3", "equal_group")
 
             ent1 = world.createRect({
-                x: 0,
-                y: 0,
+                x: 0, y: 0,
                 level: 1,
-                layer: "l3",
-                layerGroup: 1,
-                width: 1,
-                height: 1
+                layer: "l3", layerGroup: 1,
+                width: 1, height: 1
             })
             body1 = ent1.body
             ent2 = world.createLine({
-                x: 0,
-                y: 1,
+                x: 0, y: 1,
                 level: 0,
-                layer: "l1",
-                layerGroup: 1,
-                size: 1,
-                isHorizontal: true
+                layer: "l1", layerGroup: 1,
+                size: 1, isHorizontal: true
             })
             body2 = ent2.body
             ent3 = world.createRect({

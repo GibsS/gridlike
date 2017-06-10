@@ -198,7 +198,7 @@ export class World {
     _removeTopEntity(entity: Entity) {
         this._vbh.remove(entity)
     }
-    destroyEntity(entity: Entity) {
+    removeEntity(entity: Entity) {
         if(entity == entity._topEntity) {
             this._removeTopEntity(entity)
         }
