@@ -549,7 +549,7 @@ export class World {
                     ))
                 }
             } else {
-                if(e1._bodies instanceof Body) {
+                if(e1._bodies instanceof SmallBody) {
                     let vbh = e2._allBodies || e2._bodies as VBH<Body>
                     overlapBodies.push.apply(overlapBodies, vbh.collideAABB(
                         e1._bodies as SmallBody,

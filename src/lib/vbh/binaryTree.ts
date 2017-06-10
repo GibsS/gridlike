@@ -100,10 +100,7 @@ export class BinaryTree<X extends EnabledAABB> implements VBH<X> {
             tmpAABB.maxY = e.maxY
         }
         while(!node.element) {
-            let ifrightintersect = intersectionArea(node.left, calcBoundAABB(node.right, aabb)),
-                ifleftintersect = intersectionArea(node.right, calcBoundAABB(node.left, aabb))
-            
-            if (ifrightintersect > ifleftintersect) {
+            if (intersectionArea(node.left, calcBoundAABB(node.right, aabb)) > intersectionArea(node.right, calcBoundAABB(node.left, aabb))) {
                 node = node.left
             } else {
                 node = node.right
@@ -173,31 +170,19 @@ export class BinaryTree<X extends EnabledAABB> implements VBH<X> {
                 node.minY = minY
                 node.maxY = maxY
 
-                node.parent.minX = Infinity
-                node.parent.minY = Infinity
-                node.parent.maxX = -Infinity
-                node.parent.maxY = -Infinity
-                extend(node.parent, node.parent.left)
+                node.parent.minX = node.parent.left.minX
+                node.parent.minY = node.parent.left.minY
+                node.parent.maxX = node.parent.left.maxX
+                node.parent.maxY = node.parent.left.maxY
                 extend(node.parent, node.parent.right)
             } else {
-                this._remove(e)
-                
                 tmpAABB.minX = minX
                 tmpAABB.maxX = maxX
                 tmpAABB.minY = minY
                 tmpAABB.maxY = maxY
-                
-                this._insert(e, tmpAABB)
-                // node = node.parent
-                // while (node && !(node.minX <= minX && node.maxX >= maxX && node.minY <= minY && node.maxY >= maxY)) {
-                //     node = node.parent
-                // }
 
-                // if(node) {
-                //     this._insertInNode(node, e, tmpAABB)
-                // } else {
-                //     this._insert(e, tmpAABB)
-                // }
+                this._remove(e)
+                this._insert(e, tmpAABB)
             }
         }
     }
