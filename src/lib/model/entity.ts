@@ -1,6 +1,7 @@
 import * as _ from 'lodash'
 
 import { VBH, SimpleVBH, MoveAABB, EnabledAABB } from '../vbh/vbh'
+import { BinaryTree } from '../vbh/binaryTree'
 
 import { Body, RectArgs, LineArgs, GridArgs } from './body'
 import { World } from './world'
@@ -475,7 +476,7 @@ export class Entity implements MoveAABB {
         if(this._bodies != null) {
             if(this._bodies instanceof Body) {
                 let old = this._bodies
-                this._bodies = new SimpleVBH<Body>()
+                this._bodies = new BinaryTree<Body>()
                 this._bodies.insert(old)
             }
             this._bodies.insert(body)
@@ -575,7 +576,7 @@ export class Entity implements MoveAABB {
 
                     // IF HAS STATIC CHILD, NEEDS A VBH
                     if(this._childs && this.children.filter(c => c._parentType == 0).length && !this._allBodies) {
-                        this._allBodies = new SimpleVBH<Body>()
+                        this._allBodies = new BinaryTree<Body>()
                         this._allBodies.bulkInsert(this.bodies)
                     }
 
@@ -670,7 +671,7 @@ export class Entity implements MoveAABB {
 
                     // IF HAS STATIC CHILD, NEEDS A VBH
                     if(!topEntity._allBodies) {
-                        topEntity._allBodies = new SimpleVBH<Body>()
+                        topEntity._allBodies = new BinaryTree<Body>()
                         topEntity._allBodies.bulkInsert(topEntity.bodies)
                     }
 
@@ -723,7 +724,7 @@ export class Entity implements MoveAABB {
                 }
 
                 if(!topEntity._allBodies) {
-                    topEntity._allBodies = new SimpleVBH<Body>()
+                    topEntity._allBodies = new BinaryTree<Body>()
                     topEntity._allBodies.bulkInsert(topEntity.bodies)
                 }
 
@@ -763,7 +764,7 @@ export class Entity implements MoveAABB {
 
                 // IF HAS STATIC CHILD, NEEDS A VBH
                 if(this._childs && this.children.filter(c => c._parentType == 0).length && !this._allBodies) {
-                    this._allBodies = new SimpleVBH<Body>()
+                    this._allBodies = new BinaryTree<Body>()
                     this._allBodies.bulkInsert(this.bodies)
                 }
 

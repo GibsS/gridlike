@@ -51,10 +51,10 @@ export class BinaryTree<X extends EnabledAABB> implements VBH<X> {
         otherdx -= dx
         otherdy -= dy
 
-        let maxxOffset = o.minX + otherx + Math.max(0, otherdx) * 2,
-            minxOffset = o.maxX + otherx + Math.min(0, otherdx) * 2,
-            maxyOffset = o.minY + othery + Math.max(0, otherdy) * 2,
-            minyOffset = o.maxY + othery + Math.min(0, otherdy) * 2
+        let maxxOffset = o.maxX + otherx + Math.max(0, otherdx) * 2,
+            minxOffset = o.minX + otherx + Math.min(0, otherdx) * 2,
+            maxyOffset = o.maxY + othery + Math.max(0, otherdy) * 2,
+            minyOffset = o.minY + othery + Math.min(0, otherdy) * 2
         
         result.push.apply(result, this._queryRectCollisions(o, o.minX + minxOffset, o.maxX + maxxOffset, o.minY + minyOffset, o.maxY + maxyOffset))
 
@@ -348,9 +348,27 @@ export class MoveBinaryTree<X extends MoveAABB> extends BinaryTree<X> implements
             }
         }
     }
-    updateSingle(element: X): X[][] {
-        console.log("[updateSingle] not implemented")
-        return null
+    updateSingle(e: X): X[][] {
+        this._move(e, e.moveMinX, e.moveMaxX, e.moveMinY, e.moveMaxY)
+
+        let search: Node<X>[] = [], result: X[][] = [], node = this._data
+
+        while (node) {
+            if (node.element && node.element != e) {
+                result.push([e, node.element])
+            } else {
+                if (node.left.minX <= e.moveMaxX && node.left.maxX >= e.moveMinX && node.left.minY <= e.moveMaxY && node.left.maxY >= e.moveMinY) {
+                    search.push(node.left)
+                }
+
+                if (node.right.minX <= e.moveMaxX && node.right.maxX >= e.moveMinX && node.right.minY <= e.moveMaxY && node.right.maxY >= e.moveMinY) {
+                    search.push(node.right)
+                }
+            }
+            node = search.pop()
+        }
+
+        return result
     }
 }
 

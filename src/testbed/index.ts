@@ -431,6 +431,23 @@ export class Testbed {
                 this.ctx.stroke()
             }
 
+            if (this.showBroadphaseStructure && e._bodies && e._bodies instanceof BinaryTree) {
+                let list = [], node = (e._bodies as BinaryTree<Entity>)._data
+
+                this.ctx.strokeStyle="#00FFFF"
+                while (node) {
+                    this.ctx.strokeRect(
+                        (e._x + node.minX) * this.zoom + bx,
+                        -(e._y + node.maxY) * this.zoom + by,
+                        (node.maxX - node.minX) * this.zoom,
+                        (node.maxY - node.minY) * this.zoom
+                    )
+                    if (!node.element) list.push(node.left, node.right)
+                    node = list.pop()
+                }
+                this.ctx.strokeStyle="#000000"
+            }
+
             if(this.showContact) {
                 this.ctx.strokeStyle="#FF0000"
 
