@@ -503,24 +503,30 @@ export class World {
             let e1: Entity = pair[0], e2: Entity = pair[1]
             
             if(e2._bodies instanceof SmallBody) {
-                if(e1._bodies instanceof SmallBody) {
-                    overlapBodies.push([e1._bodies as SmallBody, e2._bodies as SmallBody])
-                } else {
-                    let vbh = e1._allBodies || e1._bodies as VBH<Body>
-                    overlapBodies.push.apply(overlapBodies, vbh.collideAABB(
-                        e2._bodies as SmallBody,
-                        e1.globalx, e1.globaly, e1.globalvx, e1.globalvy,
-                        e2.globalx, e2.globaly + e2._bodies._y, e2.globalvx, e2.globalvy
-                    ))
+                if (e2.enabled) {
+                    if(e1._bodies instanceof SmallBody) {
+                        if (e1.enabled) {
+                            overlapBodies.push([e1._bodies as SmallBody, e2._bodies as SmallBody])
+                        }
+                    } else {
+                        let vbh = e1._allBodies || e1._bodies as VBH<Body>
+                        overlapBodies.push.apply(overlapBodies, vbh.collideAABB(
+                            e2._bodies as SmallBody,
+                            e1.globalx, e1.globaly, e1.globalvx, e1.globalvy,
+                            e2.globalx, e2.globaly + e2._bodies._y, e2.globalvx, e2.globalvy
+                        ))
+                    }
                 }
             } else {
                 if(e1._bodies instanceof SmallBody) {
-                    let vbh = e2._allBodies || e2._bodies as VBH<Body>
-                    overlapBodies.push.apply(overlapBodies, vbh.collideAABB(
-                        e1._bodies as SmallBody,
-                        e2.globalx, e2.globaly, e2.globalvx, e2.globalvy,
-                        e1.globalx, e1.globaly, e1.globalvx, e1.globalvy
-                    ))
+                    if (e1._bodies.enabled) {
+                        let vbh = e2._allBodies || e2._bodies as VBH<Body>
+                        overlapBodies.push.apply(overlapBodies, vbh.collideAABB(
+                            e1._bodies as SmallBody,
+                            e2.globalx, e2.globaly, e2.globalvx, e2.globalvy,
+                            e1.globalx, e1.globaly, e1.globalvx, e1.globalvy
+                        ))
+                    }
                 } else {
                     let vbh1 = e2._allBodies || e2._bodies as VBH<Body>,
                         vbh2 = e1._allBodies || e1._bodies as VBH<Body>

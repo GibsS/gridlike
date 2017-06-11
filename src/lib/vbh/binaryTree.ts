@@ -32,39 +32,150 @@ export class BinaryTree<X extends EnabledAABB> implements VBH<X> {
 
     // QUERY
     queryRect(x: number, y: number, width: number, height: number): QueryResult<X> {
+        return { bodies: this._queryRect(x, x + width, y, y + height) }
+    }
+
+    collideVBH(other: VBH<X>, x: number, y: number, dx: number, dy: number, otherx: number, othery: number, otherdx: number, otherdy: number): X[][] {
+        if (other instanceof SimpleVBH) {
+            return this._collideWithSimpleVBH(other, x, y, dx, dy, otherx, othery, otherdx, otherdy)
+        } else {
+            return this._collideWithBinaryTree(other as BinaryTree<X>, x, y, dx, dy, otherx, othery, otherdx, otherdy)
+        }
+    }
+    collideAABB(o: X, x: number, y: number, dx: number, dy: number, otherx: number, othery: number, otherdx: number, otherdy: number): X[][] {
+        let result = []
+
+        otherx -= x
+        othery -= y
+
+        otherdx -= dx
+        otherdy -= dy
+
+        let maxxOffset = o.minX + otherx + Math.max(0, otherdx) * 2,
+            minxOffset = o.maxX + otherx + Math.min(0, otherdx) * 2,
+            maxyOffset = o.minY + othery + Math.max(0, otherdy) * 2,
+            minyOffset = o.maxY + othery + Math.min(0, otherdy) * 2
+        
+        result.push.apply(result, this._queryRectCollisions(o, o.minX + minxOffset, o.maxX + maxxOffset, o.minY + minyOffset, o.maxY + maxyOffset))
+
+        return result
+    }
+
+    _queryRect(minX: number, maxX: number, minY: number, maxY: number): X[] {
         let node = this._data
 
-        if (node && node.maxX >= x && node.maxY >= y && node.minX <= x + width && node.minY <= y + height) {
+        if (node && node.maxX >= minX && node.maxY >= minY && node.minX <= maxX && node.minY <= maxY) {
             let search: Node<X>[] = [], result: X[] = []
 
             while (node) {
                 if (node.element) {
                     result.push(node.element)
                 } else {
-                    if (node.left.minX <= x + width && node.left.maxX >= x && node.left.minY <= y + height && node.left.maxY >= y) {
+                    if (node.left.minX <= maxX && node.left.maxX >= minX && node.left.minY <= maxY && node.left.maxY >= minY) {
                         search.push(node.left)
                     }
 
-                    if (node.right.minX <= x + width && node.right.maxX >= x && node.right.minY <= y + height && node.right.maxY >= y) {
+                    if (node.right.minX <= maxX && node.right.maxX >= minX && node.right.minY <= maxY && node.right.maxY >= minY) {
                         search.push(node.right)
                     }
                 }
                 node = search.pop()
             }
 
-            return { bodies: result }
+            return result
         } else {
-            return { bodies: [] }
+            return []
+        }
+    }
+    _queryRectCollisions(other: X, minX: number, maxX: number, minY: number, maxY: number): X[][] {
+        let node = this._data
+
+        if (node && node.maxX >= minX && node.maxY >= minY && node.minX <= maxX && node.minY <= maxY) {
+            let search: Node<X>[] = [], result: X[][] = []
+
+            while (node) {
+                if (node.element) {
+                    result.push([other, node.element])
+                } else {
+                    if (node.left.minX <= maxX && node.left.maxX >= minX && node.left.minY <= maxY && node.left.maxY >= minY) {
+                        search.push(node.left)
+                    }
+
+                    if (node.right.minX <= maxX && node.right.maxX >= minX && node.right.minY <= maxY && node.right.maxY >= minY) {
+                        search.push(node.right)
+                    }
+                }
+                node = search.pop()
+            }
+
+            return result
+        } else {
+            return []
         }
     }
 
-    collideVBH(other: VBH<X>, x: number, y: number, dx: number, dy: number, otherx: number, othery: number, otherdx: number, otherdy: number): X[][] {
-        console.log("[collideVBH] not implemented")
-        return null
+    _collideWithSimpleVBH(other: SimpleVBH<X>, x: number, y: number, dx: number, dy: number, otherx: number, othery: number, otherdx: number, otherdy: number): X[][] {
+        let result = []
+
+        otherx -= x
+        othery -= y
+
+        otherdx -= dx
+        otherdy -= dy
+
+        let maxxOffset = otherx + Math.max(0, otherdx) * 2,
+            minxOffset = otherx + Math.min(0, otherdx) * 2,
+            maxyOffset = othery + Math.max(0, otherdy) * 2,
+            minyOffset = othery + Math.min(0, otherdy) * 2
+
+        other.forAll(o => result.push.apply(result, this._queryRectCollisions(o, o.minX + minxOffset, o.maxX + maxxOffset, o.minY + minyOffset, o.maxY + maxyOffset)))
+
+        return result
     }
-    collideAABB(other: X, x: number, y: number, dx: number, dy: number, otherx: number, othery: number, otherdx: number, otherdy: number): X[][] {
-        console.log("[collideAABB] not implemented")
-        return null
+    _collideWithBinaryTree(other: BinaryTree<X>, x: number, y: number, dx: number, dy: number, otherx: number, othery: number, otherdx: number, otherdy: number): X[][] {
+        if (this._data && other._data) {
+            let result = []
+
+            otherx -= x
+            othery -= y
+
+            otherdx -= dx
+            otherdy -= dy
+
+            let maxxOffset = otherx + Math.max(0, otherdx) * 2,
+                minxOffset = otherx + Math.min(0, otherdx) * 2,
+                maxyOffset = othery + Math.max(0, otherdy) * 2,
+                minyOffset = othery + Math.min(0, otherdy) * 2
+
+            this._findMovePair(this._data, other._data, maxxOffset, maxyOffset, minxOffset, minyOffset, result)
+
+            return result
+        } else {
+            return []
+        }
+    }
+
+    _findMovePair(f: Node<X>, s: Node<X>, maxxOffset: number, maxyOffset: number, minxOffset: number, minyOffset: number, result: X[][]) {
+        if (f.minX <= s.maxX + maxxOffset && f.maxX >= s.minX + minxOffset && f.minY <= s.maxY + maxyOffset && f.maxY >= s.minY + minyOffset) {
+            if (f.element) {
+                if (s.element) {
+                    result.push([s.element, f.element])
+                } else {
+                    this._findMovePair(f, s.left, maxxOffset, maxyOffset, minxOffset, minyOffset, result)
+                    this._findMovePair(f, s.right, maxxOffset, maxyOffset, minxOffset, minyOffset, result)
+                }
+            } else {
+                if (s.element) {
+                    this._findMovePair(f.left, s, maxxOffset, maxyOffset, minxOffset, minyOffset, result)
+                    this._findMovePair(f.right, s, maxxOffset, maxyOffset, minxOffset, minyOffset, result)
+                } else {
+                    this._findMovePair(f.left, s.left, maxxOffset, maxyOffset, minxOffset, minyOffset, result)
+                    this._findMovePair(f.left, s.right, maxxOffset, maxyOffset, minxOffset, minyOffset, result)
+                    this._findMovePair(f.right, s.left, maxxOffset, maxyOffset, minxOffset, minyOffset, result)
+                    this._findMovePair(f.right, s.right, maxxOffset, maxyOffset, minxOffset, minyOffset, result)
+                }
+            }
+        }
     }
 
     _allInNode(node: Node<X>): X[] {

@@ -1,9 +1,9 @@
 import * as _ from 'lodash'
 
 import { RaycastResult, QueryResult } from '../model/query'
+import { BinaryTree } from './binaryTree'
 
 import { EPS } from '../model/world'
-
 
 export interface AABB { 
     minX: number
@@ -91,29 +91,11 @@ export class SimpleVBH<X extends EnabledAABB> implements VBH<X> {
         return { bodies: res }
     }
     collideVBH(other: VBH<X>, x: number, y: number, dx: number, dy: number, otherx: number, othery: number, otherdx: number, otherdy: number): X[][] {
-        let res = []
-
-        otherx -= x
-        othery -= y
-
-        otherdx -= dx
-        otherdy -= dy
-
-        let maxxOffset = otherx + Math.max(0, otherdx)*2,
-            minxOffset = otherx + Math.min(0, otherdx)*2,
-            maxyOffset = othery + Math.max(0, otherdy)*2,
-            minyOffset = othery + Math.min(0, otherdy)*2
-
-        for (let a of this.elements) {
-            for (let b of (other as SimpleVBH<X>).elements) {
-                if (a.enabled && b.enabled 
-                    && a.minX <= b.maxX + maxxOffset && b.minX + minxOffset <= a.maxX && a.minY <= b.maxY + maxyOffset && b.minY + minyOffset <= a.maxY) {
-                    res.push([a, b])
-                }
-            }
+        if (other instanceof SimpleVBH) {
+            return this._collideWithSimpleVBH(other, x, y, dx, dy, otherx, othery, otherdx, otherdy)
+        } else {
+            return (other as BinaryTree<X>)._collideWithSimpleVBH(this, otherx, othery, otherdx, otherdy, x, y, dx, dy)
         }
-        
-        return res
     }
     collideAABB(other: X, x: number, y: number, dx: number, dy: number, otherx: number, othery: number, otherdx: number, otherdy: number): X[][] {
         let res = []
@@ -124,16 +106,41 @@ export class SimpleVBH<X extends EnabledAABB> implements VBH<X> {
         otherdx -= dx
         otherdy -= dy
 
-        let maxxOffset = other.minX + otherx + Math.max(0, otherdx)*2,
-            minxOffset = other.maxX + otherx + Math.min(0, otherdx)*2,
-            maxyOffset = other.minY + othery + Math.max(0, otherdy)*2,
-            minyOffset = other.maxY + othery + Math.min(0, otherdy)*2
+        let maxxOffset = other.maxX + otherx + Math.max(0, otherdx)*2,
+            minxOffset = other.minX + otherx + Math.min(0, otherdx)*2,
+            maxyOffset = other.maxY + othery + Math.max(0, otherdy)*2,
+            minyOffset = other.minY + othery + Math.min(0, otherdy)*2
 
         for(let a of this.elements) {
-            if(a.enabled && other.enabled && 
-                !(a.minX > maxxOffset || a.maxX < minxOffset 
-                || a.minY > maxyOffset || a.maxY < minyOffset)) {
+            if(a.enabled && a.minX <= maxxOffset && a.maxX >= minxOffset && a.minY <= maxyOffset && a.maxY >= minyOffset) {
                 res.push([a, other])
+            }
+        }
+
+        return res
+    }
+
+    _collideWithSimpleVBH(other: SimpleVBH<X>, x: number, y: number, dx: number, dy: number, otherx: number, othery: number, otherdx: number, otherdy: number): X[][] {
+        let res = []
+
+        otherx -= x
+        othery -= y
+
+        otherdx -= dx
+        otherdy -= dy
+
+        let maxxOffset = otherx + Math.max(0, otherdx) * 2,
+            minxOffset = otherx + Math.min(0, otherdx) * 2,
+            maxyOffset = othery + Math.max(0, otherdy) * 2,
+            minyOffset = othery + Math.min(0, otherdy) * 2
+
+        for (let a of this.elements) {
+            if (a.enabled) {
+                for (let b of (other as SimpleVBH<X>).elements) {
+                    if (b.enabled && a.minX <= b.maxX + maxxOffset && b.minX + minxOffset <= a.maxX && a.minY <= b.maxY + maxyOffset && b.minY + minyOffset <= a.maxY) {
+                        res.push([a, b])
+                    }
+                }
             }
         }
         
