@@ -85,11 +85,8 @@ export class BinaryTree<X extends EnabledAABB> implements VBH<X> {
     _insert(e: X, aabb?: AABB) {
         let node = this._data as Node<X>
 
-        if (!node) {
-            this._data = createLeafNode<X>(null, e)
-        } else {
-            this._insertInNode(node, e, aabb)
-        }
+        if (node) this._insertInNode(node, e, aabb)
+        else this._data = createLeafNode<X>(null, e, e)
     }
     _insertInNode(node: Node<X>, e: X, aabb?: AABB) {
         if (!aabb) { 
@@ -107,8 +104,8 @@ export class BinaryTree<X extends EnabledAABB> implements VBH<X> {
             }
         }
 
-        node.right = createLeafNode<X>(node, node.element)
-        node.left = createLeafNode<X>(node, e)
+        node.right = createLeafNode<X>(node, node.element, node)
+        node.left = createLeafNode<X>(node, e, aabb)
         node.element = null
         
         while(node) {
@@ -272,7 +269,7 @@ function createNode<X extends EnabledAABB>(parent: Node<X>, left: Node<X>, right
         maxY: Math.max(left.maxY, right.maxY)
     }
 }
-function createLeafNode<X extends EnabledAABB>(parent: Node<X>, e: X): Node<X> {
+function createLeafNode<X extends EnabledAABB>(parent: Node<X>, e: X, aabb: AABB): Node<X> {
     let node = {
         parent,
         left: null,
@@ -280,10 +277,10 @@ function createLeafNode<X extends EnabledAABB>(parent: Node<X>, e: X): Node<X> {
         element: e,
 
         height: 0,
-        minX: e.minX,
-        maxX: e.maxX,
-        minY: e.minY,
-        maxY: e.maxY
+        minX: aabb.minX,
+        maxX: aabb.maxX,
+        minY: aabb.minY,
+        maxY: aabb.maxY
     }
 
     ;(e as any).parentNode = node
