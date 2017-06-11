@@ -70,7 +70,7 @@ export class Entity implements MoveAABB {
     _upLower: Contact
     _downLower: Contact
 
-    _invalidOverlap: Body[][]
+    _invalidOverlap: Body[][] = []
     _overlap: Body[][]
 
     _minX: number = Infinity
