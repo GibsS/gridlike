@@ -2,7 +2,7 @@ import * as _ from 'lodash'
 
 import { EnabledAABB } from '../vbh/vbh'
 import { Entity } from './entity'
-import { Contact, Overlap } from './contact'
+import { Contact, _Contact, Overlap } from './contact'
 
 export enum BodyType {
     RECT, LINE, GRID
@@ -54,7 +54,7 @@ export abstract class Body implements EnabledAABB {
     _x: number
     _y: number
 
-    _higherContacts: Contact[]
+    _higherContacts: _Contact[]
 
     get entity(): Entity { return this._entity }
     set entity(val: Entity) { console.log("[ERROR] can't set entity") }
@@ -173,7 +173,7 @@ export abstract class Body implements EnabledAABB {
 
     _clearContacts() {
         for (let t of ["_upLower", "_downLower", "_leftLower", "_rightLower"]) {
-            let c: Contact = this._topEntity[t]
+            let c: _Contact = this._topEntity[t]
 
             if (c) {
                 let i = c.otherBody._higherContacts.indexOf(c)
@@ -189,13 +189,13 @@ export abstract class Body implements EnabledAABB {
             for (let i = 0; i < len; i++) {
                 let c = this._higherContacts[i]
 
-                if (c.side == "left") {
+                if (c.side == 1) {
                     c.otherBody._topEntity._rightLower = null
                     toremove.push(i)
-                } else if (c.side == "right") {
+                } else if (c.side == 0) {
                     c.otherBody._topEntity._leftLower = null
                     toremove.push(i)
-                } else if (c.side == "up") {
+                } else if (c.side == 2) {
                     c.otherBody._topEntity._downLower = null
                     toremove.push(i)
                 } else {
@@ -226,6 +226,13 @@ export abstract class SmallBody extends Body {
     _isSensor: boolean
     _layer: number
     _layerGroup: number
+
+    // 0 or null: nothing
+    // 1: isSensor change to false
+    // 2: layer change
+    // 3: shape change
+    // 4: enabled change
+    // _contactStatus: number
 
     get isSensor(): boolean { return this._isSensor }
     get layer(): string {
@@ -270,6 +277,19 @@ export abstract class SmallBody extends Body {
             this._layer = args.layer ? this._entity._world._getLayer(args.layer) : 0
             this._layerGroup = args.layerGroup || 0
         }
+    }
+
+    _shapeChangeContactFix() {
+
+    }
+    _layerChangeContactFix() {
+
+    }
+    _enabledChangeContactFix() {
+
+    }
+    _isSensorChangeContactFix() {
+
     }
 }
 
@@ -345,21 +365,13 @@ export class Line extends SmallBody {
     }
     set side(val: string) {
         if (this.isHorizontal) {
-            if (!val || val == "all") {
-                this._oneway = 0
-            } else if (val == "down") {
-                this._oneway = 2
-            } else if (val == "up") {
-                this._oneway = 1
-            }
+            if (!val || val == "all") this._oneway = 0
+            else if (val == "down") this._oneway = 2
+            else if (val == "up") this._oneway = 1
         } else {
-            if (!val || val == "all") {
-                this._oneway = 0
-            } else if (val == "right") {
-                this._oneway = 1
-            } else if (val == "left") {
-                this._oneway = 2
-            }
+            if (!val || val == "all") this._oneway = 0
+            else if (val == "right") this._oneway = 1
+            else if (val == "left") this._oneway = 2
         }
     }
 
@@ -430,11 +442,6 @@ export class Grid extends Body {
 
     _width: number
     _height: number
-
-    static _leftInfo: { line: number } = { line: 0 } // 0: nothing, 1: oneway right, 2: oneway left, 3: solid
-    static _rightInfo: { line: number } = { line: 0 } // 0: nothing, 1: oneway left, 2: oneway right, 3: solid
-    static _upInfo: { line: number } = { line: 0 } // 0: nothing, 1: oneway down, 2: oneway up, 3: solid
-    static _downInfo: { line: number } = { line: 0 } // 0: nothing, 1: oneway up, 2: oneway down, 3: solid
 
     _newBodies: Body[]
     _oldBodies: Body[]

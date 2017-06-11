@@ -326,7 +326,7 @@ export class World {
                             narrows.forEach(n => {
                                 if(n.time < firstTime) {
                                     switch(n.side) {
-                                        case "up": {
+                                        case 2: {
                                             if(ent._downLower) {
                                                 if((n.otherBody as SmallBody)._upCollide) {
                                                     if(!ent._invalidOverlap) { ent._invalidOverlap = [] }
@@ -338,7 +338,7 @@ export class World {
                                             }
                                             break
                                         }
-                                        case "down": {
+                                        case 3: {
                                             if(ent._upLower) {
                                                 if((n.otherBody as SmallBody)._downCollide) {
                                                     if(!ent._invalidOverlap) { ent._invalidOverlap = [] }
@@ -350,7 +350,7 @@ export class World {
                                             }
                                             break
                                         }
-                                        case "left": {
+                                        case 1: {
                                             if(ent._rightLower) {
                                                 if((n.otherBody as SmallBody)._leftCollide) {
                                                     if(!ent._invalidOverlap) { ent._invalidOverlap = [] }
@@ -362,7 +362,7 @@ export class World {
                                             }
                                             break
                                         }
-                                        case "right": {
+                                        case 0: {
                                             if(ent._leftLower) {
                                                 if((n.otherBody as SmallBody)._rightCollide) {
                                                     if(!ent._invalidOverlap) { ent._invalidOverlap = [] }
@@ -389,28 +389,28 @@ export class World {
                                 if(!first.otherBody._higherContacts) { first.otherBody._higherContacts = [] }
 
                                 switch(first.side) {
-                                    case "up": {
+                                    case 2: {
                                         if(ent._upLower) { ent._removeUpLowerContact() }
-                                        ent._upLower = { body: first.body, otherBody: first.otherBody, side: "up" }
-                                        first.otherBody._higherContacts.push({ body: first.otherBody, otherBody: first.body, side: "down" })
+                                        ent._upLower = { body: first.body, otherBody: first.otherBody, side: first.side }
+                                        first.otherBody._higherContacts.push(ent._upLower)
                                         break
                                     }
-                                    case "down": {
+                                    case 3: {
                                         if(ent._downLower) { ent._removeDownLowerContact() }
-                                        ent._downLower = { body: first.body, otherBody: first.otherBody, side: "down" }
-                                        first.otherBody._higherContacts.push({ body: first.otherBody, otherBody: first.body, side: "up" })
+                                        ent._downLower = { body: first.body, otherBody: first.otherBody, side: first.side }
+                                        first.otherBody._higherContacts.push(ent._downLower)
                                         break
                                     }
-                                    case "left": {
+                                    case 1: {
                                         if(ent._leftLower) { ent._removeLeftLowerContact() }
-                                        ent._leftLower = { body: first.body, otherBody: first.otherBody, side: "left" }
-                                        first.otherBody._higherContacts.push({ body: first.otherBody, otherBody: first.body, side: "right" })
+                                        ent._leftLower = { body: first.body, otherBody: first.otherBody, side: first.side }
+                                        first.otherBody._higherContacts.push(ent._leftLower)
                                         break
                                     }
-                                    case "right": {
+                                    case 0: {
                                         if(ent._rightLower) { ent._removeRightLowerContact() }
-                                        ent._rightLower = { body: first.body, otherBody: first.otherBody, side: "down" }
-                                        first.otherBody._higherContacts.push({ body: first.otherBody, otherBody: first.body, side: "left" })
+                                        ent._rightLower = { body: first.body, otherBody: first.otherBody, side: first.side }
+                                        first.otherBody._higherContacts.push(ent._rightLower)
                                         break
                                     }
                                 }
@@ -454,6 +454,15 @@ export class World {
                     }
                 }
 
+                // let newOverlapCount = ent._invalidOverlap.length
+                // if (newOverlapCount != overlapCount && ent._listener) {
+                //     if(newOverlapCount) {
+                //         if(ent._listener.)
+                //     } else {
+
+                //     }
+                // }
+
                 // CORRECT SPEED FOR PARENT
                 if(ent._parent) {
                     ent._vx -= ent._parent._simvx
@@ -484,10 +493,16 @@ export class World {
             for(let e of ents) {
                 if (e._overlap)
                     e._overlap = e._overlap.filter((p: SmallBody[]) => {
-                        return p[1]._topEntity._x + p[1]._x + p[1]._width/2 >= p[0]._topEntity._x + p[0]._x - p[0]._width/2
+                        let res = p[1]._topEntity._x + p[1]._x + p[1]._width/2 >= p[0]._topEntity._x + p[0]._x - p[0]._width/2
                             && p[1]._topEntity._x + p[1]._x - p[1]._width/2 <= p[0]._topEntity._x + p[0]._x + p[0]._width/2
                             && p[1]._topEntity._y + p[1]._y + p[1]._height/2 >= p[0]._topEntity._y + p[0]._y - p[0]._height/2
                             && p[1]._topEntity._y + p[1]._y - p[1]._height/2 <= p[0]._topEntity._y + p[0]._y + p[0]._height/2
+
+                        if (e._listener && e._listener.overlapEnd && !res) {
+                            e._listener.overlapEnd(p[0], p[1])
+                        }
+
+                        return res
                 })
 
                 e.moveMinX = e.minX + Math.min(0, e._vx * delta) * 2 - 0.1
@@ -559,6 +574,9 @@ export class World {
                         if(!p[0]._entity._overlap) { p[0]._entity._overlap = [] }
                         p[0]._entity._overlap.push(p)
                         p[1]._entity._overlap.push([p[1], p[0]])
+
+                        if (p[0]._entity._listener && p[0]._entity._listener.overlapStart) p[0]._entity._listener.overlapStart(p[0], p[1])
+                        if (p[1]._entity._listener && p[1]._entity._listener.overlapStart) p[1]._entity._listener.overlapStart(p[1], p[0])
                     }
                 }
                 return false
@@ -581,6 +599,9 @@ export class World {
                         if(!p[0]._entity._overlap) { p[0]._entity._overlap = [] }
                         p[0]._entity._overlap.push(p)
                         p[1]._entity._overlap.push([p[1], p[0]])
+
+                        if (p[0]._entity._listener && p[0]._entity._listener.overlapStart) p[0]._entity._listener.overlapStart(p[0], p[1])
+                        if (p[1]._entity._listener && p[1]._entity._listener.overlapStart) p[1]._entity._listener.overlapStart(p[0], p[1])
                     }
                 }
             }
@@ -631,7 +652,7 @@ export class World {
                         body: b1,
                         otherBody: b2,
 
-                        side: x1 < x2 ? "right" : "left"
+                        side: x1 < x2 ? 0 : 1
                     }
                 }
             } 
@@ -649,7 +670,7 @@ export class World {
                         body: b1,
                         otherBody: b2,
 
-                        side: y1 < y2 ? "up" : "down"
+                        side: y1 < y2 ? 2 : 3
                     }
                 }
             } 
@@ -667,7 +688,7 @@ export class World {
                         body: b1,
                         otherBody: b2,
 
-                        side: y1 < y2 ? "up" : "down"
+                        side: y1 < y2 ? 2 : 3
                     }
                 }
             } 
@@ -684,7 +705,7 @@ export class World {
                         body: b1,
                         otherBody: b2,
 
-                        side: x1 < x2 ? "right" : "left"
+                        side: x1 < x2 ? 0 : 1
                     }
                 }
             } 
@@ -693,15 +714,14 @@ export class World {
         return null
     }
 
-    /*
-        returns:
-            0: no overlap
-            1: stuck
-            2: move left
-            3: move right
-            4: move up
-            5: move down
-    */
+    /* returns:
+     *  0: no overlap
+     *  1: stuck
+     *  2: move left
+     *  3: move right
+     *  4: move up
+     *  5: move down
+     */
     _solveOverlap(b1: SmallBody, b2: SmallBody, x1: number, y1: number, x2: number, y2: number, 
                   canUp: boolean, canDown: boolean, canLeft: boolean, canRight: boolean): number {
         if (x1 - b1._width/2 + 0.001 > x2 + b2._width/2
@@ -717,24 +737,24 @@ export class World {
                 yMax = Math.max(up, down), xMax = Math.max(left, right)
 
             if (yMax <= 0 && xMax <= 0) {
-                if(canUp) { return 4 }
-                if(canDown) { return 5 }
-                if(canLeft) { return 2 }
-                if(canRight) { return 3 }
+                if (canUp) return 4
+                if (canDown) return 5
+                if (canLeft) return 2
+                if (canRight) return 3
                 return 1
             }
 
             if(yMax > xMax) {
                 if(up > down) {
-                    if(canUp) { return 4 }
+                    if(canUp) return 4
                 } else {
-                    if(canDown) { return 5 }
+                    if(canDown) return 5
                 }
             } else {
                 if(left > right) {
-                    if(canLeft) { return 2 }
+                    if(canLeft) return 2
                 } else {
-                    if(canRight) { return 3 }
+                    if(canRight) return 3
                 }
             }
             return 1
@@ -751,43 +771,40 @@ export class World {
             otherx, othery,
             !ent._upLower, !ent._downLower, !ent._leftLower, !ent._rightLower)) {
             case 1: { // stuck
-                if (this._newOverlap) {
-                    this._newOverlap.push(pair)
-                } else {
-                    this._newOverlap = [pair]
-                }
+                if (this._newOverlap) this._newOverlap.push(pair)
+                else this._newOverlap = [pair]
                 break
             }
             case 2: { // move left
                 ent._x = otherx - o2._width/2 - o1._width/2 - o1._x
-                if(ent._rightLower) { ent._removeRightLowerContact() }
-                ent._rightLower = { body: o1, otherBody: o2, side: "right" }
-                if(!o2._higherContacts) { o2._higherContacts = [] }
-                o2._higherContacts.push({ body: o2, otherBody: o1, side: "left" })
+                if(ent._rightLower) ent._removeRightLowerContact()
+                ent._rightLower = { body: o1, otherBody: o2, side: 0 }
+                if(!o2._higherContacts) o2._higherContacts = []
+                o2._higherContacts.push(ent._rightLower)
                 break
             }
             case 3: { // move right
                 ent._x = otherx + o2._width/2 + o1._width/2 - o1._x
-                if(ent._leftLower) { ent._removeLeftLowerContact() }
-                ent._leftLower = { body: o1, otherBody: o2, side: "left" }
-                if(!o2._higherContacts) { o2._higherContacts = [] }
-                o2._higherContacts.push({ body: o2, otherBody: o1, side: "right" })
+                if(ent._leftLower) ent._removeLeftLowerContact()
+                ent._leftLower = { body: o1, otherBody: o2, side: 1 }
+                if(!o2._higherContacts) o2._higherContacts = []
+                o2._higherContacts.push(ent._leftLower)
                 break
             }
             case 4: { // move up
                 ent._y = othery + o2._height/2 + o1._height/2 - o1._y
-                if(ent._downLower) { ent._removeDownLowerContact() }
-                ent._downLower = { body: o1, otherBody: o2, side: "down" }
-                if(!o2._higherContacts) { o2._higherContacts = [] }
-                o2._higherContacts.push({ body: o2, otherBody: o1, side: "up" })
+                if(ent._downLower) ent._removeDownLowerContact()
+                ent._downLower = { body: o1, otherBody: o2, side: 3 }
+                if(!o2._higherContacts) o2._higherContacts = []
+                o2._higherContacts.push(ent._downLower)
                 break
             }
             case 5: { // move down
                 ent._y = othery - o2._height/2 - o1._height/2 - o1._y
-                if(ent._upLower) { ent._removeUpLowerContact() }
-                ent._upLower = { body: o1, otherBody: o2, side: "up" }
-                if(!o2._higherContacts) { o2._higherContacts = [] }
-                o2._higherContacts.push({ body: o2, otherBody: o1, side: "down" })
+                if(ent._upLower) ent._removeUpLowerContact()
+                ent._upLower = { body: o1, otherBody: o2, side: 2 }
+                if(!o2._higherContacts) o2._higherContacts = []
+                o2._higherContacts.push(ent._upLower)
                 break
             }
         }
@@ -803,5 +820,5 @@ interface NarrowResult {
     x: number
     y: number
 
-    side: string
+    side: number
 }

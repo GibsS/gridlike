@@ -2,7 +2,7 @@ import * as _ from 'lodash'
 
 import { Script, ScriptDescriptor } from '../script'
 import { Testbed } from '../'
-import { Entity, Grid, Body, LayerCollision } from '../../lib'
+import { Entity, Grid, Body, LayerCollision, EntityListener } from '../../lib'
 
 import * as fixSpeed from '../controllers/fixSpeedController'
 import * as charController from '../controllers/characterController'
@@ -246,7 +246,7 @@ class Script5 extends Script {
     }
 }
 
-class Script6 extends Script {
+class Script6 extends Script implements EntityListener {
 
     ground1: Entity
     ground2: Entity
@@ -302,6 +302,8 @@ class Script6 extends Script {
         this.ground5.name = "ground4"
 
         fixSpeed.input(this, this.rect, false)
+
+        this.rect.listener = this
     }
 
     update(time: number, delta: number) {
@@ -583,7 +585,7 @@ class Script12 extends Script {
     }
 }
 
-class Script13 extends Script {
+class Script13 extends Script implements EntityListener {
 
     rect: Entity
     
@@ -626,6 +628,14 @@ class Script13 extends Script {
         }))
 
         charController.input(this, this.rect)
+        this.rect.listener = this
+    }
+
+    overlapStart(body: Body, otherBody: Body) {
+        console.log("overlap start:", body._entity.name, otherBody._entity.name)
+    }
+    overlapEnd(body: Body, otherBody: Body) {
+        console.log("overlap end:", body._entity.name, otherBody._entity.name)
     }
 
     update(time: number, delta: number) {
