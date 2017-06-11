@@ -306,6 +306,13 @@ class Script6 extends Script implements EntityListener {
         this.rect.listener = this
     }
 
+    crushStart() {
+        console.log("crush start")
+    }
+    crushEnd() {
+        console.log("crush end")
+    }
+
     update(time: number, delta: number) {
         follow(this, this.rect, time, delta)
         fixSpeed.update(this.rect, time, delta, 5)

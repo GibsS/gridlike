@@ -32,6 +32,7 @@ export class World {
 
     // CACHE
     _newOverlap: SmallBody[][]
+    _hasInvalidOverlap: boolean
 
     constructor(userSpatialRegions?: boolean) {
         this._time = 0
@@ -245,6 +246,9 @@ export class World {
                     time: number = 0
 
                 // INVALID STATE SOLVING
+                this._hasInvalidOverlap = false
+                let hadOverlap: boolean = ent._invalidOverlap.length > 0
+
                 this._newOverlap = null
                 ent._invalidOverlap.forEach((o: SmallBody[]) => {
                     this._handleOverlap(ent, o, o[0], o[1], delta)
@@ -260,6 +264,19 @@ export class World {
                     }
                 })
                 if (this._newOverlap) ent._invalidOverlap = this._newOverlap
+                else if(hadOverlap) ent._invalidOverlap = []
+
+                if (hadOverlap != this._hasInvalidOverlap && ent._listener) {
+                    if(hadOverlap) {
+                        if (ent._listener.crushEnd) {
+                            ent._listener.crushEnd()
+                        }
+                    } else {
+                        if (ent._listener.crushStart) {
+                            ent._listener.crushStart()
+                        }
+                    }
+                } 
 
                 // CALCULATE SPEED WITH PARENT
                 if (ent._parent) {
@@ -328,9 +345,11 @@ export class World {
                                     switch(n.side) {
                                         case 2: {
                                             if(ent._downLower) {
-                                                if((n.otherBody as SmallBody)._upCollide) {
-                                                    if(!ent._invalidOverlap) { ent._invalidOverlap = [] }
+                                                if((n.otherBody as SmallBody)._upCollide) { 
                                                     ent._invalidOverlap.push([n.body, n.otherBody])
+                                                    if(ent._invalidOverlap.length == 1 && ent._listener && ent._listener.crushStart) {
+                                                        ent._listener.crushStart()
+                                                    }
                                                 }
                                             } else {
                                                 firstTime = n.time
@@ -341,8 +360,10 @@ export class World {
                                         case 3: {
                                             if(ent._upLower) {
                                                 if((n.otherBody as SmallBody)._downCollide) {
-                                                    if(!ent._invalidOverlap) { ent._invalidOverlap = [] }
                                                     ent._invalidOverlap.push([n.body, n.otherBody])
+                                                    if(ent._invalidOverlap.length == 1 && ent._listener && ent._listener.crushStart) {
+                                                        ent._listener.crushStart()
+                                                    }
                                                 }
                                             } else {
                                                 firstTime = n.time
@@ -353,8 +374,10 @@ export class World {
                                         case 1: {
                                             if(ent._rightLower) {
                                                 if((n.otherBody as SmallBody)._leftCollide) {
-                                                    if(!ent._invalidOverlap) { ent._invalidOverlap = [] }
                                                     ent._invalidOverlap.push([n.body, n.otherBody])
+                                                    if(ent._invalidOverlap.length == 1 && ent._listener && ent._listener.crushStart) {
+                                                        ent._listener.crushStart()
+                                                    }
                                                 }
                                             } else {
                                                 firstTime = n.time
@@ -365,8 +388,10 @@ export class World {
                                         case 0: {
                                             if(ent._leftLower) {
                                                 if((n.otherBody as SmallBody)._rightCollide) {
-                                                    if(!ent._invalidOverlap) { ent._invalidOverlap = [] }
                                                     ent._invalidOverlap.push([n.body, n.otherBody])
+                                                    if(ent._invalidOverlap.length == 1 && ent._listener && ent._listener.crushStart) {
+                                                        ent._listener.crushStart()
+                                                    }
                                                 }
                                             } else {
                                                 firstTime = n.time
@@ -453,15 +478,6 @@ export class World {
                         }
                     }
                 }
-
-                // let newOverlapCount = ent._invalidOverlap.length
-                // if (newOverlapCount != overlapCount && ent._listener) {
-                //     if(newOverlapCount) {
-                //         if(ent._listener.)
-                //     } else {
-
-                //     }
-                // }
 
                 // CORRECT SPEED FOR PARENT
                 if(ent._parent) {
@@ -773,6 +789,7 @@ export class World {
             case 1: { // stuck
                 if (this._newOverlap) this._newOverlap.push(pair)
                 else this._newOverlap = [pair]
+                this._hasInvalidOverlap = true
                 break
             }
             case 2: { // move left
