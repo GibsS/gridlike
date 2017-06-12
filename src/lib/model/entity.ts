@@ -162,27 +162,30 @@ export class Entity implements MoveAABB {
         }
     }
 
-    // POSITIONNING
-    get x(): number { return this._x - (this._parent != null && this._parent.globalx) }
-    get y(): number { return this._y - (this._parent != null && this._parent.globaly) }
-
-    set x(val: number) { this.globalx = val + (this._parent != null && this._parent.globalx) }
-    set y(val: number) { this.globaly = val + (this._parent != null && this._parent.globaly) }
-
-    get globalx(): number { return this._x }
-    get globaly(): number { return this._y }
-    set globalx(val: number) {
-        if(this._x != val) {
+    set __x(val: number) { 
+        if (this._x != val) {
             this._x = val
             this._xChangeContactFix()
         }
     }
-    set globaly(val: number) { 
-        if(this._y != val) {
+    set __y(val: number) { 
+        if (this._y != val) {
             this._y = val
             this._yChangeContactFix()
         }
     }
+
+    // POSITIONNING
+    get x(): number { return this._x - (this._parent != null && this._parentType == 1 && this._parent.globalx) }
+    get y(): number { return this._y - (this._parent != null && this._parentType == 1 && this._parent.globaly) }
+
+    set x(val: number) { this.__x = val + (this._parent != null && this._parent.globalx) }
+    set y(val: number) { this.__y = val + (this._parent != null && this._parent.globaly) }
+
+    get globalx(): number { return this._x + (this._parent != null && this._parentType == 0 && this._parent.globalx) }
+    get globaly(): number { return this._y + (this._parent != null && this._parentType == 0 && this._parent.globaly) }
+    set globalx(val: number) { this.__x = val - (this._parent != null && this._parentType == 0 && this._parent.globalx) }
+    set globaly(val: number) { this.__y = val - (this._parent != null && this._parentType == 0 && this._parent.globaly) }
 
     get globalvx(): number { return this._vx + (this._parent != null && this._parent.globalvx) }
     get globalvy(): number { return this._vy + (this._parent != null && this._parent.globalvy) }
@@ -461,9 +464,9 @@ export class Entity implements MoveAABB {
                 // REMOVE PARENT - START
                 // #################################
                 // REPOSITION
-                if(!keepPosition) {
-                    this._x -= this._parent.globalx
-                    this._y -= this._parent.globaly
+                if(keepPosition && this._parentType == 0) {
+                    this._x += this._parent.globalx
+                    this._y += this._parent.globaly
                 }
 
                 // ADAPT SPEED
@@ -553,9 +556,9 @@ export class Entity implements MoveAABB {
                 // #################################
                 // SET PARENT - START
                 // #################################
-                if(!keepPosition) {
-                    this._x += parent.globalx
-                    this._y += parent.globaly
+                if(keepPosition && parentType == 0) {
+                    this._x -= parent.globalx
+                    this._y -= parent.globaly
                 }
 
                 this._vx -= parent.globalvx
@@ -624,6 +627,11 @@ export class Entity implements MoveAABB {
                     x = this._x,
                     y = this._y
 
+                if (keepPosition) {
+                    this._x -= parent.globalx
+                    this._y -= parent.globaly
+                }
+
                 while(topEntity._parent != null && topEntity._parentType == 0) {
                     x += topEntity._x
                     y += topEntity._y
@@ -662,6 +670,11 @@ export class Entity implements MoveAABB {
                 let topEntity = parent,
                     x = this._x,
                     y = this._y
+
+                if (keepPosition) {
+                    this._x += parent.globalx
+                    this._y += parent.globaly
+                }    
 
                 while(topEntity._parent != null && topEntity._parentType == 0) {
                     x += topEntity._x
@@ -728,10 +741,10 @@ export class Entity implements MoveAABB {
         this._world._move(this, dx, dy)
     }
     moveToGlobal(x: number, y: number) {
-        this.move(x - this._x, y - this._y)
+        this.move(x - this._x - (this._parent && this._parentType == 0 && this._parent.globalx), y - this._y - (this._parent && this._parentType == 0 && this._parent.globaly))
     }
     moveToLocal(x: number, y: number) {
-        this.move(x - this.x, y - this.y)
+        this.move(x - this.x + (this._parent && this._parentType == 1 && this._parent.globalx), y - this.y + (this._parent && this._parentType == 1 && this._parent.globaly))
     }
 
     localToGlobal(x: number | { x: number, y: number }, y?: number): { x: number, y: number } {
@@ -748,32 +761,27 @@ export class Entity implements MoveAABB {
             x = x.x
         }
         
-        return { x: x - this._x, y: y - this._y }
+        return { 
+            x: x - this._x - (this._parent && this._parentType == 0 && this._parent.globalx), 
+            y: y - this._y - (this._parent && this._parentType == 0 && this._parent.globaly) 
+        }
     }
 
     _resetMinx() {
         this._minX = Infinity
-        this._forAllBodies(b => {
-            this._minX = Math.min(this._minX, b.minX)
-        })
+        this._forAllBodies(b => { this._minX = Math.min(this._minX, b.minX) })
     }
     _resetMiny() {
         this._minY = Infinity
-        this._forAllBodies(b => {
-            this._minY = Math.min(this._minY, b.minY)
-        })
+        this._forAllBodies(b => { this._minY = Math.min(this._minY, b.minY) })
     }
     _resetMaxx() {
         this._maxX = -Infinity
-        this._forAllBodies(b => {
-            this._maxX = Math.max(this._maxX, b.maxX)
-        })
+        this._forAllBodies(b => { this._maxX = Math.max(this._maxX, b.maxX) })
     }
     _resetMaxy() {
         this._maxY = -Infinity
-        this._forAllBodies(b => {
-            this._maxY = Math.max(this._maxY, b.maxY)
-        })
+        this._forAllBodies(b => { this._maxY = Math.max(this._maxY, b.maxY) })
     }
 
     _removeLeftLowerContact() {

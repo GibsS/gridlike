@@ -68,21 +68,21 @@ export abstract class Body implements EnabledAABB {
         this._enabled = val
     }
 
-    get x(): number { return this._x - this._topEntity._x + this._entity._x }
-    get y(): number { return this._y - this._topEntity._y + this._entity._y }
+    get x(): number { return this._x - this._topEntity.globalx + this._entity.globalx }
+    get y(): number { return this._y - this._topEntity.globaly + this._entity.globaly }
 
-    get globalx(): number { return this._x + this._topEntity._x }
-    get globaly(): number { return this._y + this._topEntity._y }
+    get globalx(): number { return this._x + this._topEntity.globalx }
+    get globaly(): number { return this._y + this._topEntity.globaly }
 
     set x(val: number) {
-        let x = this.x, topEntity = this._entity
-        while (topEntity != this._topEntity) { x += topEntity._x }
-        this._topx = val
+        let x = val, topEntity = this._entity
+        while (topEntity != this._topEntity) { x += topEntity._x; topEntity = topEntity._parent }
+        this._topx = x
     }
     set y(val: number) {
-        let y = this.y, topEntity = this._entity
-        while (topEntity != this._topEntity) { y += topEntity._y }
-        this._topy = val
+        let y = val, topEntity = this._entity
+        while (topEntity != this._topEntity) { y += topEntity._y; topEntity = topEntity._parent }
+        this._topy = y
     }
     set _topx(val: number) {
         this._testResetBounds()
@@ -96,12 +96,8 @@ export abstract class Body implements EnabledAABB {
         this._clearContacts()
         this._resetBounds()
     }
-    set globalx(val: number) {
-        this._topx = val - this._topEntity.globalx
-    }
-    set globaly(val: number) {
-        this._topy = val - this._topEntity.globaly
-    }
+    set globalx(val: number) { this._topx = val - this._topEntity.globalx }
+    set globaly(val: number) { this._topy = val - this._topEntity.globaly }
 
     get contacts(): Contact[] {
         return this._topEntity.contacts.filter(c => c.body == this)
