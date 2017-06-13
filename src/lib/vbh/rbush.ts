@@ -138,7 +138,7 @@ export class RBush<X extends MoveAABB> implements MoveVBH<X> {
         items.forEach(i => this.insert(i))
     }
 
-    updateSingle(item: X): X[][] {
+    collisionSingle(item: X): X[][] {
         let parent = (item as any).parentNode,
             result = [],
             moveAABB = { minX: item.moveMinX, maxX: item.moveMaxX, minY: item.moveMinY, maxY: item.moveMaxY }
@@ -154,7 +154,7 @@ export class RBush<X extends MoveAABB> implements MoveVBH<X> {
 
         return result
     }
-    update(): X[][] {
+    collisions(): X[][] {
         // this.other.forAll(e => {
         //     let parent = (e as any).parentNode
 

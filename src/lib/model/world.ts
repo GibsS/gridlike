@@ -530,7 +530,7 @@ export class World {
 
         let overlapBodies: SmallBody[][] = []
         
-        this._vbh.update().forEach(pair => {
+        this._vbh.collisions().forEach(pair => {
             let e1: Entity = pair[0], e2: Entity = pair[1]
             
             if(e2._bodies instanceof SmallBody) {

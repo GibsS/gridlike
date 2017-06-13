@@ -44,12 +44,14 @@ export interface VBH<X extends EnabledAABB> {
 
     collideVBH(other: VBH<X>, x: number, y: number, dx: number, dy: number, otherx: number, othery: number, otherdx: number, otherdy: number): X[][]
     collideAABB(other: X, x: number, y: number, dx: number, dy: number, otherx: number, othery: number, otherdx: number, otherdy: number): X[][]
+
+    updateAABB(element: X)
 }
 
 export interface MoveVBH<X extends MoveAABB> extends VBH<X> {
 
-    update(): X[][]
-    updateSingle(element: X): X[][]
+    collisions(): X[][]
+    collisionSingle(element: X): X[][]
 }
 
 export class SimpleVBH<X extends EnabledAABB> implements VBH<X> {
@@ -120,6 +122,10 @@ export class SimpleVBH<X extends EnabledAABB> implements VBH<X> {
         return res
     }
 
+    updateAABB(element: X) {
+        // do nothing
+    }
+
     _collideWithSimpleVBH(other: SimpleVBH<X>, x: number, y: number, dx: number, dy: number, otherx: number, othery: number, otherdx: number, otherdy: number): X[][] {
         let res = []
 
@@ -150,7 +156,7 @@ export class SimpleVBH<X extends EnabledAABB> implements VBH<X> {
 
 export class SimpleMoveVBH<X extends MoveAABB> extends SimpleVBH<X> implements MoveVBH<X> {
 
-    update(): X[][] {
+    collisions(): X[][] {
         let res = []
 
         let len = this.elements.length
@@ -169,7 +175,7 @@ export class SimpleMoveVBH<X extends MoveAABB> extends SimpleVBH<X> implements M
         
         return res
     }
-    updateSingle(e: X): X[][] {
+    collisionSingle(e: X): X[][] {
         let res = []
 
         if (e.enabled) {

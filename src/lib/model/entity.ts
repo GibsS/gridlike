@@ -741,10 +741,16 @@ export class Entity implements MoveAABB {
         this._world._move(this, dx, dy)
     }
     moveToGlobal(x: number, y: number) {
-        this.move(x - this._x - (this._parent && this._parentType == 0 && this._parent.globalx), y - this._y - (this._parent && this._parentType == 0 && this._parent.globaly))
+        this.move(
+            x - this._x - (this._parent && this._parentType == 0 && this._parent.globalx), 
+            y - this._y - (this._parent && this._parentType == 0 && this._parent.globaly)
+        )
     }
     moveToLocal(x: number, y: number) {
-        this.move(x - this.x + (this._parent && this._parentType == 1 && this._parent.globalx), y - this.y + (this._parent && this._parentType == 1 && this._parent.globaly))
+        this.move(
+            x - this.x + (this._parent && this._parentType == 1 && this._parent.globalx), 
+            y - this.y + (this._parent && this._parentType == 1 && this._parent.globaly)
+        )
     }
 
     localToGlobal(x: number | { x: number, y: number }, y?: number): { x: number, y: number } {

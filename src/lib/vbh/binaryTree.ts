@@ -61,6 +61,10 @@ export class BinaryTree<X extends EnabledAABB> implements VBH<X> {
         return result
     }
 
+    updateAABB(e: X) {
+        this._move(e, e.minX, e.maxX, e.minY, e.maxY)
+    }
+
     _queryRect(minX: number, maxX: number, minY: number, maxY: number): X[] {
         let node = this._data
 
@@ -301,7 +305,7 @@ let searchTime: number
 
 export class MoveBinaryTree<X extends MoveAABB> extends BinaryTree<X> implements MoveVBH<X> {
 
-    update(): X[][] {
+    collisions(): X[][] {
         updateCount++
         if (updateCount % 240 == 0) { console.log("moveTime:", moveTime, "searchTime:", searchTime) }
         let t0 = typeof window !== "undefined" && performance.now()
@@ -348,7 +352,7 @@ export class MoveBinaryTree<X extends MoveAABB> extends BinaryTree<X> implements
             }
         }
     }
-    updateSingle(e: X): X[][] {
+    collisionSingle(e: X): X[][] {
         this._move(e, e.moveMinX, e.moveMaxX, e.moveMinY, e.moveMaxY)
 
         let search: Node<X>[] = [], result: X[][] = [], node = this._data

@@ -1,6 +1,6 @@
 import * as _ from 'lodash'
 
-import { EnabledAABB } from '../vbh/vbh'
+import { VBH, EnabledAABB } from '../vbh/vbh'
 import { Entity } from './entity'
 import { Contact, _Contact, Overlap } from './contact'
 
@@ -63,7 +63,7 @@ export abstract class Body implements EnabledAABB {
     get enabled(): boolean { return this._enabled }
     set enabled(val: boolean) {
         if (val != this._enabled && !val) {
-            this._clearContacts()
+            this._enabledChangeContactFix ()
         }
         this._enabled = val
     }
@@ -210,10 +210,21 @@ export abstract class Body implements EnabledAABB {
         resetmaxy = this._topEntity._maxY == this.maxY
     }
     _resetBounds() {
-        if (resetminx) { this._topEntity._resetMinx() }
-        if (resetmaxx) { this._topEntity._resetMaxx() }
-        if (resetminy) { this._topEntity._resetMiny() }
-        if (resetmaxy) { this._topEntity._resetMaxy() }
+        let top = this._topEntity
+        if (resetminx) { top._resetMinx() }
+        if (resetmaxx) { top._resetMaxx() }
+        if (resetminy) { top._resetMiny() }
+        if (resetmaxy) { top._resetMaxy() }
+
+        if (top._allBodies) {
+            top._allBodies.updateAABB(this)
+        } else if (!(top.bodies instanceof SmallBody)) {
+            (top._bodies as VBH<Body>).updateAABB(this)
+        }
+    }
+
+    _enabledChangeContactFix() {
+
     }
 }
 
@@ -231,29 +242,27 @@ export abstract class SmallBody extends Body {
     // _contactStatus: number
 
     get isSensor(): boolean { return this._isSensor }
-    get layer(): string {
-        return this._topEntity._world._layerNames[this._layer]
-    }
-    get layerGroup(): number {
-        return this._layerGroup
-    }
+    get layer(): string { return this._topEntity._world._layerNames[this._layer] }
+    get layerGroup(): number { return this._layerGroup }
 
     set isSensor(val: boolean) {
-        this._isSensor = val
-        this._clearContacts()
+        if (val != this._isSensor) {
+            this._isSensor = val
+            if (val) this._isSensorChangeContactFix()
+        }
     }
     set layer(val: string) {
         let l = (val && this._entity._world._getLayer(val)) || 0
         if (l != this._layer) {
             this._layer = l
-            this._clearContacts()
+            this._layerChangeContactFix()
         }
     }
     set layerGroup(val: number) {
         val = val || 0
         if (val != this._layerGroup) {
             this._layerGroup = val
-            this._clearContacts()
+            this._layerChangeContactFix()
         }
     }
 
@@ -275,13 +284,7 @@ export abstract class SmallBody extends Body {
         }
     }
 
-    _shapeChangeContactFix() {
-
-    }
     _layerChangeContactFix() {
-
-    }
-    _enabledChangeContactFix() {
 
     }
     _isSensorChangeContactFix() {
