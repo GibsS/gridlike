@@ -444,6 +444,7 @@ export class Grid extends Body {
 
     _newBodies: Body[]
     _oldBodies: Body[]
+    _updatedBodies: Body[]
 
     get minX(): number { console.log('Grid.minx not implemented'); return 0 }
     get maxX(): number { console.log('Grid.maxx not implemented'); return 0 }
@@ -820,11 +821,13 @@ export class Grid extends Body {
                     oldBody._y += 0.5
 
                     if (oldBody._height == 1) this._horizontalBodyMerge(subgrid, subgrid.tiles[x][y + 1], oldBody, x, y + 1, xoffset, yoffset)
+                    this._updatedBodies.push(oldBody)
                 } else if (y + yoffset == oldBody._y + oldBody._height / 2 - 1) {
                     oldBody._height -= 1
                     oldBody._y -= 0.5
 
                     if (oldBody._height == 1) this._horizontalBodyMerge(subgrid, subgrid.tiles[x][y - 1], oldBody, x, y - 1, xoffset, yoffset)
+                    this._updatedBodies.push(oldBody)
                 } else {
                     let newBody: SmallBody
                     if (tile.shape == 1) {
@@ -862,6 +865,7 @@ export class Grid extends Body {
                     newBody._grid = this
                     newBody._isSensor = false
                     this._newBodies.push(newBody)
+                    this._updatedBodies.push(oldBody)
 
                     for (let i = newBody._y - newBody._height / 2 - yoffset; i < newBody._y + newBody._height / 2 - yoffset; i++) {
                         subgrid.tiles[x][i].body = newBody
@@ -876,11 +880,13 @@ export class Grid extends Body {
                     oldBody._x += 0.5
 
                     if (oldBody._width == 1) this._verticalBodyMerge(subgrid, subgrid.tiles[x + 1][y], oldBody, x + 1, y, xoffset, yoffset)
+                    this._updatedBodies.push(oldBody)
                 } else if (x + xoffset == oldBody._x + oldBody._width / 2 - 1) {
                     oldBody._width -= 1
                     oldBody._x -= 0.5
 
                     if (oldBody._height == 1) this._verticalBodyMerge(subgrid, subgrid.tiles[x - 1][y], oldBody, x - 1, y, xoffset, yoffset)
+                    this._updatedBodies.push(oldBody)
                 } else {
                     let newBody: SmallBody
                     if (tile.shape == 1) {
@@ -919,6 +925,7 @@ export class Grid extends Body {
                     newBody._grid = this
                     newBody._isSensor = false
                     this._newBodies.push(newBody)
+                    if (this._newBodies.indexOf(oldBody) < 0) this._updatedBodies.push(oldBody)
 
                     for (let i = newBody._x - newBody._width / 2 - xoffset; i < newBody._x + newBody._width / 2 - xoffset; i++) {
                         subgrid.tiles[i][y].body = newBody
@@ -963,6 +970,7 @@ export class Grid extends Body {
                         rightBody._x -= 0.5
                         tile.body = rightBody
                         body = rightBody
+                        this._updatedBodies.push(rightBody)
                     }
                 }
 
@@ -987,6 +995,7 @@ export class Grid extends Body {
                             leftBody._x += 0.5
                             tile.body = leftBody
                             body = leftBody
+                            this._updatedBodies.push(leftBody)
                         }
                     }
                 }
@@ -1034,6 +1043,7 @@ export class Grid extends Body {
                         upBody._y -= 0.5
                         tile.body = upBody
                         body = upBody
+                        this._updatedBodies.push(upBody)
                     }
                 }
 
@@ -1058,6 +1068,7 @@ export class Grid extends Body {
                             downBody._y += 0.5
                             tile.body = downBody
                             body = downBody
+                            this._updatedBodies.push(downBody)
                         }
                     }
                 }
@@ -1163,14 +1174,17 @@ export class Grid extends Body {
                     leftTile.body._width += 1
                     leftTile.body._x += 0.5
                     left.body = leftTile.body
+                    this._updatedBodies.push(left.body)
                 } else if (upTile.body && upTile.shape == 1 && upTile.layer == layer && upTile.layerGroup == layerGroup && upTile.body._width == 1) {
                     upTile.body._height += 1
                     upTile.body._y -= 0.5
                     left.body = upTile.body
+                    this._updatedBodies.push(left.body)
                 } else if (downTile.body && downTile.shape == 1 && downTile.layer == layer && downTile.layerGroup == layerGroup && downTile.body._width == 1) {
                     downTile.body._height += 1
                     downTile.body._y += 0.5
                     left.body = downTile.body
+                    this._updatedBodies.push(left.body)
                 } else {
                     let newBody = new Rect(null, null)
                     newBody._entity = this._entity
@@ -1198,14 +1212,17 @@ export class Grid extends Body {
                     rightTile.body._width += 1
                     rightTile.body._x -= 0.5
                     right.body = rightTile.body
+                    this._updatedBodies.push(right.body)
                 } else if (upTile.body && upTile.shape == 1 && upTile.layer == layer && upTile.layerGroup == layerGroup && upTile.body._width == 1) {
                     upTile.body._height += 1
                     upTile.body._y -= 0.5
                     right.body = upTile.body
+                    this._updatedBodies.push(right.body)
                 } else if (downTile.body && downTile.shape == 1 && downTile.layer == layer && downTile.layerGroup == layerGroup && downTile.body._width == 1) {
                     downTile.body._height += 1
                     downTile.body._y += 0.5
                     right.body = downTile.body
+                    this._updatedBodies.push(right.body)
                 } else {
                     let newBody = new Rect(null, null)
                     newBody._entity = this._entity
@@ -1233,14 +1250,17 @@ export class Grid extends Body {
                     rightTile.body._width += 1
                     rightTile.body._x -= 0.5
                     up.body = rightTile.body
+                    this._updatedBodies.push(up.body)
                 } else if (upTile.body && upTile.shape == 1 && upTile.layer == layer && upTile.layerGroup == layerGroup && upTile.body._width == 1) {
                     upTile.body._height += 1
                     upTile.body._y -= 0.5
                     up.body = upTile.body
+                    this._updatedBodies.push(up.body)
                 } else if (leftTile.body && leftTile.shape == 1 && leftTile.layer == layer && leftTile.layerGroup == layerGroup && leftTile.body._height == 1) {
                     leftTile.body._width += 1
                     leftTile.body._x += 0.5
                     up.body = leftTile.body
+                    this._updatedBodies.push(up.body)
                 } else {
                     let newBody = new Rect(null, null)
                     newBody._entity = this._entity
@@ -1268,14 +1288,17 @@ export class Grid extends Body {
                     rightTile.body._width += 1
                     rightTile.body._x -= 0.5
                     down.body = rightTile.body
+                    this._updatedBodies.push(down.body)
                 } else if (downTile.body && downTile.shape == 1 && downTile.layer == layer && downTile.layerGroup == layerGroup && downTile.body._width == 1) {
                     downTile.body._height += 1
                     downTile.body._y += 0.5
                     down.body = downTile.body
+                    this._updatedBodies.push(down.body)
                 } else if (leftTile.body && leftTile.shape == 1 && leftTile.layer == layer && leftTile.layerGroup == layerGroup && leftTile.body._height == 1) {
                     leftTile.body._width += 1
                     leftTile.body._x += 0.5
                     down.body = leftTile.body
+                    this._updatedBodies.push(down.body)
                 } else {
                     let newBody = new Rect(null, null)
                     newBody._entity = this._entity
@@ -1307,9 +1330,11 @@ export class Grid extends Body {
             } else if (x + xoffset == body._x - body._width / 2) {
                 body._width -= 1
                 body._x += 0.5
+                this._updatedBodies.push(body)
             } else if (x + xoffset == body._x + body._width / 2 - 1) {
                 body._width -= 1
                 body._x -= 0.5
+                this._updatedBodies.push(body)
             } else {
                 let newBody = new Rect(null, null)
                 newBody._entity = this._entity
@@ -1327,6 +1352,7 @@ export class Grid extends Body {
 
                 body._width -= newBody._width + 1
                 body._x += (newBody._width + 1) / 2
+                this._updatedBodies.push(body)
             }
             tile.sensor = null
         }
@@ -1343,6 +1369,7 @@ export class Grid extends Body {
                     rightBody._x -= 0.5
                     tile.sensor = rightBody
                     body = rightBody
+                    this._updatedBodies.push(body)
                 }
             }
 
@@ -1367,6 +1394,7 @@ export class Grid extends Body {
                         leftBody._x += 0.5
                         tile.sensor = leftBody
                         body = leftBody
+                        this._updatedBodies.push(body)
                     }
                 }
             }
@@ -1413,6 +1441,7 @@ export class Grid extends Body {
 
         this._oldBodies = []
         this._newBodies = []
+        this._updatedBodies = []
 
         // FIND WHICH SUBGRID TO AFFECT + AJUST X/Y POSITION
         if (this._subGrids instanceof SubGrid) {
@@ -1436,8 +1465,21 @@ export class Grid extends Body {
             )
         }
 
-        for (let b of this._oldBodies) { this._entity.removeBody(b) }
-        for (let b of this._newBodies) { this._entity._addBody(b) }
+        for (let b of this._oldBodies) { this._topEntity.removeBody(b) }
+        for (let b of this._newBodies) { this._topEntity._addBody(b) }
+        if (this._topEntity._allBodies) {
+            for (let b of this._updatedBodies) {
+                if (this._oldBodies.indexOf(b) < 0 && this._newBodies.indexOf(b) < 0) {
+                    this._topEntity._allBodies.updateAABB(b)
+                }
+            }
+        } else if (this._topEntity._bodies && !(this._topEntity._bodies instanceof Body)) {
+            for (let b of this._updatedBodies) {
+                if (this._oldBodies.indexOf(b) < 0 && this._newBodies.indexOf(b) < 0) {
+                    this._topEntity._bodies.updateAABB(b)
+                }
+            }
+        }
 
         // DATA MODIFICATION
         if (typeof data != "undefined") {
@@ -1460,6 +1502,7 @@ export class Grid extends Body {
         if (small) {
             this._newBodies = []
             this._oldBodies = []
+            this._updatedBodies = []
 
             this._setTilesInSubGrid(
                 x, x + width,
@@ -1505,6 +1548,15 @@ export class Grid extends Body {
 
             for (let b of this._oldBodies) { this._entity.removeBody(b) }
             for (let b of this._newBodies) { this._entity._addBody(b) }
+            if (this._topEntity._allBodies) {
+                for (let b of this._updatedBodies) {
+                    this._topEntity._allBodies.updateAABB(b)
+                }
+            } else if (this._topEntity._bodies && !(this._topEntity._bodies instanceof Body)) {
+                for (let b of this._updatedBodies) {
+                    this._topEntity._bodies.updateAABB(b)
+                }
+            }
         }
 
         this._topEntity._resetMaxx()

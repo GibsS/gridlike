@@ -32,6 +32,8 @@ class Script1 extends Script {
         }))
         this.ground.name = "ground"
 
+        this.ground.x = 2
+
         fixSpeed.input(this, this.rect, false)
     }
 
@@ -100,7 +102,6 @@ class Script3 extends Script {
         fixSpeed.update(this.rect, time, delta, 5)
     }
 }
-
 
 class Script4 extends Script {
 
@@ -348,11 +349,12 @@ class Script7 extends Script {
             width: 1,
             height: 4
         })
-        this.ground.createLine({
+        let line = this.ground.createLine({
             x: 2, y: 5,
             size: 1,
             isHorizontal: true
         })
+        line.y += 2
 
         fixSpeed.input(this, this.rect, false)
     }
