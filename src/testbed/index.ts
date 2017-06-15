@@ -6,7 +6,6 @@ import { Script, ScriptDescriptor } from './script'
 
 import { World, Entity, Body, BodyType, Rect, Line, Grid, Contact } from '../lib'
 import { SmallBody } from '../lib/model/body'
-import { RBush } from '../lib/vbh/rbush'
 import { BinaryTree } from '../lib/vbh/binaryTree'
 
 export class Testbed {

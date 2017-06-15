@@ -5,7 +5,6 @@ import { Body, SmallBody, Rect, Line, RectArgs, LineArgs, GridArgs } from './bod
 
 import { RaycastResult, QueryResult } from './query'
 import { MoveVBH, SimpleMoveVBH, VBH } from '../vbh/vbh'
-import { RBush } from '../vbh/rbush'
 import { BinaryTree, MoveBinaryTree } from '../vbh/binaryTree'
 import { LayerCollision } from './enums'
 
@@ -267,14 +266,10 @@ export class World {
                 else if(hadOverlap) ent._invalidOverlap = []
 
                 if (hadOverlap != this._hasInvalidOverlap && ent._listener) {
-                    if(hadOverlap) {
-                        if (ent._listener.crushEnd) {
-                            ent._listener.crushEnd()
-                        }
+                    if (hadOverlap) {
+                        if (ent._listener.crushEnd) ent._listener.crushEnd() 
                     } else {
-                        if (ent._listener.crushStart) {
-                            ent._listener.crushStart()
-                        }
+                        if (ent._listener.crushStart) ent._listener.crushStart()
                     }
                 } 
 
@@ -740,89 +735,89 @@ export class World {
      */
     _solveOverlap(b1: SmallBody, b2: SmallBody, x1: number, y1: number, x2: number, y2: number, 
                   canUp: boolean, canDown: boolean, canLeft: boolean, canRight: boolean): number {
-        if (x1 - b1._width/2 + 0.001 > x2 + b2._width/2
-            || x1 + b1._width/2 < x2 - b2._width/2 + 0.001
-            || y1 - b1._height/2 + 0.001 > y2 + b2._height/2 
-            || y1 + b1._height/2 < y2 - b2._height/2 + 0.001) {
-            return 0
-        } else {
-            let up = y1 + b1._height/2 - y2 - b2._height/2,
-                down = y2 - b2._height/2 - y1 + b1._height/2,
-                left = x2 - b2._width/2 - x1 + b1._width/2,
-                right = x1 + b1._width/2 - x2 - b2._width/2,
-                yMax = Math.max(up, down), xMax = Math.max(left, right)
+        let up = y1 + b1._height/2 - y2 - b2._height/2,
+            down = y2 - b2._height/2 - y1 + b1._height/2,
+            left = x2 - b2._width/2 - x1 + b1._width/2,
+            right = x1 + b1._width/2 - x2 - b2._width/2,
+            yMax = Math.max(up, down), xMax = Math.max(left, right)
 
-            if (yMax <= 0 && xMax <= 0) {
-                if (canUp) return 4
-                if (canDown) return 5
-                if (canLeft) return 2
-                if (canRight) return 3
-                return 1
-            }
-
-            if(yMax > xMax) {
-                if(up > down) {
-                    if(canUp) return 4
-                } else {
-                    if(canDown) return 5
-                }
-            } else {
-                if(left > right) {
-                    if(canLeft) return 2
-                } else {
-                    if(canRight) return 3
-                }
-            }
+        if (yMax <= 0 && xMax <= 0) {
+            if (canUp) return 4
+            if (canDown) return 5
+            if (canLeft) return 2
+            if (canRight) return 3
             return 1
         }
+
+        if(yMax > xMax) {
+            if(up > down) {
+                if(canUp) return 4
+            } else {
+                if(canDown) return 5
+            }
+        } else {
+            if(left > right) {
+                if(canLeft) return 2
+            } else {
+                if(canRight) return 3
+            }
+        }
+        return 1
     }
 
     _handleOverlap(ent: Entity, pair: SmallBody[], o1: SmallBody, o2: SmallBody, delta: number) {
         let otherx = o2._topEntity._x + o2._x - delta * o2._topEntity._simvx,
             othery = o2._topEntity._y + o2._y - delta * o2._topEntity._simvy
-
-        switch(this._solveOverlap(
-            o1, o2, 
-            ent._x + o1._x, ent._y + o1._y, 
-            otherx, othery,
-            !ent._upLower, !ent._downLower, !ent._leftLower, !ent._rightLower)) {
-            case 1: { // stuck
-                if (this._newOverlap) this._newOverlap.push(pair)
-                else this._newOverlap = [pair]
-                this._hasInvalidOverlap = true
-                break
-            }
-            case 2: { // move left
-                ent._x = otherx - o2._width/2 - o1._width/2 - o1._x
-                if(ent._rightLower) ent._removeRightLowerContact()
-                ent._rightLower = { body: o1, otherBody: o2, side: 0 }
-                if(!o2._higherContacts) o2._higherContacts = []
-                o2._higherContacts.push(ent._rightLower)
-                break
-            }
-            case 3: { // move right
-                ent._x = otherx + o2._width/2 + o1._width/2 - o1._x
-                if(ent._leftLower) ent._removeLeftLowerContact()
-                ent._leftLower = { body: o1, otherBody: o2, side: 1 }
-                if(!o2._higherContacts) o2._higherContacts = []
-                o2._higherContacts.push(ent._leftLower)
-                break
-            }
-            case 4: { // move up
-                ent._y = othery + o2._height/2 + o1._height/2 - o1._y
-                if(ent._downLower) ent._removeDownLowerContact()
-                ent._downLower = { body: o1, otherBody: o2, side: 3 }
-                if(!o2._higherContacts) o2._higherContacts = []
-                o2._higherContacts.push(ent._downLower)
-                break
-            }
-            case 5: { // move down
-                ent._y = othery - o2._height/2 - o1._height/2 - o1._y
-                if(ent._upLower) ent._removeUpLowerContact()
-                ent._upLower = { body: o1, otherBody: o2, side: 2 }
-                if(!o2._higherContacts) o2._higherContacts = []
-                o2._higherContacts.push(ent._upLower)
-                break
+        
+        if (ent._x + o1._x - o1._width/2 + 0.001 <= otherx + o2._width/2 
+            && ent._x + o1._x + o1._width/2 >= otherx - o2._width/2 + 0.001
+            && ent._y + o1._y - o1._height/2 + 0.001 <= othery + o2._height/2
+            && ent._y + o1._y + o1._height/2 >= othery - o2._height/2 + 0.001
+            && (o1 instanceof Rect || (o1 as Line)._oneway == 0)
+            && (o2 instanceof Rect || (o2 as Line)._oneway == 0) ) {
+            switch(this._solveOverlap(
+                o1, o2, 
+                ent._x + o1._x, ent._y + o1._y, 
+                otherx, othery,
+                !ent._upLower, !ent._downLower, !ent._leftLower, !ent._rightLower)) {
+                case 1: { // stuck
+                    if (this._newOverlap) this._newOverlap.push(pair)
+                    else this._newOverlap = [pair]
+                    this._hasInvalidOverlap = true
+                    break
+                }
+                case 2: { // move left
+                    ent._x = otherx - o2._width/2 - o1._width/2 - o1._x
+                    if(ent._rightLower) ent._removeRightLowerContact()
+                    ent._rightLower = { body: o1, otherBody: o2, side: 0 }
+                    if(!o2._higherContacts) o2._higherContacts = []
+                    o2._higherContacts.push(ent._rightLower)
+                    break
+                }
+                case 3: { // move right
+                    ent._x = otherx + o2._width/2 + o1._width/2 - o1._x
+                    if(ent._leftLower) ent._removeLeftLowerContact()
+                    ent._leftLower = { body: o1, otherBody: o2, side: 1 }
+                    if(!o2._higherContacts) o2._higherContacts = []
+                    o2._higherContacts.push(ent._leftLower)
+                    break
+                }
+                case 4: { // move up
+                    ent._y = othery + o2._height/2 + o1._height/2 - o1._y
+                    if(ent._downLower) ent._removeDownLowerContact()
+                    ent._downLower = { body: o1, otherBody: o2, side: 3 }
+                    if(!o2._higherContacts) o2._higherContacts = []
+                    o2._higherContacts.push(ent._downLower)
+                    break
+                }
+                case 5: { // move down
+                    ent._y = othery - o2._height/2 - o1._height/2 - o1._y
+                    if(ent._upLower) ent._removeUpLowerContact()
+                    ent._upLower = { body: o1, otherBody: o2, side: 2 }
+                    if(!o2._higherContacts) o2._higherContacts = []
+                    o2._higherContacts.push(ent._upLower)
+                    break
+                }
             }
         }
     }
