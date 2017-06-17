@@ -285,41 +285,58 @@ export class World {
                     a++
                     // ADJUST SPEED DUE TO LOWER CONTACTS + REMOVE LOST CONTACTS
                     if (ent._lowers.length) {
-                        let remove: number[]
-                        for (let i = 0, len = ent._lowers.length; i < len; i++) {
-                            let lower = ent._lowers[i], sub = lower.otherBody._topEntity
-                            switch(lower.side) {
-                                case 0: { // right
-                                    if (ent._vx < sub._simvx) {
-                                        if (remove) remove.push(i)
-                                        else remove = [i]
-                                    } else ent._vx = sub._simvx
-                                    break
-                                }
-                                case 1: { // left
-                                    if (ent._vx > sub._simvx) {
-                                        if (remove) remove.push(i)
-                                        else remove = [i]
-                                    } else ent._vx = sub._simvx
-                                    break
-                                }
-                                case 2: { // up
-                                    if (ent._vy < sub._simvy) {
-                                        if (remove) remove.push(i)
-                                        else remove = [i]
-                                    } else ent._vy = sub._simvy
-                                    break
-                                }
-                                case 3: { // down
-                                    if (ent._vy > sub._simvy) {
-                                        if (remove) remove.push(i)
-                                        else remove = [i]
-                                    } else ent._vy = sub._simvy
-                                    break
+                        let push = true
+
+                        while(push) {
+                            push = false
+                            let remove: number[]
+                            for (let i = 0, len = ent._lowers.length; i < len; i++) {
+                                let lower = ent._lowers[i], sub = lower.otherBody._topEntity
+                                switch(lower.side) {
+                                    case 0: { // right
+                                        if (ent._vx < sub._simvx) {
+                                            if (remove) remove.push(i)
+                                            else remove = [i]
+                                        } else {
+                                            if (ent._vx > sub._simvx + 0.001) push = true
+                                            ent._vx = sub._simvx
+                                        }
+                                        break
+                                    }
+                                    case 1: { // left
+                                        if (ent._vx > sub._simvx) {
+                                            if (remove) remove.push(i)
+                                            else remove = [i]
+                                        } else {
+                                            if (ent._vx < sub._simvx - 0.001) push = true
+                                            ent._vx = sub._simvx
+                                        }
+                                        break
+                                    }
+                                    case 2: { // up
+                                        if (ent._vy < sub._simvy) {
+                                            if (remove) remove.push(i)
+                                            else remove = [i]
+                                        } else {
+                                            if (ent._vy > sub._simvy + 0.001) push = true
+                                            ent._vy = sub._simvy
+                                        }
+                                        break
+                                    }
+                                    case 3: { // down
+                                        if (ent._vy > sub._simvy) {
+                                            if (remove) remove.push(i)
+                                            else remove = [i]
+                                        } else {
+                                            if (ent._vy < sub._simvy - 0.001) push = true
+                                            ent._vy = sub._simvy
+                                        }
+                                        break
+                                    }
                                 }
                             }
+                            if (remove) _.pullAt(ent._lowers, remove)
                         }
-                        if (remove) _.pullAt(ent._lowers, remove)
                     }
                     
                     if(ent._potContacts.length > 0) {

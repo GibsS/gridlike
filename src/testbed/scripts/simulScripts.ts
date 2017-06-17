@@ -534,6 +534,8 @@ class Script11 extends Script {
         grid.setTileShape(0, -2, 1)
         grid.setTileShape(1, 0, 1)
 
+        grid.forTiles(-10, -10, 5, 5, (x, y, shape, data) => 1)
+
         charController.input(this, this.rect)
         forceController.input(this, this.movingGrid, false, 'f', 'h', 't', 'g')
     }
