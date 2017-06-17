@@ -209,7 +209,7 @@ export default function test() {
                     x: 1, y: 1,
                     width: 10, height: 10
                 })
-
+                
                 let p = entity2.globalToLocal(0, 0)
                 nearEqual(p.x, -11, "global to local.x value")
                 nearEqual(p.y, 2, "global to local.y value")

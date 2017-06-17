@@ -168,38 +168,26 @@ export abstract class Body implements EnabledAABB {
     }
 
     _clearContacts() {
-        for (let t of ["_upLower", "_downLower", "_leftLower", "_rightLower"]) {
-            let c: _Contact = this._topEntity[t]
-
-            if (c) {
-                let i = c.otherBody._higherContacts.indexOf(c)
-                c.otherBody._higherContacts.splice(i, 1)
-                this._topEntity[t] = null
+        let remove: number[]
+        for (let i = 0, len = this._topEntity._lowers.length; i < len; i++) {
+            let lower = this._topEntity._lowers[i]
+            if (lower.body == this) {
+                if (remove) remove.push(i)
+                else remove = [i]
+                let j = lower.otherBody._higherContacts.indexOf(lower)
+                lower.otherBody._higherContacts.splice(j, 1)
             }
         }
+        if (remove) _.pullAt(this._topEntity._lowers, remove)
 
         if (this._higherContacts) {
-            let len = this._higherContacts.length,
-                toremove = []
+            let toremove = []
 
-            for (let i = 0; i < len; i++) {
-                let c = this._higherContacts[i]
-
-                if (c.side == 1) {
-                    c.otherBody._topEntity._rightLower = null
-                    toremove.push(i)
-                } else if (c.side == 0) {
-                    c.otherBody._topEntity._leftLower = null
-                    toremove.push(i)
-                } else if (c.side == 2) {
-                    c.otherBody._topEntity._downLower = null
-                    toremove.push(i)
-                } else {
-                    c.otherBody._topEntity._upLower = null
-                    toremove.push(i)
-                }
+            for (let higher of this._higherContacts) {
+                let ind = higher.body._topEntity._lowers.indexOf(higher)
+                higher.body._topEntity._lowers.splice(ind, 1)
             }
-            _.pullAt(this._higherContacts, toremove)
+            this._higherContacts = []
         }
     }
 

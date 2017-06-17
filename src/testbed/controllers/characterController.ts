@@ -12,8 +12,15 @@ export function input(script: Script, entity: any, leftKey?: string, rightKey?: 
     script.keyUp(upKey || 'z', () => { entity.jump = false })
 }
 export function update(entity, time: number, delta: number, speed: number) {
-    if(entity._downLower) {
-        entity.setParent(entity._downLower.otherBody._topEntity, "follow")
+    if(entity) {
+        if (entity.hasDownContact) {
+            if(entity.jump) {
+                entity.vy = 8
+            }
+            entity.setParent(entity.downContact.otherBody._topEntity, "follow")
+        } else {
+            entity.setParent(null)
+        }
         
         if(entity.moveLeft && !entity.moveRight) {
             entity.vx = -speed
@@ -21,10 +28,6 @@ export function update(entity, time: number, delta: number, speed: number) {
             entity.vx = speed
         } else {
             entity.vx = 0
-        }
-
-        if(entity.jump) {
-            entity.vy = 8
         }
     } else {
         entity.setParent(null)

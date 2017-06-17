@@ -114,6 +114,11 @@ export declare class Entity {
     readonly upContact: Contact
     readonly downContact: Contact
 
+    readonly hasLeftContact: boolean
+    readonly hasRightContact: boolean
+    readonly hasUpContact: boolean
+    readonly hasDownContact: boolean
+
     readonly isCrushed: boolean
 
     // HIERARCHY

@@ -66,17 +66,7 @@ export class Entity implements MoveAABB {
     _vx: number
     _vy: number
 
-    // 0 or null: nothing
-    // 1: level change
-    // 2: x change
-    // 3: y change
-    // _contactStatus: number 
-
-    _lowers: _Contact[]
-    _leftLower: _Contact
-    _rightLower: _Contact
-    _upLower: _Contact
-    _downLower: _Contact
+    _lowers: _Contact[] = []
 
     _invalidOverlap: Body[][] = []
     _overlap: Body[][]
@@ -155,11 +145,8 @@ export class Entity implements MoveAABB {
 
         this._world._ents[this._level].splice(this._world._ents[this._level].indexOf(this), 1)
         this._level = val
-        if(this._world._ents[val]) {
-            this._world._ents[val].push(this)
-        } else {
-            this._world._ents[val] = [this]
-        }
+        if(this._world._ents[val]) this._world._ents[val].push(this)
+        else this._world._ents[val] = [this]
     }
 
     set __x(val: number) { 
@@ -176,22 +163,22 @@ export class Entity implements MoveAABB {
     }
 
     // POSITIONNING
-    get x(): number { return this._x - (this._parent != null && this._parentType == 1 && this._parent.globalx) }
-    get y(): number { return this._y - (this._parent != null && this._parentType == 1 && this._parent.globaly) }
+    get x(): number { return this._x - (this._parent != null && this._parentType == 1 ? this._parent.globalx : 0) }
+    get y(): number { return this._y - (this._parent != null && this._parentType == 1 ? this._parent.globaly : 0) }
 
-    set x(val: number) { this.__x = val + (this._parent != null && this._parent.globalx) }
-    set y(val: number) { this.__y = val + (this._parent != null && this._parent.globaly) }
+    set x(val: number) { this.__x = val + (this._parent != null ? this._parent.globalx : 0) }
+    set y(val: number) { this.__y = val + (this._parent != null ? this._parent.globaly : 0) }
 
-    get globalx(): number { return this._x + (this._parent != null && this._parentType == 0 && this._parent.globalx) }
-    get globaly(): number { return this._y + (this._parent != null && this._parentType == 0 && this._parent.globaly) }
-    set globalx(val: number) { this.__x = val - (this._parent != null && this._parentType == 0 && this._parent.globalx) }
-    set globaly(val: number) { this.__y = val - (this._parent != null && this._parentType == 0 && this._parent.globaly) }
+    get globalx(): number { return this._x + (this._parent != null && this._parentType == 0 ? this._parent.globalx : 0) }
+    get globaly(): number { return this._y + (this._parent != null && this._parentType == 0 ? this._parent.globaly : 0) }
+    set globalx(val: number) { this.__x = val - (this._parent != null && this._parentType == 0 ? this._parent.globalx : 0) }
+    set globaly(val: number) { this.__y = val - (this._parent != null && this._parentType == 0 ? this._parent.globaly : 0) }
 
-    get globalvx(): number { return this._vx + (this._parent != null && this._parent.globalvx) }
-    get globalvy(): number { return this._vy + (this._parent != null && this._parent.globalvy) }
+    get globalvx(): number { return this._vx + (this._parent != null ? this._parent.globalvx : 0) }
+    get globalvy(): number { return this._vy + (this._parent != null ? this._parent.globalvy : 0) }
 
-    set globalvx(val: number) { this.vx = val - (this._parent != null && this._parent.globalvx) }
-    set globalvy(val: number) { this.vy = val - (this._parent != null && this._parent.globalvy) }
+    set globalvx(val: number) { this.vx = val - (this._parent != null ? this._parent.globalvx : 0) }
+    set globalvy(val: number) { this.vy = val - (this._parent != null ? this._parent.globalvy : 0) }
 
     get vx(): number { return this._vx }
     get vy(): number { return this._vy }
@@ -211,33 +198,42 @@ export class Entity implements MoveAABB {
         return res
     }
     get leftContact(): Contact {
-        return this._leftLower && {
-            body: this._leftLower.body._grid || this._leftLower.body,
-            otherBody: this._leftLower.otherBody._grid || this._leftLower.otherBody,
+        let leftLower = this._lowers.find(c => c.side == 1)
+        return leftLower && {
+            body: leftLower.body._grid || leftLower.body,
+            otherBody: leftLower.otherBody._grid || leftLower.otherBody,
             side: "left"
         }
     }
     get rightContact(): Contact {
-        return this._rightLower && {
-            body: this._rightLower.body._grid || this._rightLower.body,
-            otherBody: this._rightLower.otherBody._grid || this._rightLower.otherBody,
+        let rightLower = this._lowers.find(c => c.side == 0)
+        return rightLower && {
+            body: rightLower.body._grid || rightLower.body,
+            otherBody: rightLower.otherBody._grid || rightLower.otherBody,
             side: "right"
         }
     }
     get upContact(): Contact {
-        return this._upLower && {
-            body: this._upLower.body._grid || this._upLower.body,
-            otherBody: this._upLower.otherBody._grid || this._upLower.otherBody,
+        let upLower = this._lowers.find(c => c.side == 2)
+        return upLower && {
+            body: upLower.body._grid || upLower.body,
+            otherBody: upLower.otherBody._grid || upLower.otherBody,
             side: "up"
         }
     }
     get downContact(): Contact {
-        return this._downLower && {
-            body: this._downLower.body._grid || this._downLower.body,
-            otherBody: this._downLower.otherBody._grid || this._downLower.otherBody,
+        let downLower = this._lowers.find(c => c.side == 3)
+        return downLower && {
+            body: downLower.body._grid || downLower.body,
+            otherBody: downLower.otherBody._grid || downLower.otherBody,
             side: "down"
         }
     }
+
+    get hasLeftContact(): boolean { return this._lowers.find(c => c.side == 1) != null }
+    get hasRightContact(): boolean { return this._lowers.find(c => c.side == 0) != null }
+    get hasUpContact(): boolean { return this._lowers.find(c => c.side == 2) != null }
+    get hasDownContact(): boolean { return this._lowers.find(c => c.side == 3) != null }
 
     get isCrushed(): boolean { return this._invalidOverlap.length > 0 }
 
@@ -522,13 +518,16 @@ export class Entity implements MoveAABB {
                         })
 
                         // CHANGE OWNERSHIP OF CONTACTS
-                        for(let lower in ["_upLower", "_downLower", "_leftLower", "_rightLower"]) {
-                            let c = topEntity[lower]
-                            if(c && (c.body1._entity == child || c.body2._entity == child)) {
-                                this[lower] = c
-                                topEntity[lower] = null
+                        let remove: number[]
+                        for(let i = 0, len = topEntity._lowers.length; i < len; i++) {
+                            let lower = topEntity._lowers[i]
+                            if (lower.body._entity == child) {
+                                if (!remove) remove = [i]
+                                else remove.push(i)
+                                child._lowers.push(lower)
                             }
                         }
+                        if (remove) _.pullAt(topEntity._lowers, remove)
 
                         // CONTINUE TO THE NEXT
                         if(child._childs) {
@@ -597,15 +596,9 @@ export class Entity implements MoveAABB {
                     }
 
                     // CHANGE OWNERSHIP OF CONTACTS
-                    for(let lower in ["_upLower", "_downLower", "_leftLower", "_rightLower"]) {
-                        if(!topEntity[lower]) {
-                            let c = this[lower]
-                            if(c) {
-                                topEntity[lower] = c
-                                this[lower] = null
-                            }
-                        }
-                    }
+                    topEntity._lowers.push.apply(this._lowers)
+                    this._lowers = []
+                    
                     this._world._removeTopEntity(this)
                 }
 
@@ -655,15 +648,8 @@ export class Entity implements MoveAABB {
                 }
 
                 // CHANGE OWNERSHIP OF CONTACTS
-                for(let lower in ["_upLower", "_downLower", "_leftLower", "_rightLower"]) {
-                    if(!topEntity[lower]) {
-                        let c = this[lower]
-                        if(c) {
-                            topEntity[lower] = c
-                            this[lower] = null
-                        }
-                    }
-                }
+                topEntity._lowers.push.apply(this._lowers)
+                this._lowers = []
 
                 this._world._removeTopEntity(this)
             } else {
@@ -704,13 +690,16 @@ export class Entity implements MoveAABB {
                     })
 
                     // CHANGE OWNERSHIP OF CONTACTS
-                    for(let lower in ["_upLower", "_downLower", "_leftLower", "_rightLower"]) {
-                        let c = topEntity[lower]
-                        if(c && (c.body1._entity == child || c.body2._entity == child)) {
-                            this[lower] = c
-                            topEntity[lower] = null
+                    let remove: number[]
+                    for(let i = 0, len = topEntity._lowers.length; i < len; i++) {
+                        let lower = topEntity._lowers[i]
+                        if (lower.body._entity == child) {
+                            if (!remove) remove = [i]
+                            else remove.push(i)
+                            child._lowers.push(lower)
                         }
                     }
+                    if (remove) _.pullAt(topEntity._lowers, remove)
 
                     if(child._childs) {
                         childs.push.apply(childs, child.children.filter(c => c._parentType == 0))
@@ -742,14 +731,14 @@ export class Entity implements MoveAABB {
     }
     moveToGlobal(x: number, y: number) {
         this.move(
-            x - this._x - (this._parent && this._parentType == 0 && this._parent.globalx), 
-            y - this._y - (this._parent && this._parentType == 0 && this._parent.globaly)
+            x - this._x - (this._parent && this._parentType == 0 ? this._parent.globalx : 0), 
+            y - this._y - (this._parent && this._parentType == 0 ? this._parent.globaly : 0)
         )
     }
     moveToLocal(x: number, y: number) {
         this.move(
-            x - this.x + (this._parent && this._parentType == 1 && this._parent.globalx), 
-            y - this.y + (this._parent && this._parentType == 1 && this._parent.globaly)
+            x - this.x + (this._parent && this._parentType == 1 ? this._parent.globalx : 0), 
+            y - this.y + (this._parent && this._parentType == 1 ? this._parent.globaly : 0)
         )
     }
 
@@ -767,9 +756,10 @@ export class Entity implements MoveAABB {
             x = x.x
         }
         
-        return { 
-            x: x - this._x - (this._parent && this._parentType == 0 && this._parent.globalx), 
-            y: y - this._y - (this._parent && this._parentType == 0 && this._parent.globaly) 
+        if (this._parent && this._parentType == 0) {
+            return { x: x - this._x - this._parent.globalx, y: y - this._y - this._parent.globaly }
+        } else {
+            return { x: x - this._x, y: y - this._y }
         }
     }
 
@@ -790,34 +780,34 @@ export class Entity implements MoveAABB {
         this._forAllBodies(b => { this._maxY = Math.max(this._maxY, b.maxY) })
     }
 
-    _removeLeftLowerContact() {
-        let i = this._leftLower.otherBody._higherContacts.indexOf(this._leftLower)
-        this._leftLower.otherBody._higherContacts.splice(i, 1)
-        // i = this._lowers.indexOf(this._leftLower)
-        // this._lowers.splice(i, 1)
-        this._leftLower = null // this._lowers.find(c => c.side == 1)
-    }
-    _removeRightLowerContact() {
-        let i = this._rightLower.otherBody._higherContacts.indexOf(this._rightLower)
-        this._rightLower.otherBody._higherContacts.splice(i, 1)
-        // i = this._lowers.indexOf(this._rightLower)
-        // this._lowers.splice(i, 1)
-        this._rightLower = null // this._lowers.find(c => c.side == 0)
-    }
-    _removeDownLowerContact() {
-        let i = this._downLower.otherBody._higherContacts.indexOf(this._downLower)
-        this._downLower.otherBody._higherContacts.splice(i, 1)
-        // i = this._lowers.indexOf(this._downLower)
-        // this._lowers.splice(i, 1)
-        this._downLower = null // this._lowers.find(c => c.side == 3)
-    }
-    _removeUpLowerContact() {
-        let i = this._upLower.otherBody._higherContacts.indexOf(this._upLower)
-        this._upLower.otherBody._higherContacts.splice(i, 1)
-        // i = this._lowers.indexOf(this._upLower)
-        // this._lowers.splice(i, 1)
-        this._upLower = null // this._lowers.find(c => c.side == 2)
-    }
+    // _removeLeftLowerContact() {
+    //     let i = this._leftLower.otherBody._higherContacts.indexOf(this._leftLower)
+    //     this._leftLower.otherBody._higherContacts.splice(i, 1)
+    //     // i = this._lowers.indexOf(this._leftLower)
+    //     // this._lowers.splice(i, 1)
+    //     this._leftLower = null // this._lowers.find(c => c.side == 1)
+    // }
+    // _removeRightLowerContact() {
+    //     let i = this._rightLower.otherBody._higherContacts.indexOf(this._rightLower)
+    //     this._rightLower.otherBody._higherContacts.splice(i, 1)
+    //     // i = this._lowers.indexOf(this._rightLower)
+    //     // this._lowers.splice(i, 1)
+    //     this._rightLower = null // this._lowers.find(c => c.side == 0)
+    // }
+    // _removeDownLowerContact() {
+    //     let i = this._downLower.otherBody._higherContacts.indexOf(this._downLower)
+    //     this._downLower.otherBody._higherContacts.splice(i, 1)
+    //     // i = this._lowers.indexOf(this._downLower)
+    //     // this._lowers.splice(i, 1)
+    //     this._downLower = null // this._lowers.find(c => c.side == 3)
+    // }
+    // _removeUpLowerContact() {
+    //     let i = this._upLower.otherBody._higherContacts.indexOf(this._upLower)
+    //     this._upLower.otherBody._higherContacts.splice(i, 1)
+    //     // i = this._lowers.indexOf(this._upLower)
+    //     // this._lowers.splice(i, 1)
+    //     this._upLower = null // this._lowers.find(c => c.side == 2)
+    // }
 
     _levelChangeContactFix(oldLevel: number, newLevel: number) {
         // TODO

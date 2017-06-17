@@ -450,21 +450,17 @@ export class Testbed {
             if(this.showContact) {
                 this.ctx.strokeStyle="#FF0000"
 
-                for(let c of ["_upLower", "_downLower", "_rightLower", "_leftLower"]) {
-                    let contact = e[c] as Contact
+                for(let lower of e._lowers) {
+                    this.ctx.beginPath()
+                    this.ctx.moveTo(lower.body.globalx * this.zoom + bx, -lower.body.globaly * this.zoom + by)
+                    this.ctx.lineTo(lower.otherBody.globalx * this.zoom + bx, -lower.otherBody.globaly * this.zoom + by)
+                    this.ctx.stroke()
 
-                    if(contact) {
-                        this.ctx.beginPath()
-                        this.ctx.moveTo(contact.body.globalx * this.zoom + bx, -contact.body.globaly * this.zoom + by)
-                        this.ctx.lineTo(contact.otherBody.globalx * this.zoom + bx, -contact.otherBody.globaly * this.zoom + by)
-                        this.ctx.stroke()
-
-                        this.ctx.fillText(
-                            c.substring(1),
-                            (contact.body.globalx + contact.otherBody.globalx) * this.zoom / 2 + bx, 
-                            - (contact.body.globaly + contact.otherBody.globaly) * this.zoom / 2 + by
-                        )
-                    }
+                    this.ctx.fillText(
+                        lower.side == 0 ? "right" : (lower.side == 1 ? "left" : (lower.side == 2 ? "up" : "down")),
+                        (lower.body.globalx + lower.otherBody.globalx) * this.zoom / 2 + bx, 
+                        - (lower.body.globaly + lower.otherBody.globaly) * this.zoom / 2 + by
+                    )
                 }
 
                 this.ctx.strokeStyle = "#0000FF"
