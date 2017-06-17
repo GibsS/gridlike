@@ -474,6 +474,42 @@ export class World {
                     }
                 }
 
+                for(let pot of ent._potContacts) {
+                    if (Math.abs(ent._x + pot[0]._x + pot[0]._width/2 - pot[1]._topEntity._x - pot[1]._x + pot[1]._width/2) < 0.000001
+                        && ent._lowers.find(c => c.side == 0) != null
+                        && Math.abs(pot[0]._y + ent._y - pot[1]._y - pot[1]._topEntity._y) * 2 < pot[0]._height + pot[1]._height
+                        && !ent._lowers.find(c => c.otherBody == pot[1])) {
+                        let newContact = { body: pot[0], otherBody: pot[1], side: 0 }
+                        ent._lowers.push(newContact)
+                        if (pot[1]._higherContacts) pot[1]._higherContacts.push(newContact)
+                        else pot[1]._higherContacts = [newContact]
+                    } else if (Math.abs(ent._x + pot[0]._x - pot[0]._width/2 - pot[1]._topEntity._x - pot[1]._x - pot[1]._width/2) < 0.000001
+                        && ent._lowers.find(c => c.side == 1) != null
+                        && Math.abs(pot[0]._y + ent._y - pot[1]._y - pot[1]._topEntity._y) * 2 < pot[0]._height + pot[1]._height
+                        && !ent._lowers.find(c => c.otherBody == pot[1])) {
+                        let newContact = { body: pot[0], otherBody: pot[1], side: 1 }
+                        ent._lowers.push(newContact)
+                        if (pot[1]._higherContacts) pot[1]._higherContacts.push(newContact)
+                        else pot[1]._higherContacts = [newContact]
+                    } else if (Math.abs(ent._y + pot[0]._y + pot[0]._height/2 - pot[1]._topEntity._y - pot[1]._y + pot[1]._height/2) < 0.000001
+                        && ent._lowers.find(c => c.side == 2) != null
+                        && Math.abs(pot[0]._x + ent._x - pot[1]._x - pot[1]._topEntity._x) * 2 < pot[0]._width + pot[1]._width
+                        && !ent._lowers.find(c => c.otherBody == pot[1])) {
+                        let newContact = { body: pot[0], otherBody: pot[1], side: 2 }
+                        ent._lowers.push(newContact)
+                        if (pot[1]._higherContacts) pot[1]._higherContacts.push(newContact)
+                        else pot[1]._higherContacts = [newContact]
+                    } else if (Math.abs(ent._y + pot[0]._y - pot[0]._height/2 - pot[1]._topEntity._y - pot[1]._y - pot[1]._height/2) < 0.000001
+                        && ent._lowers.find(c => c.side == 3) != null
+                        && Math.abs(pot[0]._x + ent._x - pot[1]._x - pot[1]._topEntity._x) * 2 < pot[0]._width + pot[1]._width
+                        && !ent._lowers.find(c => c.otherBody == pot[1])) {
+                        let newContact = { body: pot[0], otherBody: pot[1], side: 3 }
+                        ent._lowers.push(newContact)
+                        if (pot[1]._higherContacts) pot[1]._higherContacts.push(newContact)
+                        else pot[1]._higherContacts = [newContact]
+                    }
+                }
+
                 // CORRECT SPEED FOR PARENT
                 if(ent._parent) {
                     ent._vx -= ent._parent._simvx

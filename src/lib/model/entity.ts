@@ -3,7 +3,7 @@ import * as _ from 'lodash'
 import { VBH, SimpleVBH, MoveAABB, EnabledAABB } from '../vbh/vbh'
 import { BinaryTree } from '../vbh/binaryTree'
 
-import { Body, RectArgs, LineArgs, GridArgs } from './body'
+import { Body, SmallBody, RectArgs, LineArgs, GridArgs } from './body'
 import { World } from './world'
 import { Contact, _Contact } from './contact'
 import { Rect, Line, Grid } from './body'
@@ -85,7 +85,7 @@ export class Entity implements MoveAABB {
     name: string
 
     // SIMULATION
-    _potContacts: Body[][] = []
+    _potContacts: SmallBody[][] = []
     _simvx: number
     _simvy: number
 
