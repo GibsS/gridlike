@@ -335,7 +335,7 @@ export class World {
                                     }
                                 }
                             }
-                            if (remove) _.pullAt(ent._lowers, remove)
+                            if (remove) ent._removeLowers(remove)
                         }
                     }
                     
@@ -433,6 +433,12 @@ export class World {
                                 let newContact = { body: first.body, otherBody: first.otherBody, side: first.side }
                                 ent._lowers.push(newContact)
                                 first.otherBody._higherContacts.push(newContact)
+                                if (ent._listener && ent._listener.contactStart) {
+                                    ent._listener.contactStart(
+                                        newContact.body, newContact.otherBody,
+                                        newContact.side == 0 ? "right" : (newContact.side == 1 ? "left" : (newContact.side == 2 ? "up" : "down"))
+                                    )
+                                }
                             }
                         } else {
                             endOfCourse = true
@@ -487,7 +493,7 @@ export class World {
                                 }
                             }
                         }
-                        if (remove) _.pullAt(ent._lowers, remove)
+                        if (remove) ent._removeLowers(remove)
                     }
                 }
 
@@ -497,33 +503,53 @@ export class World {
                         && Math.abs(pot[0]._y + ent._y - pot[1]._y - pot[1]._topEntity._y) * 2 < pot[0]._height + pot[1]._height
                         && !ent._lowers.find(c => c.otherBody == pot[1])) {
                         let newContact = { body: pot[0], otherBody: pot[1], side: 0 }
+                        
                         ent._lowers.push(newContact)
                         if (pot[1]._higherContacts) pot[1]._higherContacts.push(newContact)
                         else pot[1]._higherContacts = [newContact]
+
+                        if (ent._listener && ent._listener.contactStart) {
+                            ent._listener.contactStart(newContact.body, newContact.otherBody, "right")
+                        }
                     } else if (Math.abs(ent._x + pot[0]._x - pot[0]._width/2 - pot[1]._topEntity._x - pot[1]._x - pot[1]._width/2) < 0.000001
                         && ent._lowers.find(c => c.side == 1) != null
                         && Math.abs(pot[0]._y + ent._y - pot[1]._y - pot[1]._topEntity._y) * 2 < pot[0]._height + pot[1]._height
                         && !ent._lowers.find(c => c.otherBody == pot[1])) {
                         let newContact = { body: pot[0], otherBody: pot[1], side: 1 }
+                        
                         ent._lowers.push(newContact)
                         if (pot[1]._higherContacts) pot[1]._higherContacts.push(newContact)
                         else pot[1]._higherContacts = [newContact]
+
+                        if (ent._listener && ent._listener.contactStart) {
+                            ent._listener.contactStart(newContact.body, newContact.otherBody, "left")
+                        }
                     } else if (Math.abs(ent._y + pot[0]._y + pot[0]._height/2 - pot[1]._topEntity._y - pot[1]._y + pot[1]._height/2) < 0.000001
                         && ent._lowers.find(c => c.side == 2) != null
                         && Math.abs(pot[0]._x + ent._x - pot[1]._x - pot[1]._topEntity._x) * 2 < pot[0]._width + pot[1]._width
                         && !ent._lowers.find(c => c.otherBody == pot[1])) {
                         let newContact = { body: pot[0], otherBody: pot[1], side: 2 }
+                        
                         ent._lowers.push(newContact)
                         if (pot[1]._higherContacts) pot[1]._higherContacts.push(newContact)
                         else pot[1]._higherContacts = [newContact]
+
+                        if (ent._listener && ent._listener.contactStart) {
+                            ent._listener.contactStart(newContact.body, newContact.otherBody, "up")
+                        }
                     } else if (Math.abs(ent._y + pot[0]._y - pot[0]._height/2 - pot[1]._topEntity._y - pot[1]._y - pot[1]._height/2) < 0.000001
                         && ent._lowers.find(c => c.side == 3) != null
                         && Math.abs(pot[0]._x + ent._x - pot[1]._x - pot[1]._topEntity._x) * 2 < pot[0]._width + pot[1]._width
                         && !ent._lowers.find(c => c.otherBody == pot[1])) {
                         let newContact = { body: pot[0], otherBody: pot[1], side: 3 }
+                        
                         ent._lowers.push(newContact)
                         if (pot[1]._higherContacts) pot[1]._higherContacts.push(newContact)
                         else pot[1]._higherContacts = [newContact]
+
+                        if (ent._listener && ent._listener.contactStart) {
+                            ent._listener.contactStart(newContact.body, newContact.otherBody, "down")
+                        }
                     }
                 }
 
@@ -842,38 +868,90 @@ export class World {
                 }
                 case 2: { // move left
                     ent._x = otherx - o2._width/2 - o1._width/2 - o1._x
-                    ent._lowers = ent._lowers.filter(c => c.side != 0)
+                    let remove: number[]
+                    for(let i = 0, len = ent._lowers.length; i < len; i++) {
+                        let lower = ent._lowers[i]
+                        if (lower.side == 0) {
+                            let ind = lower.otherBody._higherContacts.indexOf(lower)
+                            lower.otherBody._higherContacts.splice(ind)
+                            if (remove) remove.push(i)
+                            else remove = [i]
+                        }
+                    }
+                    if (remove) ent._removeLowers(remove)
+
                     let newContact = { body: o1, otherBody: o2, side: 0 }
                     ent._lowers.push(newContact)
-                    if(!o2._higherContacts) o2._higherContacts = []
-                    o2._higherContacts.push(newContact)
+                    if (o2._higherContacts) o2._higherContacts.push(newContact)
+                    else o2._higherContacts = [newContact]
+
+                    if (ent._listener && ent._listener.contactStart) ent._listener.contactStart(o1, o2, "right")
                     break
                 }
                 case 3: { // move right
                     ent._x = otherx + o2._width/2 + o1._width/2 - o1._x
-                    ent._lowers = ent._lowers.filter(c => c.side != 1)
+                    let remove: number[]
+                    for(let i = 0, len = ent._lowers.length; i < len; i++) {
+                        let lower = ent._lowers[i]
+                        if (lower.side == 1) {
+                            let ind = lower.otherBody._higherContacts.indexOf(lower)
+                            lower.otherBody._higherContacts.splice(ind)
+                            if (remove) remove.push(i)
+                            else remove = [i]
+                        }
+                    }
+                    if (remove) ent._removeLowers(remove)
+
                     let newContact = { body: o1, otherBody: o2, side: 1 }
                     ent._lowers.push(newContact)
-                    if(!o2._higherContacts) o2._higherContacts = []
-                    o2._higherContacts.push(newContact)
+                    if (o2._higherContacts) o2._higherContacts.push(newContact)
+                    else o2._higherContacts = [newContact]
+
+                    if (ent._listener && ent._listener.contactStart) ent._listener.contactStart(o1, o2, "left")
                     break
                 }
                 case 4: { // move up
                     ent._y = othery + o2._height/2 + o1._height/2 - o1._y
-                    ent._lowers = ent._lowers.filter(c => c.side != 3)
+                    let remove: number[]
+                    for(let i = 0, len = ent._lowers.length; i < len; i++) {
+                        let lower = ent._lowers[i]
+                        if (lower.side == 3) {
+                            let ind = lower.otherBody._higherContacts.indexOf(lower)
+                            lower.otherBody._higherContacts.splice(ind)
+                            if (remove) remove.push(i)
+                            else remove = [i]
+                        }
+                    }
+                    if (remove) ent._removeLowers(remove)
+
                     let newContact = { body: o1, otherBody: o2, side: 3 }
                     ent._lowers.push(newContact)
-                    if(!o2._higherContacts) o2._higherContacts = []
-                    o2._higherContacts.push(newContact)
+                    if (o2._higherContacts) o2._higherContacts.push(newContact)
+                    else o2._higherContacts = [newContact]
+
+                    if (ent._listener && ent._listener.contactStart) ent._listener.contactStart(o1, o2, "down")
                     break
                 }
                 case 5: { // move down
                     ent._y = othery - o2._height/2 - o1._height/2 - o1._y
-                    ent._lowers = ent._lowers.filter(c => c.side != 2)
+                    let remove: number[]
+                    for(let i = 0, len = ent._lowers.length; i < len; i++) {
+                        let lower = ent._lowers[i]
+                        if (lower.side == 2) {
+                            let ind = lower.otherBody._higherContacts.indexOf(lower)
+                            lower.otherBody._higherContacts.splice(ind)
+                            if (remove) remove.push(i)
+                            else remove = [i]
+                        }
+                    }
+                    if (remove) ent._removeLowers(remove)
+
                     let newContact = { body: o1, otherBody: o2, side: 2 }
                     ent._lowers.push(newContact)
-                    if(!o2._higherContacts) o2._higherContacts = []
-                    o2._higherContacts.push(newContact)
+                    if (o2._higherContacts) o2._higherContacts.push(newContact)
+                    else o2._higherContacts = [newContact]
+
+                    if (ent._listener && ent._listener.contactStart) ent._listener.contactStart(o1, o2, "up")
                     break
                 }
             }

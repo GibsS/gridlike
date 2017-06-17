@@ -606,37 +606,38 @@ class Script13 extends Script implements EntityListener {
             width: 1, height: 1,
             level: 2
         }))
+        this.rect.name = "rect"
 
         this.r(this.world.createRect({
             x: 0, y: 0,
             level: 0,
             width: 2, height: 1
-        }))
+        })).name = "ground1"
         this.r(this.world.createRect({
             x: -2, y: 2,
             level: 0,
             isSensor: true,
             width: 2, height: 1
-        }))
+        })).name = "sensor-ground2"
         this.r(this.world.createRect({
             x: 2, y: 3,
             level: 0,
             isSensor: true,
             width: 2, height: 1
-        }))
+        })).name = "sensor-ground3"
         this.r(this.world.createLine({
             x: 4, y: 0.5,
             level: 0,
             size: 2,
             isHorizontal: true
-        }))
+        })).name = "ground4"
         this.r(this.world.createLine({
             x: -4, y: 0.5,
             level: 0,
             size: 2,
             isHorizontal: true,
             side: "up"
-        }))
+        })).name = "ground5"
 
         charController.input(this, this.rect)
         this.rect.listener = this
@@ -647,6 +648,13 @@ class Script13 extends Script implements EntityListener {
     }
     overlapEnd(body: Body, otherBody: Body) {
         console.log("overlap end:", body._entity.name, otherBody._entity.name)
+    }
+
+    contactStart(body: Body, otherBody: Body, side: string) {
+        console.log("contact start:", body._entity.name)
+    }
+    contactEnd(body: Body, otherBody: Body, side: string) {
+        console.log("contact end:", body._entity.name)
     }
 
     update(time: number, delta: number) {

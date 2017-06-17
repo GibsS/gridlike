@@ -178,7 +178,7 @@ export abstract class Body implements EnabledAABB {
                 lower.otherBody._higherContacts.splice(j, 1)
             }
         }
-        if (remove) _.pullAt(this._topEntity._lowers, remove)
+        if (remove) this._topEntity._removeLowers(remove)
 
         if (this._higherContacts) {
             let toremove = []
@@ -186,6 +186,12 @@ export abstract class Body implements EnabledAABB {
             for (let higher of this._higherContacts) {
                 let ind = higher.body._topEntity._lowers.indexOf(higher)
                 higher.body._topEntity._lowers.splice(ind, 1)
+                if (higher.body._entity._listener && higher.body._entity._listener.contactEnd) { 
+                    higher.body._entity._listener.contactEnd(
+                        higher.body, higher.otherBody, 
+                        higher.side == 0 ? "right" : (higher.side == 1 ? "left" : (higher.side == 2 ? "up" : "down"))
+                    )
+                }
             }
             this._higherContacts = []
         }

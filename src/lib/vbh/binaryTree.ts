@@ -299,18 +299,18 @@ export class BinaryTree<X extends EnabledAABB> implements VBH<X> {
         }
     }
 }
-let updateCount: number = 0
-let moveTime: number
-let searchTime: number
+// let updateCount: number = 0
+// let moveTime: number
+// let searchTime: number
 
 export class MoveBinaryTree<X extends MoveAABB> extends BinaryTree<X> implements MoveVBH<X> {
 
     collisions(): X[][] {
-        updateCount++
-        if (updateCount % 240 == 0) { console.log("moveTime:", moveTime, "searchTime:", searchTime) }
-        let t0 = typeof window !== "undefined" && performance.now()
+        // updateCount++
+        // if (updateCount % 240 == 0) { console.log("moveTime:", moveTime, "searchTime:", searchTime) }
+        // let t0 = typeof window !== "undefined" && performance.now()
         this._otherVBH.forAll(e => this._move(e, e.moveMinX, e.moveMaxX, e.moveMinY, e.moveMaxY))
-        let t1 = typeof window !== "undefined" && performance.now()
+        // let t1 = typeof window !== "undefined" && performance.now()
 
         let set: Node<X>[] = [],
             node = this._data,
@@ -325,8 +325,8 @@ export class MoveBinaryTree<X extends MoveAABB> extends BinaryTree<X> implements
             }
         }
 
-        moveTime = t1 - t0
-        searchTime = typeof window !== "undefined" && performance.now() - t1
+        // moveTime = t1 - t0
+        // searchTime = typeof window !== "undefined" && performance.now() - t1
 
         return res
     }

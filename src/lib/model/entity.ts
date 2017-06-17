@@ -915,4 +915,17 @@ export class Entity implements MoveAABB {
         //     _.pullAt(b._higherContacts, toremove)
         // })
     }
+
+    _removeLowers(indexes: number[]) {
+        let contacts = _.pullAt(this._lowers, indexes)
+        if (this._listener && this._listener.contactEnd) {
+            for (let c of contacts) {
+                this._listener.contactEnd(
+                    c.body, 
+                    c.otherBody, 
+                    c.side == 0 ? "right" : (c.side == 1 ? "left" : c.side == 2 ? "up" : "down")
+                )
+            }
+        }
+    }
 }
