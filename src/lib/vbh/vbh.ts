@@ -90,7 +90,7 @@ export class SimpleVBH<X extends EnabledAABB> implements VBH<X> {
                 res.push(e)
             }
         }
-        return { bodies: res }
+        return res
     }
     collideVBH(other: VBH<X>, x: number, y: number, dx: number, dy: number, otherx: number, othery: number, otherdx: number, otherdy: number): X[][] {
         if (other instanceof SimpleVBH) {

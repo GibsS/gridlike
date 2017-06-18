@@ -12,14 +12,14 @@ let grid = world.createGrid({
 console.timeEnd("init")
 
 console.time("for: 1000/1000")
-grid.forTiles(-300, -300, 1000, 1000, (x, y, shape, data) => {
+grid.forBlocks(-300, -300, 1000, 1000, (x, y, shape, data) => {
     return 3
 })
 console.timeEnd("for: 1000/1000")
 
 
 console.time("for: 60/60")
-grid.forTiles(-30, 30, 30, 30, (x, y, shape, data) => {
+grid.forBlocks(-30, 30, 30, 30, (x, y, shape, data) => {
     return 3
 })
 console.timeEnd("for: 60/60")
@@ -28,7 +28,7 @@ console.timeEnd("for: 60/60")
 console.time("gets: 1000/1000")
 for(let i = -500; i < 500; i++) {
     for(let j = -500; j < 500; j++) {
-        let res = grid.getTile(i, j)
+        let res = grid.getBlock(i, j)
     }
 }
 console.timeEnd("gets: 1000/1000")

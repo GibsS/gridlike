@@ -64,17 +64,17 @@ function testVBH(VBHType: () => VBH<EnabledAABB>, otherVBHs: (() => VBH<EnabledA
         it('should return null if nothing overlaps with the rectangle', function() {
             let res = vbh.queryRect(-10, 0, 4, 4)
 
-            assert.deepEqual(res.bodies, [])
+            assert.deepEqual(res, [])
         })
         it('should return all the elements overlaps with the rectangle /1', function() {
-            let res = vbh.queryRect(1.5, -0.5, 3, 3)
+            let res = vbh.queryRect(2, 0, 3, 3)
 
-            assert(_.isEqual(res.bodies.sort(), [aabb1, aabb2, aabb3].sort()))
+            assert(_.isEqual(res.sort(), [aabb1, aabb2, aabb3].sort()))
         })
         it('should return all the elements overlaps with the rectangle /2', function() {
-            let res = vbh.queryRect(2.5, -0.5, 0, 0)
+            let res = vbh.queryRect(3, 0, 0, 0)
 
-            assert(res.bodies.length == 1 && res.bodies[0] == aabb2)
+            assert(res.length == 1 && res[0] == aabb2)
         })
     })
 

@@ -176,8 +176,8 @@ export class Testbed {
                 let query = this.world.queryPoint(x, y)
 
                 if(query) {
-                    if(query.bodies.length > 0) {
-                        this.script.click(x, y, query.bodies[0])
+                    if(query.length > 0) {
+                        this.script.click(x, y, query[0])
                     } else {
                         this.script.click(x, y, null)
                     }
@@ -411,7 +411,7 @@ export class Testbed {
         this.ctx.font="9px Arial";
 
         if (this.zoom)
-        for(let e of this.world._vbh.queryRect(this.xCam, this.yCam, this.canvas.width / this.zoom, this.canvas.height / this.zoom).bodies) {
+        for(let e of this.world._vbh.queryRect(this.xCam, this.yCam, this.canvas.width / this.zoom, this.canvas.height / this.zoom)) {
             if(this.showEntity) {
                 let x = e.globalx, y = e.globaly
                 this.ctx.beginPath()
@@ -483,15 +483,14 @@ export class Testbed {
             }
             let bodies: Body[] = []
             if(e._allBodies) {
-                bodies = e._allBodies.queryRect(this.xCam - e._x, this.yCam - e._y, this.canvas.width / this.zoom, this.canvas.height / this.zoom).bodies
+                bodies = e._allBodies.queryRect(this.xCam - e._x, this.yCam - e._y, this.canvas.width / this.zoom, this.canvas.height / this.zoom)
             } else if (e._bodies) {
                 if (e._bodies instanceof Body) {
                     bodies = [e._bodies]
                 } else {
-                    bodies = e._bodies.queryRect(this.xCam - e._x, this.yCam - e._y, this.canvas.width / this.zoom, this.canvas.height / this.zoom).bodies
+                    bodies = e._bodies.queryRect(this.xCam - e._x, this.yCam - e._y, this.canvas.width / this.zoom, this.canvas.height / this.zoom)
                 }
             }
-            // console.log(this.xCam - e._x, this.yCam - e._y, this.canvas.width / this.zoom, this.canvas.height / this.zoom)
             bodies.forEach(b => {
                 let x = b.globalx, y = b.globaly
                 if(this.showBody) {

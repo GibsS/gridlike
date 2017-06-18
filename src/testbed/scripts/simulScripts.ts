@@ -446,14 +446,14 @@ class Script9 extends Script {
             height: 20
         }))
         let grid = this.ground.body as Grid
-        grid.setTileShape(0, 0, 1)
-        grid.setTileShape(1, 0, 1)
-        grid.setTileShape(-1, 0, 1)
-        grid.setTileShape(-2, 0, 1)
-        grid.setTileShape(-2, 1, 1)
+        grid.setBlockShape(0, 0, 1)
+        grid.setBlockShape(1, 0, 1)
+        grid.setBlockShape(-1, 0, 1)
+        grid.setBlockShape(-2, 0, 1)
+        grid.setBlockShape(-2, 1, 1)
 
-        grid.setTileShape(-4, 2, 1)
-        grid.setTileShape(-4, 3, 1)
+        grid.setBlockShape(-4, 2, 1)
+        grid.setBlockShape(-4, 3, 1)
 
         fixSpeed.input(this, this.rect, false)
     }
@@ -474,22 +474,22 @@ class Script10 extends Script {
             level: 1
         }))
         let grid = this.grid.body as Grid
-        grid.setTileShape(0, 0, 1)
-        grid.setTileShape(2, 2, 1)
+        grid.setBlockShape(0, 0, 1)
+        grid.setBlockShape(2, 2, 1)
 
         this.ground = this.r(this.world.createGrid({
             x: 0, y: -3,
             level: 0
         }))
         grid = this.ground.body as Grid
-        grid.setTileShape(0, 0, 1)
-        grid.setTileShape(1, 0, 1)
-        grid.setTileShape(-1, 0, 1)
-        grid.setTileShape(-2, 0, 1)
-        grid.setTileShape(-2, 1, 1)
+        grid.setBlockShape(0, 0, 1)
+        grid.setBlockShape(1, 0, 1)
+        grid.setBlockShape(-1, 0, 1)
+        grid.setBlockShape(-2, 0, 1)
+        grid.setBlockShape(-2, 1, 1)
 
-        grid.setTileShape(-4, 2, 1)
-        grid.setTileShape(-4, 3, 1)
+        grid.setBlockShape(-4, 2, 1)
+        grid.setBlockShape(-4, 3, 1)
 
         fixSpeed.input(this, this.grid, false)
     }
@@ -518,10 +518,10 @@ class Script11 extends Script {
             height: 20
         }))
         let grid = this.movingGrid.body as Grid
-        grid.setTileShape(0, 0, 1)
-        grid.setTileShape(0, -1, 1)
-        grid.setTileShape(0, -2, 1)
-        grid.setTileShape(1, 0, 1)
+        grid.setBlockShape(0, 0, 1)
+        grid.setBlockShape(0, -1, 1)
+        grid.setBlockShape(0, -2, 1)
+        grid.setBlockShape(1, 0, 1)
 
         grid = this.r(this.world.createGrid({
             x: 0, y: -3,
@@ -529,12 +529,12 @@ class Script11 extends Script {
             width: 20,
             height: 20
         })).body as Grid
-        grid.setTileShape(0, 0, 1)
-        grid.setTileShape(0, -1, 1)
-        grid.setTileShape(0, -2, 1)
-        grid.setTileShape(1, 0, 1)
+        grid.setBlockShape(0, 0, 1)
+        grid.setBlockShape(0, -1, 1)
+        grid.setBlockShape(0, -2, 1)
+        grid.setBlockShape(1, 0, 1)
 
-        grid.forTiles(-10, -10, 5, 5, (x, y, shape, data) => 1)
+        grid.forBlocks(-10, -10, 5, 5, (x, y, shape, data) => 1)
 
         charController.input(this, this.rect)
         forceController.input(this, this.movingGrid, false, 'f', 'h', 't', 'g')

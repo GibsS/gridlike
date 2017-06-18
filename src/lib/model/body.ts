@@ -3,10 +3,7 @@ import * as _ from 'lodash'
 import { VBH, EnabledAABB } from '../vbh/vbh'
 import { Entity } from './entity'
 import { Contact, _Contact, Overlap } from './contact'
-
-export enum BodyType {
-    RECT, LINE, GRID
-}
+import { BodyType } from './enums'
 
 interface BodyArgs {
     x?: number
@@ -44,7 +41,7 @@ let resetminx = false, resetmaxx = false, resetminy = false, resetmaxy = false
 
 export abstract class Body implements EnabledAABB {
 
-    type: number
+    type: BodyType
 
     _grid: Grid
     _entity: Entity
@@ -54,6 +51,7 @@ export abstract class Body implements EnabledAABB {
     _x: number
     _y: number
 
+    // contacts with bodies belonging to top-entity with a higher level. Can be null
     _higherContacts: _Contact[]
 
     get entity(): Entity { return this._entity }
@@ -63,7 +61,8 @@ export abstract class Body implements EnabledAABB {
     get enabled(): boolean { return this._enabled }
     set enabled(val: boolean) {
         if (val != this._enabled && !val) {
-            this._enabledChangeContactFix ()
+            // just clears every contacts
+            this._enabledChangeContactFix () 
         }
         this._enabled = val
     }
@@ -85,6 +84,11 @@ export abstract class Body implements EnabledAABB {
         this._topy = y
     }
     set _topx(val: number) {
+        // factorized code for handling position changes.
+        // when a body is moved you have to remove lost contacts and change the bounds of the topentity (minX, maxX, minY, maxY)
+        // _testResetBounds calculates if this body was at one of the bounds
+        // _clearContacts removes all contact TODO: remove only lost ones
+        // _resetBounds checks the modified values in _testResetBounds and applies the changes
         this._testResetBounds()
         this._x = val
         this._clearContacts()
@@ -402,6 +406,7 @@ export class Line extends SmallBody {
 
     get size(): number { return this._size }
     set size(val: number) {
+        // same as positionning
         this._testResetBounds()
         this._size = val
         this._resetBounds()
@@ -462,7 +467,8 @@ export class Line extends SmallBody {
 const subGridThreshold = 105
 const subGridSize = 120
 
-// IF THIS IS MODIFIED, ALL OTHER REFERENCES MUST BE ADAPTED
+// The IDs of every cell types. If this is modified, make sure to
+// update every references to cell IDs
 export const EMPTY = 0
 export const BLOCK_TILE = 1
 export const UP_ONEWAY = 4
@@ -480,6 +486,7 @@ export class Grid extends Body {
     _tileSize: number
     _gridSize: number
 
+    // represents the bottom left corner of the most bottom left sub grid in this grid's space
     _xdownLeft: number
     _ydownLeft: number
     _subGrids: SubGrid | SubGrid[][]
@@ -487,6 +494,10 @@ export class Grid extends Body {
     _width: number
     _height: number
 
+    // these are used during the modification of the bodies of the grid: 
+    // _newBodies represents the bodies that will be added
+    // _oldBodies represents the bodies that will be removed
+    // _updateBodies represents the bodies who were already on the entity whose shape changed
     _newBodies: Body[]
     _oldBodies: Body[]
     _updatedBodies: Body[]
@@ -592,11 +603,11 @@ export class Grid extends Body {
     }
 
 
-    globalToTile(x: number, y: number): { x: number, y: number } {
+    globalToBlock(x: number, y: number): { x: number, y: number } {
         return { x: Math.floor(x - this._x - this._xdownLeft), y: Math.floor(y - this._y - this._ydownLeft) }
     }
 
-    getTile(x: number, y: number): { shape: number, data: any } {
+    getBlock(x: number, y: number): { shape: number, data: any } {
         x -= this._xdownLeft
         y -= this._ydownLeft
         let subgrid: SubGrid
@@ -623,7 +634,7 @@ export class Grid extends Body {
 
         return { shape: subgrid.tiles[x][y].shape, data: subgrid.tiles[x][y].data }
     }
-    setTile(x: number, y: number, shape: number, data) {
+    setBlock(x: number, y: number, shape: number, data) {
         this._expandGrid(x - this._xdownLeft, y - this._ydownLeft, x - this._xdownLeft, y - this._ydownLeft)
 
         x -= this._xdownLeft
@@ -632,7 +643,7 @@ export class Grid extends Body {
         this._setTile(x, y, shape, data)
     }
 
-    clearTile(x: number, y: number) {
+    clearBlock(x: number, y: number) {
         x -= this._xdownLeft
         y -= this._ydownLeft
 
@@ -641,7 +652,7 @@ export class Grid extends Body {
         }
     }
 
-    setTiles(args: TileArgs) {
+    setBlocks(args: TileArgs) {
         let minx, maxx, miny, maxy,
             list = (args as TileList).length != null
         if (list) {
@@ -689,10 +700,10 @@ export class Grid extends Body {
             )
         }
     }
-    clearTiles(args: { x: number, y: number, width: number, height: number } | { x: number, y: number }[]) {
+    clearBlocks(args: { x: number, y: number, width: number, height: number } | { x: number, y: number }[]) {
         this._clearTiles(args, { shape: 0, data: null })
     }
-    forTiles(x: number, y: number, width: number, height: number, lambda: (x: number, y: number, shape: number, data) => ({ shape: number, data?} | number)) {
+    forBlocks(x: number, y: number, width: number, height: number, lambda: (x: number, y: number, shape: number, data) => ({ shape: number, data?} | number)) {
         this._expandGrid(x - this._xdownLeft, y - this._ydownLeft, x + width - this._xdownLeft, y + height - this._ydownLeft)
 
         this._setTiles(
@@ -701,10 +712,10 @@ export class Grid extends Body {
         )
     }
 
-    getTileShape(x: number, y: number): number {
-        return this.getTile(x, y).shape
+    getBlockShape(x: number, y: number): number {
+        return this.getBlock(x, y).shape
     }
-    setTileShape(x: number, y: number, shape: number) {
+    setBlockShape(x: number, y: number, shape: number) {
         this._expandGrid(x - this._xdownLeft, y - this._ydownLeft, x - this._xdownLeft, y - this._ydownLeft)
 
         x -= this._xdownLeft
@@ -712,7 +723,7 @@ export class Grid extends Body {
 
         this._setTile(x, y, shape)
     }
-    clearTileShape(x: number, y: number) {
+    clearBlockShape(x: number, y: number) {
         x -= this._xdownLeft
         y -= this._ydownLeft
         if (x >= 0 && y >= 0 && x < this._width * this._gridSize && y < this._height * this._gridSize) {
@@ -720,18 +731,18 @@ export class Grid extends Body {
         }
     }
 
-    clearTileShapes(args: { x: number, y: number }[] | { x: number, y: number, width: number, height: number }) {
+    clearBlockShapes(args: { x: number, y: number }[] | { x: number, y: number, width: number, height: number }) {
         this._clearTiles(args, 0)
     }
     _clearTiles(args: { x: number, y: number }[] | { x: number, y: number, width: number, height: number }, zero: number | { shape: number, data?}) {
         if ((args as any).length != null) {
             if (typeof zero === "number") {
                 for (let t of args as any[]) {
-                    this.clearTileShape(t.x, t.y)
+                    this.clearBlockShape(t.x, t.y)
                 }
             } else {
                 for (let t of args as any[]) {
-                    this.clearTile(t.x, t.y)
+                    this.clearBlock(t.x, t.y)
                 }
             }
         } else {
@@ -855,24 +866,29 @@ export class Grid extends Body {
         if (oldBody) {
             if (oldBody._width == 1) {
                 if (oldBody._height == 1) {
+                    // one block body
                     let i = this._newBodies.indexOf(oldBody)
                     if (i >= 0) this._newBodies.splice(i, 1)
                     else this._oldBodies.push(oldBody)
                 } else if (y + yoffset == oldBody._y - oldBody._height / 2) {
+                    // block at the bottom of the body
                     oldBody._height -= 1
                     oldBody._y += 0.5
 
                     if (oldBody._height == 1) this._horizontalBodyMerge(subgrid, subgrid.tiles[x][y + 1], oldBody, x, y + 1, xoffset, yoffset)
                     this._updatedBodies.push(oldBody)
                 } else if (y + yoffset == oldBody._y + oldBody._height / 2 - 1) {
+                    // block at the top of the body
                     oldBody._height -= 1
                     oldBody._y -= 0.5
 
                     if (oldBody._height == 1) this._horizontalBodyMerge(subgrid, subgrid.tiles[x][y - 1], oldBody, x, y - 1, xoffset, yoffset)
                     this._updatedBodies.push(oldBody)
                 } else {
+                    // block at the middle of the body
                     let newBody: SmallBody
                     if (tile.shape == 1) {
+                        // remove block shaped block
                         newBody = new Rect(null, null)
 
                         newBody._height = y + yoffset - oldBody._y + oldBody._height / 2
@@ -883,6 +899,7 @@ export class Grid extends Body {
                         oldBody._height -= newBody._height + 1
                         oldBody._y += (newBody._height + 1) / 2
                     } else {
+                        // remove line from body, splits in half
                         newBody = new Line(null, null);
 
                         (newBody as Line)._size = y + yoffset - oldBody._y + (oldBody as Line)._size / 2;
@@ -913,23 +930,28 @@ export class Grid extends Body {
                         subgrid.tiles[x][i].body = newBody
                     }
 
+                    // when splitting, the two new bodies can be a 1 by 1 block next to similar blocks so we want to merge these
+                    // together
                     if (newBody._height == 1) this._horizontalBodyMerge(subgrid, subgrid.tiles[x][y - 1], newBody, x, y - 1, xoffset, yoffset)
                     if (oldBody._height == 1) this._horizontalBodyMerge(subgrid, subgrid.tiles[x][y + 1], oldBody, x, y + 1, xoffset, yoffset)
                 }
             } else {
                 if (x + xoffset == oldBody._x - oldBody._width / 2) {
+                    // block at the left of the body
                     oldBody._width -= 1
                     oldBody._x += 0.5
 
                     if (oldBody._width == 1) this._verticalBodyMerge(subgrid, subgrid.tiles[x + 1][y], oldBody, x + 1, y, xoffset, yoffset)
                     this._updatedBodies.push(oldBody)
                 } else if (x + xoffset == oldBody._x + oldBody._width / 2 - 1) {
+                    // block at the right of the body
                     oldBody._width -= 1
                     oldBody._x -= 0.5
 
                     if (oldBody._height == 1) this._verticalBodyMerge(subgrid, subgrid.tiles[x - 1][y], oldBody, x - 1, y, xoffset, yoffset)
                     this._updatedBodies.push(oldBody)
                 } else {
+                    // block at the middle of a horizontal body, splitting occurs
                     let newBody: SmallBody
                     if (tile.shape == 1) {
                         newBody = new Rect(null, null)
@@ -973,6 +995,8 @@ export class Grid extends Body {
                         subgrid.tiles[i][y].body = newBody
                     }
 
+                    // when splitting, the two new bodies can be a 1 by 1 block next to similar blocks so we want to merge these
+                    // together
                     if (newBody._width == 1) this._verticalBodyMerge(subgrid, subgrid.tiles[x - 1][y], newBody, x - 1, y, xoffset, yoffset)
                     if (oldBody._width == 1) this._verticalBodyMerge(subgrid, subgrid.tiles[x + 1][y], oldBody, x + 1, y, xoffset, yoffset)
                 }

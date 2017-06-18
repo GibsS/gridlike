@@ -16,3 +16,7 @@ export const ParentType = {
     FOLLOW: "follow",
     STATIC: "static"
 }
+
+export enum BodyType {
+    RECT = 0, LINE = 1, GRID = 2
+}

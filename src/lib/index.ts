@@ -1,6 +1,6 @@
 export { World, createWorld, EPS } from './model/world'
 export { Entity, EntityListener } from './model/entity'
 export { Contact } from './model/contact'
-export { Rect, Line, Grid, Body, BodyType, EMPTY, BLOCK_TILE, DOWN_ONEWAY, UP_ONEWAY, LEFT_ONEWAY, RIGHT_ONEWAY } from './model/body'
+export { Rect, Line, Grid, Body, EMPTY, BLOCK_TILE, DOWN_ONEWAY, UP_ONEWAY, LEFT_ONEWAY, RIGHT_ONEWAY } from './model/body'
 export { RaycastResult, QueryResult } from './model/query'
-export { LayerCollision, Direction, ParentType } from './model/enums'
+export { LayerCollision, Direction, ParentType, BodyType } from './model/enums'

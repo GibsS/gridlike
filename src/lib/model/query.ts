@@ -9,7 +9,4 @@ export interface RaycastResult<X> {
     dist: number
 }
 
-export interface QueryResult<X> {
-
-    bodies: X[]
-}
+export declare type QueryResult<X> = X[]

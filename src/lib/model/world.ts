@@ -214,29 +214,31 @@ export class World {
             this._ents[entity.level].splice(i, 1)
         }
         entity._listener = null
+        entity._topEntity = null
     }
 
     // ##### QUERYING
     raycast(x: number, y: number, dx: number, dy: number): RaycastResult<Body> {
-        console.log("NOT IMPLEMENTED")
+        // TODO
+        console.log("[World.raycast] NOT IMPLEMENTED")
         return null
     }
     queryRect(x: number, y: number, w: number, h: number): QueryResult<Body> {
         let entQuery = this._vbh.queryRect(x, y, w, h), res = []
 
-        for(let entity of entQuery.bodies) {
+        for(let entity of entQuery) {
             if (entity._allBodies) {
-                res.push.apply(res, entity._allBodies.queryRect(x - entity._x, y - entity._y, w, h).bodies)
+                res.push.apply(res, entity._allBodies.queryRect(x - entity._x, y - entity._y, w, h))
             } else if (entity._bodies) {
                 if (entity._bodies instanceof Body) {
                     res.push(entity._bodies)
                 } else {
-                    res.push.apply(res, entity._bodies.queryRect(x - entity._x, y - entity._y, w, h).bodies)
+                    res.push.apply(res, entity._bodies.queryRect(x - entity._x, y - entity._y, w, h))
                 }
             }
         }
 
-        return { bodies: res }
+        return res
     }
     queryPoint(x: number, y: number): QueryResult<Body> {
         return this.queryRect(x, y, 0, 0)
@@ -372,6 +374,8 @@ export class World {
                             // DEFINE NEW CONTACTS DUE TO COLLISIONS
                             let firstTime = Infinity,
                                 first: NarrowResult
+
+                            // FIND EARLIEST COLLISION + ADD CRUSHING STATE IF A CRUSH STATE OCCURS
                             narrows.forEach(n => {
                                 if(n.time < firstTime) {
                                     switch(n.side) {
@@ -512,6 +516,7 @@ export class World {
                     }
                 }
 
+                // IF AN ENTITY HAS A CONTACT IN ONE DIRECTION, ADD EVERY CONTACTS THAT CAN REPLACE IT
                 for(let pot of ent._potContacts) {
                     if (Math.abs(ent._x + pot[0]._x + pot[0]._width/2 - pot[1]._topEntity._x - pot[1]._x + pot[1]._width/2) < 0.000001
                         && ent._lowers.find(c => c.side == 0) != null
@@ -588,11 +593,13 @@ export class World {
         this._narrowphaseTime = t2 - t1
     }
     _move(entity: Entity, dx: number, dy: number) {
-
+        // TODO
+        console.log("[World._move] NOT IMPLEMENTED")
     }
 
     // SIMULATION PROCEDURES
     _broadphase(delta: number) {
+        // CALCULATE MOVE BOUNDS + REMOVE OLD OVERLAPS
         for(let level in this._ents) {
             let ents = this._ents[level]
             for(let e of ents) {
@@ -619,7 +626,8 @@ export class World {
 
         let overlapBodies: SmallBody[][] = []
         
-        this._vbh.collisions().forEach(pair => {
+        this._vbh.collisions() // CALCULATE ENTITY COLLISIONS
+            .forEach(pair => { // CALCULATE BODY COLLISIONS
             let e1: Entity = pair[0], e2: Entity = pair[1]
             
             if(e2._bodies instanceof SmallBody) {
@@ -660,7 +668,7 @@ export class World {
         })
 
         overlapBodies
-        .filter(pair => {
+        .filter(pair => { // FILTER FOR LAYERING
             switch(this._getLayerRule(pair[0]._layer, pair[1]._layer)) {
                 case 0x3: return true
                 case 0x2: return pair[0]._layerGroup == pair[1]._layerGroup
@@ -669,7 +677,7 @@ export class World {
             }
         })
         .filter(p => {
-            if(p[0]._isSensor || p[1]._isSensor) {
+            if(p[0]._isSensor || p[1]._isSensor) { // HANDLE SENSOR OVERLAPS
                 if(!p[0]._entity._overlap || !_.some(p[0]._entity._overlap, o => o[1] == p[1])) {
                     if (!(p[1]._topEntity._x + p[1]._x + p[1]._width/2 < p[0]._topEntity._x + p[0]._x - p[0]._width/2
                         || p[1]._topEntity._x + p[1]._x - p[1]._width/2 > p[0]._topEntity._x + p[0]._x + p[0]._width/2
@@ -694,7 +702,7 @@ export class World {
             if(e1._level != e2._level) {
                 if(e1._level > e2._level) e1._potContacts.push([p[0], p[1]])
                 else e2._potContacts.push([p[1], p[0]])
-            } else {
+            } else { // HANDLE OVERLAP OF SAME LEVEL ENTITIES
                 if(!p[0]._entity._overlap || !_.some(p[0]._entity._overlap, o => o[1] == p[1])) {
                     if (!(p[1]._topEntity._x + p[1]._x + p[1]._width/2 < p[0]._topEntity._x + p[0]._x - p[0]._width/2
                         || p[1]._topEntity._x + p[1]._x - p[1]._width/2 > p[0]._topEntity._x + p[0]._x + p[0]._width/2
@@ -743,6 +751,7 @@ export class World {
             }
         }
 
+        // FIND SOONEST TOI
         if(toix > toiy) {
             if(toix < delta && toix > -0.0001) {
                 let newy1 = y1 + toix * vy1,

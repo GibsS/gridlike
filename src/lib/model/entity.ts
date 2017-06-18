@@ -92,6 +92,9 @@ export class Entity implements MoveAABB {
     get listener(): EntityListener { return this._listener }
     set listener(val: EntityListener) { this._listener = val }
 
+    get destroyed(): boolean { return this._topEntity == null }
+    set destroyed(val: boolean) { console.error("[ERROR] can't set Entity.destroyed") }
+
     // HIERARCHY
     get parent(): Entity { return this._parent }
     set parent(val: Entity) { this._setParent(val, this._parentType) }
@@ -105,10 +108,14 @@ export class Entity implements MoveAABB {
     set children(val: Entity[]) { console.error("[ERROR] can't set Entity.childs") }
 
     get body(): Body {
-        if(this._bodies instanceof Body) return this._bodies
-        else {
-            if(this._grids && this._grids instanceof Grid) return this._grids
-            else return this._bodies.all().find(b => b instanceof Grid)
+        if (this._grids) {
+            if(this._grids instanceof Grid) return this._grids
+            else return this._grids[0]
+        } else {
+            if (this._bodies) {
+                if (this._bodies instanceof Body) return this._bodies
+                else return null
+            }
         }
     }
     set body(val: Body) { console.error("[ERROR] can't set Entity.body") }
@@ -312,6 +319,8 @@ export class Entity implements MoveAABB {
         return body
     }
     removeBody(body: Body) {
+        body._clearContacts()
+
         if(this._bodies instanceof Body) {
             if(body == this._bodies) {
                 this._bodies = null
@@ -328,34 +337,6 @@ export class Entity implements MoveAABB {
         if(topEntity._maxX == body.maxX) { topEntity._resetMaxx() }
         if(topEntity._minY == body.minY) { topEntity._resetMiny() }
         if(topEntity._maxY == body.maxY) { topEntity._resetMaxy() }
-
-        // TO FIX
-        // if(body._higherContacts) {
-        //     let len = body._higherContacts.length
-        //     for(let i = 0; i < len; i++) {
-        //         let c: _Contact = body._higherContacts[i]
-        //         if(c.side == 1) {
-        //             c.otherBody._topEntity._removeRightLowerContact()
-        //         } else if(c.side == 0) {
-        //             c.otherBody._topEntity._removeLeftLowerContact()
-        //         } else if(c.side == 2) {
-        //             c.otherBody._topEntity._removeDownLowerContact()
-        //         } else {
-        //             c.otherBody._topEntity._removeUpLowerContact()
-        //         }
-        //     }
-        // }
-
-        // for(let t in ["_downLower", "_upLower", "_leftLower", "_rightLower"]) {
-        //     let c: Contact = this[t]
-        //     if(c) {
-        //         if(c.body == body) {
-        //             let i = c.otherBody._higherContacts.indexOf(c)
-        //             c.otherBody._higherContacts.splice(i, 1)
-        //             this[t] = null
-        //         }
-        //     }
-        // }
     }
     _createBody(args: RectArgs | LineArgs | GridArgs) {
         if((args as any).width != null) {
@@ -432,7 +413,7 @@ export class Entity implements MoveAABB {
         }
     }
 
-    addChild(ent: Entity, parentType?: string) { // static | follow
+    addChild(ent: Entity, parentType?: string) {
         ent.setParent(this, parentType)
     }
     removeChild(ent: Entity) {
