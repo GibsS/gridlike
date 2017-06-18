@@ -296,6 +296,11 @@ export class BinaryTree<X extends EnabledAABB> implements VBH<X> {
                 this._remove(e)
                 this._insert(e, tmpAABB)
             }
+        } else {
+            node.minX = minX
+            node.maxX = maxX
+            node.minY = minY
+            node.maxY = maxY
         }
     }
 }
