@@ -1,7 +1,7 @@
 {
-  "name": "grid",
-  "version": "0.1.0",
-  "description": "A grid-centric physics engine",
+  "name": "grid.js",
+  "version": "1.0.0",
+  "description": "A physics engine made for 2D platformers and terraria-likes",
   "main": "dist/grid.js",
   "keywords": [
     "js",
