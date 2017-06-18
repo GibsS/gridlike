@@ -960,8 +960,8 @@ export class World {
 }
 
 interface NarrowResult {
-    body: Body
-    otherBody: Body
+    body: SmallBody
+    otherBody: SmallBody
 
     time: number
 

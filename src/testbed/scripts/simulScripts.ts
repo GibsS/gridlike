@@ -706,6 +706,42 @@ class Script14 extends Script {
         follow(this, this.rect, time, delta)
     }
 }
+class Script15 extends Script {
+
+    ground: Entity
+    rect: Entity
+
+    init() {
+        this.rect = this.r(this.world.createRect({
+            x: 0,
+            y: 0,
+            width: 1,
+            height: 1,
+            level: 1
+        }))
+
+        this.ground = this.r(this.world.createEntity({
+            x: 0, y: -10,
+            level: 0
+        }))
+        for(let i = 0; i < 4000; i++) {
+            this.ground.createLine({
+                x: (Math.random() * 2 - 1) * 4000,
+                y: (Math.random() / 2 - 1) * 8,
+                size: Math.random() * 5 + 1,
+                isHorizontal: true,
+                side: "up"
+            })
+        }
+
+        charController.input(this, this.rect)
+    }
+
+    update(time: number, delta: number) {
+        charController.update(this.rect, time, delta, 5)
+        follow(this, this.rect, time, delta)
+    }
+}
 
 export const SimulScript1 = { id: "SimulScript1", category: "Specification", name: "Test 1: Free rect movement against single rect", description: "Move: ZQSD", script: () => new Script1() } as ScriptDescriptor
 export const SimulScript2 = { id: "SimulScript2", category: "Specification", name: "Test 2: Corner test", description: null, script: () => new Script2() } as ScriptDescriptor
@@ -721,3 +757,4 @@ export const SimulScript11 = { id: "SimulScript11", category: "Specification", n
 export const SimulScript12 = { id: "SimulScript12", category: "Specification", name: "Test 12: Aligned entities", description: "Move chararacter: ZQSD", script: () => new Script12() } as ScriptDescriptor
 export const SimulScript13 = { id: "SimulScript13", category: "Specification", name: "Test 13: Sensors", description: "Move chararacter: ZQSD", script: () => new Script13() } as ScriptDescriptor
 export const SimulScript14 = { id: "SimulScript14", category: "Specification", name: "Test 14: Hidden corner avoidance", description: "Move character ZQSD", script: () => new Script14() } as ScriptDescriptor
+export const SimulScript15 = { id: "SimulScript15", category: "Specification", name: "Test 15: Large world with one character", description: "Move character ZQSD", script: () => new Script15() } as ScriptDescriptor

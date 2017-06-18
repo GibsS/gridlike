@@ -171,7 +171,7 @@ export abstract class Body implements EnabledAABB {
         let remove: number[]
         for (let i = 0, len = this._topEntity._lowers.length; i < len; i++) {
             let lower = this._topEntity._lowers[i]
-            if (lower.body == this) {
+            if (lower.body as Body == this) {
                 if (remove) remove.push(i)
                 else remove = [i]
                 let j = lower.otherBody._higherContacts.indexOf(lower)
@@ -218,7 +218,32 @@ export abstract class Body implements EnabledAABB {
     }
 
     _enabledChangeContactFix() {
+        let topEntity = this._topEntity,
+            remove: number[]
+        for (let i = 0, len = topEntity._lowers.length; i < len; i++) {
+            let lower = topEntity._lowers[i]
+            if (lower.body == this as any) {
+                let ind = lower.otherBody._higherContacts.indexOf(lower)
+                lower.otherBody._higherContacts.splice(ind, 1)
+                remove.push(i)
+            }
+        }
+        if (remove) topEntity._removeLowers(remove)
 
+        if (this._higherContacts) {
+            for(let i = 0, len = this._higherContacts.length; i < len; i++) {
+                let higher = this._higherContacts[i]
+                let ind = higher.body._topEntity._lowers.indexOf(higher)
+                higher.body._topEntity._lowers.splice(ind, 1)
+                if (higher.body._topEntity._listener && higher.body._topEntity._listener.contactEnd) {
+                    higher.body._topEntity._listener.contactEnd(
+                        higher.body, higher.otherBody, 
+                        higher.side == 0 ? "right" : (higher.side == 1 ? "left" : (higher.side == 2 ? "up" : "down"))
+                    )
+                }
+            }
+            this._higherContacts = null
+        }
     }
 }
 
@@ -227,14 +252,7 @@ export abstract class SmallBody extends Body {
     _isSensor: boolean
     _layer: number
     _layerGroup: number
-
-    // 0 or null: nothing
-    // 1: isSensor change to false
-    // 2: layer change
-    // 3: shape change
-    // 4: enabled change
-    // _contactStatus: number
-
+    
     get isSensor(): boolean { return this._isSensor }
     get layer(): string { return this._topEntity._world._layerNames[this._layer] }
     get layerGroup(): number { return this._layerGroup }
@@ -279,10 +297,53 @@ export abstract class SmallBody extends Body {
     }
 
     _layerChangeContactFix() {
+        let topEntity = this._topEntity,
+            remove: number[]
+        for (let i = 0, len = topEntity._lowers.length; i < len; i++) {
+            let lower = topEntity._lowers[i]
+            if (lower.body == this as any) {
+                let removed: boolean
+                switch(this._entity._world._getLayerRule(lower.body._layer, lower.otherBody._layer)) {
+                    case 0x0: removed = true; break
+                    case 0x1: removed = lower.body._layerGroup == lower.otherBody._layerGroup; break
+                    case 0x2: removed = lower.body._layerGroup != lower.otherBody._layerGroup; break
+                    default: removed = false
+                }
+                if (removed) {
+                    let ind = lower.otherBody._higherContacts.indexOf(lower)
+                    lower.otherBody._higherContacts.splice(ind, 1)
+                    remove.push(i)
+                }
+            }
+        }
+        if (remove) topEntity._removeLowers(remove)
 
+        if (this._higherContacts) {
+            for(let i = 0, len = this._higherContacts.length; i < len; i++) {
+                let higher = this._higherContacts[i]
+                let removed: boolean
+                switch(this._entity._world._getLayerRule(higher.body._layer, higher.otherBody._layer)) {
+                    case 0x0: removed = true; break
+                    case 0x1: removed = higher.body._layerGroup == higher.otherBody._layerGroup; break
+                    case 0x2: removed = higher.body._layerGroup != higher.otherBody._layerGroup; break
+                    default: removed = false
+                }
+                if (removed) {
+                    let ind = higher.body._topEntity._lowers.indexOf(higher)
+                    higher.body._topEntity._lowers.splice(ind, 1)
+                    if (higher.body._topEntity._listener && higher.body._topEntity._listener.contactEnd) {
+                        higher.body._topEntity._listener.contactEnd(
+                            higher.body, higher.otherBody, 
+                            higher.side == 0 ? "right" : (higher.side == 1 ? "left" : (higher.side == 2 ? "up" : "down"))
+                        )
+                    }
+                }
+            }
+            this._higherContacts = null
+        }
     }
     _isSensorChangeContactFix() {
-
+        this._enabledChangeContactFix()
     }
 }
 
@@ -401,14 +462,6 @@ export class Line extends SmallBody {
 const subGridThreshold = 105
 const subGridSize = 120
 
-interface GridListener {
-    gridContactStart?(body: Body, grid: Grid, x: number, y: number, side: string)
-    gridContactEnd?(body: Body, grid: Grid, x: number, y: number, side: string)
-
-    gridOverlapStart?(body: Body, grid: Grid, x: number, y: number, side: string)
-    gridOverlapEnd?(body: Body, grid: Grid, x: number, y: number, side: string)
-}
-
 // IF THIS IS MODIFIED, ALL OTHER REFERENCES MUST BE ADAPTED
 export const EMPTY = 0
 export const BLOCK_TILE = 1
@@ -423,8 +476,6 @@ export class Grid extends Body {
 
     _layer: number
     _layerGroup: number
-
-    _listener: GridListener
 
     _tileSize: number
     _gridSize: number
@@ -444,9 +495,6 @@ export class Grid extends Body {
     get maxX(): number { console.log('Grid.maxx not implemented'); return 0 }
     get minY(): number { console.log('Grid.miny not implemented'); return 0 }
     get maxY(): number { console.log('Grid.maxy not implemented'); return 0 }
-
-    get listener(): GridListener { return this._listener }
-    set listener(val: GridListener) { this._listener = val }
 
     get tileSize(): number { return this._tileSize }
     set tileSize(val: number) { console.log("[ERROR] can't set Grid.tileSize") }

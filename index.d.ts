@@ -71,12 +71,6 @@ export declare interface EntityListener {
 
     overlapStart?(body: Body, otherBody: Body)
     overlapEnd?(body: Body, otherBody: Body)
-
-    gridContactStart?(body: Body, grid: Grid, x: number, y: number, side: string)
-    gridContactEnd?(body: Body, grid: Grid, x: number, y: number, side: string)
-
-    gridOverlapStart?(body: Body, grid: Grid, x: number, y: number, side: string)
-    gridOverlapEnd?(body: Body, grid: Grid, x: number, y: number, side: string)
 }
 
 export declare class Entity {
@@ -188,15 +182,6 @@ export declare class Line extends SmallBody {
     size: number
     readonly isHorizontal: boolean
     side: string
-}
-
-export declare interface GridListener {
-
-    contactStart?(body: Body, x: number, y: number, side: string)
-    contactEnd?(body: Body, x: number, y: number, side: string)
-
-    overlapStart?(body: Body, x: number, y: number, side: string)
-    overlapEnd?(body: Body, x: number, y: number, side: string)
 }
 
 export declare const BLOCK_TILE

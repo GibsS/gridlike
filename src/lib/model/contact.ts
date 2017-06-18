@@ -1,9 +1,9 @@
-import { Body } from './body'
+import { Body, SmallBody } from './body'
 
 export class _Contact {
 
-    body: Body // higher entity
-    otherBody: Body
+    body: SmallBody // higher entity
+    otherBody: SmallBody
     side: number // 0: right, 1: left, 2: up, 3: down
 }
 export class Contact {

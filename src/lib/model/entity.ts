@@ -35,12 +35,6 @@ export interface EntityListener {
 
     crushStart?()
     crushEnd?()
-
-    gridContactStart?(body: Body, grid: Grid, x: number, y: number, side: string)
-    gridContactEnd?(body: Body, grid: Grid, x: number, y: number, side: string)
-
-    gridOverlapStart?(body: Body, grid: Grid, x: number, y: number, side: string)
-    gridOverlapEnd?(body: Body, grid: Grid, x: number, y: number, side: string)
 }
 
 export class Entity implements MoveAABB {
@@ -141,7 +135,7 @@ export class Entity implements MoveAABB {
 
     get level(): number { return this._level }
     set level(val: number) { 
-        this._levelChangeContactFix(this._level, val)
+        if (!this._parent || this._parentType == 1) this._levelChangeContactFix(this._level, val)
 
         this._world._ents[this._level].splice(this._world._ents[this._level].indexOf(this), 1)
         this._level = val
@@ -780,140 +774,146 @@ export class Entity implements MoveAABB {
         this._forAllBodies(b => { this._maxY = Math.max(this._maxY, b.maxY) })
     }
 
-    // _removeLeftLowerContact() {
-    //     let i = this._leftLower.otherBody._higherContacts.indexOf(this._leftLower)
-    //     this._leftLower.otherBody._higherContacts.splice(i, 1)
-    //     // i = this._lowers.indexOf(this._leftLower)
-    //     // this._lowers.splice(i, 1)
-    //     this._leftLower = null // this._lowers.find(c => c.side == 1)
-    // }
-    // _removeRightLowerContact() {
-    //     let i = this._rightLower.otherBody._higherContacts.indexOf(this._rightLower)
-    //     this._rightLower.otherBody._higherContacts.splice(i, 1)
-    //     // i = this._lowers.indexOf(this._rightLower)
-    //     // this._lowers.splice(i, 1)
-    //     this._rightLower = null // this._lowers.find(c => c.side == 0)
-    // }
-    // _removeDownLowerContact() {
-    //     let i = this._downLower.otherBody._higherContacts.indexOf(this._downLower)
-    //     this._downLower.otherBody._higherContacts.splice(i, 1)
-    //     // i = this._lowers.indexOf(this._downLower)
-    //     // this._lowers.splice(i, 1)
-    //     this._downLower = null // this._lowers.find(c => c.side == 3)
-    // }
-    // _removeUpLowerContact() {
-    //     let i = this._upLower.otherBody._higherContacts.indexOf(this._upLower)
-    //     this._upLower.otherBody._higherContacts.splice(i, 1)
-    //     // i = this._lowers.indexOf(this._upLower)
-    //     // this._lowers.splice(i, 1)
-    //     this._upLower = null // this._lowers.find(c => c.side == 2)
-    // }
-
     _levelChangeContactFix(oldLevel: number, newLevel: number) {
-        // TODO
-        // if(newLevel > oldLevel) {
-        //     this._forAllBodies(b => {
-        //         if(b._higherContacts) {
-        //             let remove = []
+        if (newLevel > oldLevel) {
+            this._forAllBodies(b => {
+                if(b._higherContacts) {
+                    let remove = []
 
-        //             for(let i = 0, len = b._higherContacts.length; i < len; i++) {
-        //                 let c = b._higherContacts[i]
+                    for(let i = 0, len = b._higherContacts.length; i < len; i++) {
+                        let c = b._higherContacts[i]
 
-        //                 if(c.otherBody._topEntity._level <= newLevel) {
-        //                     if(c.side == 0) {
-        //                         c.otherBody._topEntity._removeLeftLowerContact()
-        //                     } else if(c.side == 2) {
-        //                         c.otherBody._topEntity._removeDownLowerContact()
-        //                     } else if(c.side == 3) {
-        //                         c.otherBody._topEntity._removeUpLowerContact()
-        //                     } else {
-        //                         c.otherBody._topEntity._removeRightLowerContact()
-        //                     }
-        //                     remove.push(i)
-        //                 }
-        //                 _.pullAt(b._higherContacts, remove)
-        //             }
-        //         }
-        //     })
-        // } else if(newLevel < oldLevel) {
-        //     let remove = []
-        //     for(let i = 0, len = this._lowers.length; i < len; i++) {
-        //         let c = this._lowers[i]
-        //         if (c.otherBody._topEntity.level >= newLevel) {
-        //             switch(c.side) {
-        //                 case 0: this._removeRightLowerContact(); break
-        //                 case 1: this._removeLeftLowerContact(); break
-        //                 case 2: this._removeUpLowerContact(); break
-        //                 default: this._removeDownLowerContact(); break
-        //             }
-        //             remove.push(i)
-        //         }
-        //     }
-        //     _.pullAll(this._lowers, remove)
-        // }
+                        if(c.otherBody._topEntity._level <= newLevel) {
+                            let ind = c.otherBody._topEntity._lowers.indexOf(c)
+                            c.otherBody._topEntity._lowers.splice(ind, 1)
+                            remove.push(i)
+                        }
+                    }
+
+                    _.pullAt(b._higherContacts, remove)
+                }
+            })
+        } else if(newLevel < oldLevel) {
+            let remove: number[]
+            for(let i = 0, len = this._lowers.length; i < len; i++) {
+                let lower = this._lowers[i]
+                if (lower.otherBody._topEntity.level >= newLevel) {
+                    if (remove) remove.push(i)
+                    else remove = [i]
+                }
+            }
+            if (remove) this._removeLowers(remove)
+        }
     }
     _xChangeContactFix() {
-        // TODO: check if vertical contact is lost
-        // if(this._leftLower) {
-        //     let i = this._leftLower.otherBody._higherContacts.indexOf(this._leftLower)
-        //     this._leftLower.otherBody._higherContacts.splice(i, 1)
-        //     this._leftLower = null
-        // }
+        if (this == this._topEntity) {
+            let remove: number[]
+            for(let i = 0, len = this._lowers.length; i < len; i++) {
+                let lower = this._lowers[i]
+                if (lower.side == 0 || lower.side == 1) {
+                    if (remove) remove.push(i)
+                    else remove = [i]
+                    let ind = lower.otherBody._higherContacts.indexOf(lower)
+                    lower.otherBody._higherContacts.splice(ind)
+                } else {
+                    if (Math.abs(this._x + lower.body._x - lower.otherBody._topEntity._x - lower.otherBody._x) * 2 > lower.body._width + lower.otherBody._width) {
+                        if (remove) remove.push(i)
+                        else remove = [i]
+                        let ind = lower.otherBody._higherContacts.indexOf(lower)
+                        lower.otherBody._higherContacts.splice(ind)
+                    }
+                }
+            }
+            if (remove) this._removeLowers(remove)
+        }
 
-        // if(this._rightLower) {
-        //     let i = this._rightLower.otherBody._higherContacts.indexOf(this._rightLower)
-        //     this._rightLower.otherBody._higherContacts.splice(i, 1)
-        //     this._rightLower = null
-        // }
-        // this._forAllBodies(b => {
-        //     // TODO: move bodies in top parent
-        //     if(b._higherContacts) {
-        //         let len = b._higherContacts.length,
-        //             toremove = []
-
-        //         for(let i = 0; i < len; i++) {
-        //             let c = b._higherContacts[i]
-        //             if(c.side == "right") {
-        //                 c.otherBody._topEntity._leftLower = null
-        //                 toremove.push(i)
-        //             } else if(c.side == "left") {
-        //                 c.otherBody._topEntity._rightLower = null
-        //                 toremove.push(i)
-        //             }
-        //         }
-        //         _.pullAt(b._higherContacts, toremove)
-        //     }
-        // })
+        this._forAllBodies(b => {
+            if (b._higherContacts) {
+                let remove: number[]
+                for(let i = 0, len = b._higherContacts.length; i < len; i++) {
+                    let higher = this._lowers[i]
+                    if (higher.side == 0 || higher.side == 1) {
+                        if (remove) remove.push(i)
+                        else remove = [i]
+                        if (higher.body._entity._listener && higher.body._entity._listener.contactEnd) {
+                            higher.body._entity._listener.contactEnd(
+                                higher.body, 
+                                higher.otherBody, 
+                                higher.side == 0 ? "right" : (higher.side == 1 ? "left" : (higher.side == 2 ? "up" : "down"))
+                            )
+                        }
+                    } else {
+                        if (Math.abs(this._x + higher.body._x - higher.otherBody._topEntity._x - higher.otherBody._x) * 2 > higher.body._width + higher.otherBody._width) {
+                            if (remove) remove.push(i)
+                            else remove = [i]
+                            if (higher.body._entity._listener && higher.body._entity._listener.contactEnd) {
+                                higher.body._entity._listener.contactEnd(
+                                    higher.body, 
+                                    higher.otherBody, 
+                                    higher.side == 0 ? "right" : (higher.side == 1 ? "left" : (higher.side == 2 ? "up" : "down"))
+                                )
+                            }
+                        }
+                    }
+                }
+                if (remove) _.pullAt(b._higherContacts, remove)
+            }
+        })
     }
     _yChangeContactFix() {
-        // // TODO: check if horizontal contact is lost
-        // if(this._upLower) {
-        //     let i = this._upLower.otherBody._higherContacts.indexOf(this._upLower)
-        //     this._upLower.otherBody._higherContacts.splice(i, 1)
-        //     this._upLower = null
-        // }
+        if (this == this._topEntity) {
+            let remove: number[]
+            for(let i = 0, len = this._lowers.length; i < len; i++) {
+                let lower = this._lowers[i]
+                if (lower.side > 1) {
+                    if (remove) remove.push(i)
+                    else remove = [i]
+                    let ind = lower.otherBody._higherContacts.indexOf(lower)
+                    lower.otherBody._higherContacts.splice(ind)
+                } else {
+                    if (Math.abs(this._y + lower.body._y - lower.otherBody._topEntity._y - lower.otherBody._y) * 2 > lower.body._height + lower.otherBody._height) {
+                        if (remove) remove.push(i)
+                        else remove = [i]
+                        let ind = lower.otherBody._higherContacts.indexOf(lower)
+                        lower.otherBody._higherContacts.splice(ind)
+                    }
+                }
+            }
+            if (remove) this._removeLowers(remove)
+        }
 
-        // if(this._downLower) {
-        //     let i = this._downLower.otherBody._higherContacts.indexOf(this._downLower)
-        //     this._downLower.otherBody._higherContacts.splice(i, 1)
-        //     this._downLower = null
-        // }
-        // this._forAllBodies(b => {
-        //     let len = b._higherContacts.length,
-        //         toremove = []
-
-        //     for(let i = 0; i < len; i++) {
-        //         let c: Contact = b._higherContacts[i]
-        //         if(c.side == "up") {
-        //             c.otherBody._topEntity._downLower = null
-        //             toremove.push(i)
-        //         } else if(c.side == "down") {
-        //             c.otherBody._topEntity._upLower = null
-        //             toremove.push(i)
-        //         }
-        //     }
-        //     _.pullAt(b._higherContacts, toremove)
-        // })
+        this._forAllBodies(b => {
+            if (b._higherContacts) {
+                let remove: number[]
+                for(let i = 0, len = b._higherContacts.length; i < len; i++) {
+                    let higher = this._lowers[i]
+                    if (higher.side > 1) {
+                        if (remove) remove.push(i)
+                        else remove = [i]
+                        if (higher.body._entity._listener && higher.body._entity._listener.contactEnd) {
+                            higher.body._entity._listener.contactEnd(
+                                higher.body, 
+                                higher.otherBody, 
+                                higher.side == 0 ? "right" : (higher.side == 1 ? "left" : (higher.side == 2 ? "up" : "down"))
+                            )
+                        }
+                    } else {
+                        if (Math.abs(this._y + higher.body._y - higher.otherBody._topEntity._y - higher.otherBody._y) * 2 > higher.body._height + higher.otherBody._height) {
+                            if (remove) remove.push(i)
+                            else remove = [i]
+                            if (higher.body._entity._listener && higher.body._entity._listener.contactEnd) {
+                                higher.body._entity._listener.contactEnd(
+                                    higher.body, 
+                                    higher.otherBody, 
+                                    higher.side == 0 ? "right" : (higher.side == 1 ? "left" : (higher.side == 2 ? "up" : "down"))
+                                )
+                            }
+                        }
+                    }
+                }
+                if (remove) _.pullAt(b._higherContacts, remove)
+            }
+        })
     }
 
     _removeLowers(indexes: number[]) {
