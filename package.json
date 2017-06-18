@@ -1,5 +1,5 @@
 {
-  "name": "grid",
+  "name": "grid-2d",
   "repository": "https://github.com/GibsS/grid.js",
   "version": "1.0.0",
   "description": "A physics engine made for 2D platformers and terraria-likes",
