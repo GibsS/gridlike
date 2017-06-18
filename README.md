@@ -1,4 +1,4 @@
-# grid.js : A physics engine tailor-made for making 2D platformers
+# grid2D : A physics engine tailor-made for making 2D platformers
 
 It is often difficult to handle the movement of your 2D platformer character using generic physics library. 
 grid.js is built from the ground up with the intention of being used to make platformers. It also comes with
