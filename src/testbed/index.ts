@@ -26,8 +26,6 @@ export class Testbed {
     yCam: number
     zoom: number
 
-    entities: Entity[]
-
     _play: boolean
     _request: number
 
@@ -325,7 +323,6 @@ export class Testbed {
         this.script = null
         this._play = false
         this.world = null
-        this.entities = []
         if(this._request != null) {
             cancelAnimationFrame(this._request)
         }
@@ -412,7 +409,9 @@ export class Testbed {
         }
 
         this.ctx.font="9px Arial";
-        for(let e of this.entities) {
+
+        if (this.zoom)
+        for(let e of this.world._vbh.queryRect(this.xCam, this.yCam, this.canvas.width / this.zoom, this.canvas.height / this.zoom).bodies) {
             if(this.showEntity) {
                 let x = e.globalx, y = e.globaly
                 this.ctx.beginPath()
@@ -482,7 +481,18 @@ export class Testbed {
 
                 this.ctx.strokeStyle="#000000"
             }
-            e._forBodies(b => {
+            let bodies: Body[] = []
+            if(e._allBodies) {
+                bodies = e._allBodies.queryRect(this.xCam - e._x, this.yCam - e._y, this.canvas.width / this.zoom, this.canvas.height / this.zoom).bodies
+            } else if (e._bodies) {
+                if (e._bodies instanceof Body) {
+                    bodies = [e._bodies]
+                } else {
+                    bodies = e._bodies.queryRect(this.xCam - e._x, this.yCam - e._y, this.canvas.width / this.zoom, this.canvas.height / this.zoom).bodies
+                }
+            }
+            // console.log(this.xCam - e._x, this.yCam - e._y, this.canvas.width / this.zoom, this.canvas.height / this.zoom)
+            bodies.forEach(b => {
                 let x = b.globalx, y = b.globaly
                 if(this.showBody) {
                     this.ctx.beginPath()
@@ -614,9 +624,6 @@ export class Testbed {
     }
 
     registerEntity(entity: Entity): Entity {
-        if(this.entities.indexOf(entity) < 0) {
-            this.entities.push(entity)
-        }
         return entity
     }
 }

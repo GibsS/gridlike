@@ -218,10 +218,25 @@ export class World {
 
     // ##### QUERYING
     raycast(x: number, y: number, dx: number, dy: number): RaycastResult<Body> {
+        console.log("NOT IMPLEMENTED")
         return null
     }
     queryRect(x: number, y: number, w: number, h: number): QueryResult<Body> {
-        return null
+        let entQuery = this._vbh.queryRect(x, y, w, h), res = []
+
+        for(let entity of entQuery.bodies) {
+            if (entity._allBodies) {
+                res.push.apply(res, entity._allBodies.queryRect(x - entity._x, y - entity._y, w, h).bodies)
+            } else if (entity._bodies) {
+                if (entity._bodies instanceof Body) {
+                    res.push(entity._bodies)
+                } else {
+                    res.push.apply(res, entity._bodies.queryRect(x - entity._x, y - entity._y, w, h).bodies)
+                }
+            }
+        }
+
+        return { bodies: res }
     }
     queryPoint(x: number, y: number): QueryResult<Body> {
         return this.queryRect(x, y, 0, 0)

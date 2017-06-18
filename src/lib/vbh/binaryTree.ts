@@ -32,7 +32,7 @@ export class BinaryTree<X extends EnabledAABB> implements VBH<X> {
 
     // QUERY
     queryRect(x: number, y: number, width: number, height: number): QueryResult<X> {
-        return { bodies: this._queryRect(x, x + width, y, y + height) }
+        return { bodies: this._queryRect(x - width/2, x + width/2, y - height/2, y + height/2) }
     }
 
     collideVBH(other: VBH<X>, x: number, y: number, dx: number, dy: number, otherx: number, othery: number, otherdx: number, otherdy: number): X[][] {
