@@ -407,4 +407,4 @@ export declare class World {
     simulate(delta: number)
 }
 
-export declare function createWorld()
+export declare function createWorld(): World

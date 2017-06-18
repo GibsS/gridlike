@@ -10,7 +10,7 @@ import { LayerCollisionRule } from './enums'
 
 export const EPS = 0.001
 
-export function createWorld() {
+export function createWorld(): World {
     return new World()
 }
 
