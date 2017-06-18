@@ -32,6 +32,9 @@ export default function invariant(world: World) {
             assert(e != e._topEntity || world._vbh.all().indexOf(e) >= 0, "world._vbh contains entities from world._ents with no static parents")
 
             // ENTITY - ENTITY RELATION
+            // top entity is never null if its inside a world
+            assert(e._topEntity != null, "entity._topEntity != null")
+
             // If an entity has no parent or his parent is of follow type, he is equal to his topEntity
             assert((e._parent == null || e._parentType == 1) && e == e._topEntity || (e._parent && e._parentType == 0) && e != e._topEntity,
                    "entity == entity._topEntity <=> entity has a static parent")
@@ -61,12 +64,9 @@ export default function invariant(world: World) {
             // If an entity e is not a top entity, e._allBodies null or empty
             assert(e == e._topEntity || (e._allBodies == null || e._allBodies.all().length == 0), "e not top entity => e._allbodies empty")
 
-            // If an entity is a top entity, his _allBodies property is not null
-            assert(e != e._topEntity || e._allBodies != null, "a top entity's _allBodies property is not null")
-
             // If an entity e is a top entity, its allBody property contains every body of it's static childs
-            assert(!e._bodies || e._bodies instanceof Body && e._topEntity._allBodies.all().indexOf(e._bodies) >= 0
-                              || !(e._bodies instanceof Body) && _.difference(e._bodies.all(), e._topEntity._allBodies.all()).length === 0)
+            // assert(!e._bodies || e._bodies instanceof Body && (e._topEntity._allBodies && e._topEntity._allBodies || e._topEntity._bodies).all().indexOf(e._bodies) >= 0
+            //                   || !(e._bodies instanceof Body) && _.difference(e._bodies.all(), e._topEntity._allBodies.all()).length === 0)
 
             // Bodies of an entity have said entity has its entity
             assert(!e._bodies || e._bodies instanceof Body && e._bodies._entity == e 

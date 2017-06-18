@@ -5,5 +5,5 @@ import { World } from '../../lib'
 
 export default function invariant(world: World) {
     // contactInvariant(world)
-    hierarchyInvariant(world)
+    // hierarchyInvariant(world)
 }
