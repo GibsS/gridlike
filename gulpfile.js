@@ -121,4 +121,4 @@ gulp.task('clean', function () {
     .pipe(clean())
 })
 
-gulp.task('default', gulpSequence('clean', 'deploy-rect-testbed')) 
+gulp.task('default', gulpSequence('clean', 'min', 'build-testbed')) 

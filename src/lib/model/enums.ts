@@ -1,4 +1,4 @@
-export const LayerCollision = {
+export const LayerCollisionRule = {
     ALWAYS: "always", 
     NEVER: "never", 
     EQUAL_GROUP: "equal_group", 

@@ -6,7 +6,7 @@ import { Body, SmallBody, Rect, Line, RectArgs, LineArgs, GridArgs } from './bod
 import { RaycastResult, QueryResult } from './query'
 import { MoveVBH, SimpleMoveVBH, VBH } from '../vbh/vbh'
 import { BinaryTree, MoveBinaryTree } from '../vbh/binaryTree'
-import { LayerCollision } from './enums'
+import { LayerCollisionRule } from './enums'
 
 export const EPS = 0.001
 
@@ -104,19 +104,19 @@ export class World {
         if(id2 >= 16) {
             let add, clear = ~(3 << (2 * id2 - 16))
             switch(rule) {
-                case LayerCollision.ALWAYS: add = 3 << (2 * id2 - 16); break
-                case LayerCollision.EQUAL_GROUP: add = 2 << (2 * id2 - 16); break
-                case LayerCollision.UNEQUAL_GROUP: add = 1 << (2 * id2 - 16); break
-                case LayerCollision.NEVER: add = 0; break
+                case LayerCollisionRule.ALWAYS: add = 3 << (2 * id2 - 16); break
+                case LayerCollisionRule.EQUAL_GROUP: add = 2 << (2 * id2 - 16); break
+                case LayerCollisionRule.UNEQUAL_GROUP: add = 1 << (2 * id2 - 16); break
+                case LayerCollisionRule.NEVER: add = 0; break
             }
             this._layers[id1+32] = ((this._layers[id1+32] & clear) | add)
         } else {
             let add, clear = ~(3 << 2 * id2)
             switch(rule) {
-                case LayerCollision.ALWAYS: add = 3 << (2 * id2); break
-                case LayerCollision.EQUAL_GROUP: add = 2 << (2 * id2); break
-                case LayerCollision.UNEQUAL_GROUP: add = 1 << (2 * id2); break
-                case LayerCollision.NEVER: add = 0; break
+                case LayerCollisionRule.ALWAYS: add = 3 << (2 * id2); break
+                case LayerCollisionRule.EQUAL_GROUP: add = 2 << (2 * id2); break
+                case LayerCollisionRule.UNEQUAL_GROUP: add = 1 << (2 * id2); break
+                case LayerCollisionRule.NEVER: add = 0; break
             }
             this._layers[id1] = ((this._layers[id1] & clear) | add)
         }
@@ -124,19 +124,19 @@ export class World {
             if(id1 >= 16) {
                 let add, clear = ~(3 << (2 * id1 - 16))
                 switch(rule) {
-                    case LayerCollision.ALWAYS: add = 3 << (2 * id1 - 16); break
-                    case LayerCollision.EQUAL_GROUP: add = 2 << (2 * id1 - 16); break
-                    case LayerCollision.UNEQUAL_GROUP: add = 1 << (2 * id1 - 16); break
-                    case LayerCollision.NEVER: add = 0; break
+                    case LayerCollisionRule.ALWAYS: add = 3 << (2 * id1 - 16); break
+                    case LayerCollisionRule.EQUAL_GROUP: add = 2 << (2 * id1 - 16); break
+                    case LayerCollisionRule.UNEQUAL_GROUP: add = 1 << (2 * id1 - 16); break
+                    case LayerCollisionRule.NEVER: add = 0; break
                 }
                 this._layers[id2+32] = ((this._layers[id2+32] & clear) | add)
             } else {
                 let add, clear = ~(3 << 2 * id1)
                 switch(rule) {
-                    case LayerCollision.ALWAYS: add = 3 << (2 * id1); break
-                    case LayerCollision.EQUAL_GROUP: add = 2 << (2 * id1); break
-                    case LayerCollision.UNEQUAL_GROUP: add = 1 << (2 * id1); break
-                    case LayerCollision.NEVER: add = 0; break
+                    case LayerCollisionRule.ALWAYS: add = 3 << (2 * id1); break
+                    case LayerCollisionRule.EQUAL_GROUP: add = 2 << (2 * id1); break
+                    case LayerCollisionRule.UNEQUAL_GROUP: add = 1 << (2 * id1); break
+                    case LayerCollisionRule.NEVER: add = 0; break
                 }
                 this._layers[id2] = ((this._layers[id2] & clear) | add)
             }
@@ -156,10 +156,10 @@ export class World {
             id2 = this._layerIds[layer2]
         
         switch(this._getLayerRule(id1, id2)) {
-            case 0x3: return LayerCollision.ALWAYS
-            case 0x2: return LayerCollision.EQUAL_GROUP
-            case 0x1: return LayerCollision.UNEQUAL_GROUP
-            case 0: return LayerCollision.NEVER
+            case 0x3: return LayerCollisionRule.ALWAYS
+            case 0x2: return LayerCollisionRule.EQUAL_GROUP
+            case 0x1: return LayerCollisionRule.UNEQUAL_GROUP
+            case 0: return LayerCollisionRule.NEVER
         }
     }
 

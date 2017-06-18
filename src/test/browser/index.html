@@ -1,0 +1,25 @@
+<html>
+<head>
+    <meta content="text/html;charset=utf-8" http-equiv="Content-Type">
+    <meta content="utf-8" http-equiv="encoding">
+    <title>TESTING SCRIPT IMPORTING</title>
+    <script src="../../../dist/grid.min.js"></script>
+</head>
+<body>
+    <h1>Testing the import</h1>
+    <p>Can create a world? <span id="test"> </span></p>
+    <p>Position of entity placed at x: 2, y: 3? (expected to be the same) <span id="pos"></span></p>
+    
+    <script>
+        let world = createWorld()
+
+        let entity = world.createEntity({
+            x: 2,
+            y: 3
+        })
+
+        document.getElementById("test").innerText = "ok!"
+        document.getElementById("pos").innerText = "x: " + entity.globalx + " y: " + entity.globaly
+    </script>
+</body>
+</html>

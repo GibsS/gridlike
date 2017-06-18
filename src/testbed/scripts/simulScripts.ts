@@ -2,7 +2,7 @@ import * as _ from 'lodash'
 
 import { Script, ScriptDescriptor } from '../script'
 import { Testbed } from '../'
-import { Entity, Grid, Body, LayerCollision, EntityListener } from '../../lib'
+import { Entity, Grid, Body, LayerCollisionRule, EntityListener } from '../../lib'
 
 import * as fixSpeed from '../controllers/fixSpeedController'
 import * as charController from '../controllers/characterController'
@@ -175,10 +175,10 @@ class Script5 extends Script {
     rect: Entity
 
     init() {
-        this.world.setLayerRule("rect", "ground1", LayerCollision.ALWAYS)
-        this.world.setLayerRule("rect", "ground2", LayerCollision.UNEQUAL_GROUP)
-        this.world.setLayerRule("rect", "ground3", LayerCollision.EQUAL_GROUP)
-        this.world.setLayerRule("rect", "ground4", LayerCollision.NEVER)
+        this.world.setLayerRule("rect", "ground1", LayerCollisionRule.ALWAYS)
+        this.world.setLayerRule("rect", "ground2", LayerCollisionRule.UNEQUAL_GROUP)
+        this.world.setLayerRule("rect", "ground3", LayerCollisionRule.EQUAL_GROUP)
+        this.world.setLayerRule("rect", "ground4", LayerCollisionRule.NEVER)
         this.rect = this.r(this.world.createRect({
             x: 0, y: 2,
             width: 1, height: 1,

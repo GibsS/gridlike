@@ -385,8 +385,8 @@ export declare class World {
     /* sets the rule, the rules are:
      * "always": always collide
      * "never": never collide
-     * "equal": collide if the layer group is equal
-     * "unequal": collide if the layer group is different  
+     * "equal_group": collide if the layer group is equal
+     * "unequal_group": collide if the layer group is different  
      */
     setLayerRule(layer1: string, layer2: string, rule: string)
     getLayerRule(layer1: string, layer2: string): string
