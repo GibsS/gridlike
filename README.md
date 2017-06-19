@@ -62,6 +62,7 @@ firefox dist/testbed/index.html # Or whatever your browser is
 The library is still in a very early stage of development:
 - Though the core features are implemented and usable to make a simple platformer, some of the more elaborate features remain to be implemented
 - Test coverage is minimal
+- The only documentation is the index.d.ts
 - ..
 These issues will be adressed as soon as possible and the missing features will be added. In the meantime, the library is perfectly fine to reproduce
 the physics of games like super meat boy (without slopes), terraria (with ships if you so wish), super crate box, Super Mario Bros. (the first one ^^)..
