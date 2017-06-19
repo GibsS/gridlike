@@ -19,13 +19,13 @@ class Script1 extends Script {
             this.phase[i] = []
             for(let j = 0; j < this.height; j++) {
                 this.phase[i][j] = Math.random() * 3
-                this.rects[i][j] = this.r(this.world.createRect({
+                this.rects[i][j] = this.world.createRect({
                     x: i * 4,
                     y: j * 4,
                     width: 1,
                     height: 1,
                     level: i + j * this.width + 1
-                }))
+                })
             }
         }
     }

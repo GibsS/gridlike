@@ -17,10 +17,10 @@ export abstract class Script {
     _testbed: Testbed
     get testbed(): Testbed { return this._testbed }
 
-    r(entity: Entity): Entity { return this._testbed.registerEntity(entity) }
-
     abstract init()
     abstract update(time: number, delta: number)
+
+    log(log: string) { this._testbed.log(log) }
 
     click(x: number, y: number, body: Body) { }
     keyDown(keys: string, callback: () => void) {

@@ -53,17 +53,24 @@ export class Testbed {
     _showContactRadio
     _useBinaryTreeRadio
     _showBroadphaseStructure
+    _showLogs
 
     showEntity: boolean
     showBody: boolean
     showContact: boolean
     useRBush: boolean
     showBroadphaseStructure: boolean
+    showLogs: boolean
+
+    // LOGGER
+    logs: string[]
 
     constructor() {
         this.xCam = 0
         this.yCam = 0
         this.zoom = 40
+
+        this.logs = []
 
         this.canvas = document.getElementById("canvas") as HTMLCanvasElement
         this.ctx = this.canvas.getContext('2d')
@@ -129,24 +136,29 @@ export class Testbed {
         this._showContactRadio = document.getElementById("show-contacts-radio")
         this._useBinaryTreeRadio = document.getElementById("use-rbush")
         this._showBroadphaseStructure = document.getElementById("show-broadphase-structure")
+        this._showLogs = document.getElementById("show-logs")
 
         this.showEntity = this._showEntityRadio.checked || false
         this.showBody = this._showBodyRadio.checked || false
         this.showContact = this._showContactRadio.checked || false
         this.useRBush = this._useBinaryTreeRadio.checked || false
         this.showBroadphaseStructure = this._showBroadphaseStructure.checked || false
+        this.showLogs = this._showLogs.checked || false
 
         this._showEntityRadio.onclick = () => {
             this.showEntity = !this.showEntity
             this._showEntityRadio.checked = this.showEntity
+            this._draw()
         }
         this._showBodyRadio.onclick = () => {
             this.showBody = !this.showBody
             this._showBodyRadio.checked = this.showBody
+            this._draw()
         }
         this._showContactRadio.onclick = () => {
             this.showContact = !this.showContact
             this._showContactRadio.checked = this.showContact
+            this._draw()
         }
         this._useBinaryTreeRadio.onclick = () => {
             this.useRBush = !this.useRBush
@@ -158,6 +170,12 @@ export class Testbed {
         this._showBroadphaseStructure.onclick = () => {
             this.showBroadphaseStructure = !this.showBroadphaseStructure
             this._showBroadphaseStructure.checked = this.showBroadphaseStructure
+            this._draw()
+        }
+        this._showLogs.onclick = () => {
+            this.showLogs = !this.showLogs
+            this._showLogs.checked = this.showLogs
+            this._draw()
         }
 
         wheel(this.canvas, (dx, dy) => {
@@ -283,6 +301,10 @@ export class Testbed {
         this.script._testbed = this
         this.lastUpdate = new Date().getTime()
 
+        this.xCam = 0
+        this.yCam = 0
+        this.zoom = 40
+
         this._play = true
 
         this._step = 0
@@ -385,6 +407,7 @@ export class Testbed {
         }
     }
     _draw() {
+
         let bx = -this.xCam * this.zoom + this.canvas.width/2
         let by = this.yCam * this.zoom + this.canvas.height/2
 
@@ -591,6 +614,11 @@ export class Testbed {
         this.ctx.fillText("camera y: " + this.yCam.toFixed(1), 10, this.canvas.offsetHeight - 145)
         this.ctx.fillText("camera x: " + this.xCam.toFixed(1), 10, this.canvas.offsetHeight - 160)
 
+        if (this.showLogs)
+        for (let i = 0, len = Math.min(this.logs.length, 20); i < len; i++) {
+            this.ctx.fillText(this.logs[i + Math.max(this.logs.length - 20, 0)], this.canvas.offsetWidth - 350, 30 + i * 20)
+        }
+
         this.ctx.font="20px Arial"
         this.ctx.fillText(this.scriptDescriptor.name, 10, 30)
         this.ctx.font="15px Arial"
@@ -622,8 +650,10 @@ export class Testbed {
         }
     }
 
-    registerEntity(entity: Entity): Entity {
-        return entity
+    log(log: string) {
+        this.logs.push(this._step + ": " + log)
+        if (this.logs.length == 100)
+            this.logs.splice(0, 70)
     }
 }
 

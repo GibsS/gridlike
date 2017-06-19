@@ -12,12 +12,12 @@ class Script1 extends Script {
     grid: Grid
 
     init() {
-        let entity = this.r(this.world.createGrid({
+        let entity = this.world.createGrid({
             x: 0,
             y: 0,
             width: 200,
             height: 50
-        }))
+        })
         this.grid = entity.body as Grid
 
         this.grid.setBlock(0, 0, 1, null)
@@ -51,12 +51,12 @@ class Script2 extends Script {
     grid: Grid
 
     init() {
-        let entity = this.r(this.world.createGrid({
+        let entity = this.world.createGrid({
             x: 0,
             y: 0,
             width: 10,
             height: 10
-        }))
+        })
         this.grid = entity.body as Grid
 
         this.grid.setBlockShape(0, 0, 1)
@@ -88,12 +88,12 @@ class Script3 extends Script {
     grid: Grid
 
     init() {
-        let entity = this.r(this.world.createGrid({
+        let entity = this.world.createGrid({
             x: 5,
             y: 5,
             width: 20,
             height: 50
-        }))
+        })
         entity.name = "grid"
         this.grid = entity.body as Grid
         
@@ -117,7 +117,7 @@ class Script4 extends Script {
     grid: Grid
 
     init() {
-        let entity = this.r(this.world.createGrid({
+        let entity = this.world.createGrid({
             x: 0,
             y: 0,
             tiles: {
@@ -125,7 +125,7 @@ class Script4 extends Script {
                 y: -5,
                 info: _.range(0, 10).map(i => _.range(0, 10).map(j => 1))
             }
-        }))
+        })
         entity.name = "grid"
         this.grid = entity.body as Grid
 
@@ -139,12 +139,12 @@ class Script4 extends Script {
         this.grid.setBlockShape(0, 7, 3)
         this.grid.setBlockShape(-1, 7, 2)
 
-        this.rect = this.r(this.world.createRect({
+        this.rect = this.world.createRect({
             x: 4,
             y: 3,
             width: 1,
             height: 1
-        }))
+        })
     }
     update(time: number, delta: number) {
         
@@ -158,12 +158,12 @@ class Script5 extends Script {
     grid: Grid
 
     init() {
-        let entity = this.r(this.world.createGrid({
+        let entity = this.world.createGrid({
             x: 0,
             y: 0,
             width: 10,
             height: 10
-        }))
+        })
         this.grid = entity.body as Grid
 
         for(let i = 0; i < 6; i++) {
@@ -188,12 +188,12 @@ class Script6 extends Script {
     grid: Grid
 
     init() {
-        let entity = this.r(this.world.createGrid({
+        let entity = this.world.createGrid({
             x: 0,
             y: 0,
             width: 10,
             height: 10
-        }))
+        })
         this.grid = entity.body as Grid
 
         for(let i = 0; i < 6; i++) {
