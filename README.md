@@ -4,6 +4,8 @@ It is often difficult to handle the movement of your 2D platformer character usi
 gridlike is built from the ground up with the intention of being used to make platformers. It also comes with
 features that allow you to create modifiable grids like those of terraria or King arthur's gold.
 
+Checkout the library in action here: https://gibss.github.io/test/gridlike/
+
 # Install
 
 ```sh
