@@ -51,7 +51,7 @@ npm install -g gulp
 gulp build-test && mocha js/test/index.js
 ```
 
-*Run the testbed:
+*Run the testbed:*
 ```
 gulp build-testbed
 firefox dist/testbed/index.html # Or whatever your browser is
