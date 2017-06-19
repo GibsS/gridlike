@@ -55,7 +55,7 @@ npm test
 *Run the testbed:*
 ```sh
 npm run build-testbed
-firefox dist/testbed/index.html # Or whatever your browser you choose
+firefox dist/testbed/index.html # Or whatever browser you choose
 ```
 
 # State of the library

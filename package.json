@@ -1,7 +1,7 @@
 {
   "name": "grid-like",
-  "repository": "https://github.com/GibsS/grid.js",
-  "version": "1.0.3",
+  "repository": "https://github.com/GibsS/gridlike",
+  "version": "1.0.4",
   "description": "A physics engine made for 2D platformers and terraria-likes",
   "main": "js/lib/index.js",
   "keywords": ["js", "typescript", "ECS", "physics", "game-dev"],

@@ -141,7 +141,8 @@ export class Testbed {
         this.showEntity = this._showEntityRadio.checked || false
         this.showBody = this._showBodyRadio.checked || false
         this.showContact = this._showContactRadio.checked || false
-        this.useRBush = this._useBinaryTreeRadio.checked || false
+        this._useBinaryTreeRadio.checked = true
+        this.useRBush = this._useBinaryTreeRadio.checked || true
         this.showBroadphaseStructure = this._showBroadphaseStructure.checked || false
         this.showLogs = this._showLogs.checked || false
 
