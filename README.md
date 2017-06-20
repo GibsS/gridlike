@@ -83,9 +83,9 @@ if (character.hasDownContact) {
   character.setParent(null)
 
   // mid-air movement
-  if(entity.moveLeft && !entity.moveRight) {
+  if(moveLeft) {
       entity.vx = Math.max(-speed * 1.5, entity.vx - speed * delta * 2)
-  } else if(entity.moveRight && !entity.moveLeft) {
+  } else if(entity.moveRight) {
       entity.vx = Math.min(speed * 1.5, entity.vx + speed * delta * 2)
   }
 }
