@@ -292,8 +292,8 @@ export class World {
 
                 // CALCULATE SPEED WITH PARENT
                 if (ent._parent) {
-                    ent._vx += ent._parent._simvx
-                    ent._vy += ent._parent._simvy
+                    ent._vx += ent._parent._topEntity._simvx
+                    ent._vy += ent._parent._topEntity._simvy
                 }
 
                 let endOfCourse = false
@@ -575,8 +575,8 @@ export class World {
 
                 // CORRECT SPEED FOR PARENT
                 if(ent._parent) {
-                    ent._vx -= ent._parent._simvx
-                    ent._vy -= ent._parent._simvy
+                    ent._vx -= ent._parent._topEntity._simvx
+                    ent._vy -= ent._parent._topEntity._simvy
                 }
 
                 // RESET POTENTIAL CONTACTS

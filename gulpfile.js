@@ -45,32 +45,9 @@ if(process.argv.length >= 3) {
 }
 
 // PARSE ARGS
-let options = {
-  version: null
-}
-
-if(argv.v) {
-  options.version = argv.v
-} else if(argv.ver) {
-  options.version = argv.ver
-}
+let options = { }
 
 // TASKS
-// - MISC
-// -- change app wide version
-gulp.task('bump-version', function() {
-  if(options.version) {
-    var verPackJson = gulp.src('package.json')
-    .pipe(jsonEditor(function(json) {
-      json.version = options.version
-      return json
-    }))
-    .pipe(gulp.dest('.', { overwrite: true }))
-
-    return merge(verPackJson)
-  }
-})
-
 // - BUILDING
 gulp.task('compile', function() {
   var result = gulp.src('src/**/*{ts,tsx}')
