@@ -85,7 +85,7 @@ if (character.hasDownContact) {
   // mid-air movement
   if(moveLeft) {
       entity.vx = Math.max(-speed * 1.5, entity.vx - speed * delta * 2)
-  } else if(entity.moveRight) {
+  } else if(moveRight) {
       entity.vx = Math.min(speed * 1.5, entity.vx + speed * delta * 2)
   }
 }
@@ -99,7 +99,7 @@ character.vy -= 10 * delta
 ## World creation
 
 gridlike allows you to create the game world you want. The world is made up of entities which themselves contain a list of bodies. You can move entities around
-with their speed vector.
+with their speed vector (.vx and .vy).
 
 *Creating a world*
 ```js
@@ -138,12 +138,12 @@ var body = entity.createRect({
 
 ## Levels
 
-A very important point to understand is the concept of levels: unlike most physics, there is a hierarchy of entities defined by 
+A very important point to understand is the concept of levels: unlike most physics engine, there is a hierarchy of entities defined by 
 their levels. If entity A is of a greater or equal level to an entity B, A will not be able to affect the trajectory of B. However if
 B will affect the trajectory of A if their levels are different.
 
-This allows you to define different categories of entities: A ground that is immobile, ships that can only be "redirected" by the ground 
-and a character that is moved by both.
+This allows you to define different categories of entities: A ground that is immobile (level 0), ships (level 1) that can only be affected by the ground 
+and a character (level 2) that is moved by both.
 
 ```js
 A.level // = 1
@@ -157,6 +157,34 @@ B.level // = 0
 world.simulate(seconds)
 ```
 
+## Grids!
+
+Grids are special bodies that are made up of blocks and lines arranged in a grid. 
+
+```js
+// init
+var entity = world.createGrid({
+  x: 0, y: 0,
+
+  // width and height: this is purely to give an idea of the space the grid will occupy around the
+  // center of the entity: you can later add blocks at any location.
+  width: 10, height: 10 
+})
+
+// adding blocks
+entity.setBlock(
+  0, 
+  0, 
+  1, // 1 is for making a block, 0 to remove anything there
+  { foo: "bar" } // to store some user data
+)
+
+entity.setBlockShape(100, 20, 1)
+```
+
+There are quite a few ways of changing the grid and you can also add oneway lines on it aswell. Checkout the declaration file (.d.ts)
+for more information.
+
 ## Layering
 
 Layers defined in the world allow you to filter collisions between any two bodies.
@@ -169,7 +197,7 @@ world.setLayerRule("layer1", "layer2", "equal_group") // to collide if the .laye
 world.setLayerRule("layer1", "layer2", "unequal_group") // to collide if the .layerGroup of the two bodies is different
 ```
 
-*Settings layer and layer group on bodies*
+*Setting layer and layer group on bodies*
 ```js
 body.layer = "layer1"
 body.layerGroup = 2
@@ -186,7 +214,7 @@ var body = entity.createRect({
 
 ## Sensors
 
-Sensors do not collide with other bodies, they just overlap and call the attached listener's event.
+Sensors do not collide with other bodies, they just overlap and call the attached listener's callback.
 
 *Defining a listener*
 ```js
@@ -236,7 +264,7 @@ npm test
 *Run the testbed:*
 ```sh
 npm run build-testbed
-firefox dist/testbed/index.html # Or whatever browser you choose (but not safari, oh god (jk, safari works as well))
+firefox dist/testbed/index.html # Or whatever browser you choose (but not safari, oh god (jk, safari works as well (somehow)))
 ```
 
 # Upcoming features
@@ -266,4 +294,4 @@ the physics of games such as super meat boy (without slopes), terraria (with shi
 
 # Contact
 
-If you have any question, issues or bugs to report, don't hesitate to contact me at emerick.gibson@hotmail.fr or add an issue on this git repo.
+If you have any questions, issues or bugs to report, don't hesitate to contact me at emerick.gibson@hotmail.fr or add an issue on this git repo.
