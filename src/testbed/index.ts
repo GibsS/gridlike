@@ -144,7 +144,7 @@ export class Testbed {
         this._useBinaryTreeRadio.checked = true
         this.useRBush = this._useBinaryTreeRadio.checked || true
         this.showBroadphaseStructure = this._showBroadphaseStructure.checked || false
-        this.showLogs = this._showLogs.checked || false
+        this.showLogs = this._showLogs.checked || true
 
         this._showEntityRadio.onclick = () => {
             this.showEntity = !this.showEntity
@@ -188,10 +188,10 @@ export class Testbed {
             this._draw()
         }, true)
 
-        this.canvas.onclick = (e) => {
+        this.canvas.onclick = (e: MouseEvent) => {
             if(this.zoom != 0 && this.world && this.script) {
-                let x = (e.clientX - this.canvas.width/2) / this.zoom + this.xCam
-                let y = -(e.clientY - this.canvas.height/2) / this.zoom + this.yCam
+                let x = (e.offsetX - this.canvas.width/2) / this.zoom + this.xCam
+                let y = -(e.offsetY - this.canvas.height/2) / this.zoom + this.yCam
                 let query = this.world.queryPoint(x, y)
 
                 if(query) {
@@ -661,12 +661,16 @@ export class Testbed {
 import { GridScript1, GridScript2, GridScript3, GridScript4, GridScript5, GridScript6 } from './scripts/gridScripts'
 import { 
     SimulScript1, SimulScript2, SimulScript3, SimulScript4, SimulScript5, SimulScript6, SimulScript7,
-    SimulScript8, SimulScript9, SimulScript10, SimulScript11, SimulScript12, SimulScript13, SimulScript14, SimulScript15
+    SimulScript8, SimulScript9, SimulScript10, SimulScript11, SimulScript12, SimulScript13, SimulScript14
 } from './scripts/simulScripts'
 import { PerformanceScript1 } from './scripts/performanceScripts'
+import { ExperimentScript1, ExperimentScript2 } from './scripts/experimentScripts'
 
 window.onload = () => {
     let testbed = new Testbed()
+
+    testbed.addScript(ExperimentScript1)
+    testbed.addScript(ExperimentScript2)
 
     testbed.addScript(GridScript1)
     testbed.addScript(GridScript2)
@@ -689,10 +693,9 @@ window.onload = () => {
     testbed.addScript(SimulScript12)
     testbed.addScript(SimulScript13)
     testbed.addScript(SimulScript14)
-    testbed.addScript(SimulScript15)
 
     testbed.addScript(PerformanceScript1)
 
-    testbed.start(SimulScript15.id)
+    testbed.start(ExperimentScript1.id)
     testbed.resetScriptList()
 }

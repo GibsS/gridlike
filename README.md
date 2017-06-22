@@ -171,15 +171,19 @@ var entity = world.createGrid({
   width: 10, height: 10 
 })
 
+var grid = entity.body
+
 // adding blocks
-entity.setBlock(
+grid.setBlock(
   0, 
   0, 
   1, // 1 is for making a block, 0 to remove anything there
   { foo: "bar" } // to store some user data
 )
 
-entity.setBlockShape(100, 20, 1)
+grid.setBlockShape(100, 20, 1)
+
+grid.getBlockShape(100, 20) // returns 1
 ```
 
 There are quite a few ways of changing the grid and you can also add oneway lines on it aswell. Checkout the declaration file (.d.ts)

@@ -706,96 +706,7 @@ class Script14 extends Script {
         follow(this, this.rect, time, delta)
     }
 }
-class Script15 extends Script {
 
-    ground: Entity
-    rect: Entity
-
-    movingPlatforms: Entity[]
-    phase: number[]
-    speed: number[]
-    period: number[]
-    orientation: boolean[]
-
-    init() {
-        this.rect = this.world.createRect({
-            x: 0,
-            y: 0,
-            width: 1,
-            height: 1,
-            level: 1000
-        })
-
-        this.ground = this.world.createEntity({
-            x: 0, y: -10,
-            level: 0
-        })
-        for(let i = 0; i < 4000; i++) {
-            let res = Math.random() * 24
-            if (res < 15) {
-                this.ground.createLine({
-                    x: (Math.random() * 2 - 1) * 4000,
-                    y: (Math.random() / 2 - 1) * 8,
-                    size: Math.random() * 5 + 1,
-                    isHorizontal: true,
-                    side: "up"
-                })
-            } else if(res < 19) {
-                this.ground.createRect({
-                    x: (Math.random() * 2 - 1) * 4000,
-                    y: (Math.random() / 2 - 1) * 8,
-                    width: Math.random() * 5 + 1,
-                    height: Math.random() * 5 + 1,
-                    isSensor: res < 17
-                })
-            } else {
-                this.ground.createLine({
-                    x: (Math.random() * 2 - 1) * 4000,
-                    y: (Math.random() / 2 - 1) * 8,
-                    size: Math.random() * 3 + 1,
-                    isHorizontal: false,
-                    side: res < 19 ? "left" : "right"
-                })
-            }
-        }
-
-        this.movingPlatforms = []
-        this.phase = []
-        this.speed = []
-        this.period = []
-        this.orientation = []
-        for(let i = 0; i < 40; i++) {
-            this.movingPlatforms.push(this.world.createEntity({
-                x: Math.random() * 500 - 250,
-                y: Math.random() * 10 - 10,
-                level: i
-            }))
-
-            this.phase.push(Math.random() * 2)
-            this.speed.push(Math.random() * 10 + 1)
-            this.period.push(Math.random() * 3);
-            this.orientation.push(Math.random() > 0.7);
-
-            this.movingPlatforms[i].createRect({
-                x: 0, y: 0,
-                width: Math.random() * 4 + 1,
-                height: 0.5
-            })
-        }
-
-        charController.input(this, this.rect)
-    }
-
-    update(time: number, delta: number) {
-        charController.update(this.rect, time, delta, 5)
-        follow(this, this.rect, time, delta)
-
-        for(let i = 0, len = this.movingPlatforms.length; i < len; i++) {
-            this.movingPlatforms[i].vx = this.orientation[i] ? 0 : Math.sin(this.phase[i] + time / this.period[i]) * this.speed[i]
-            this.movingPlatforms[i].vy = this.orientation[i] ? Math.sin(this.phase[i] + time / this.period[i]) * this.speed[i] : 0
-        }
-    }
-}
 
 export const SimulScript1 = { id: "SimulScript1", category: "Specification", name: "Test 1: Free rect movement against single rect", description: "Move: ZQSD", script: () => new Script1() } as ScriptDescriptor
 export const SimulScript2 = { id: "SimulScript2", category: "Specification", name: "Test 2: Corner test", description: null, script: () => new Script2() } as ScriptDescriptor
@@ -811,10 +722,3 @@ export const SimulScript11 = { id: "SimulScript11", category: "Specification", n
 export const SimulScript12 = { id: "SimulScript12", category: "Specification", name: "Test 12: Aligned entities", description: "Move chararacter: ZQSD", script: () => new Script12() } as ScriptDescriptor
 export const SimulScript13 = { id: "SimulScript13", category: "Specification", name: "Test 13: Sensors", description: "Move chararacter: ZQSD", script: () => new Script13() } as ScriptDescriptor
 export const SimulScript14 = { id: "SimulScript14", category: "Specification", name: "Test 14: Hidden corner avoidance", description: "Move character ZQSD", script: () => new Script14() } as ScriptDescriptor
-export const SimulScript15 = {
-    id: "SimulScript15", 
-    category: "Specification", 
-    name: "Test 15: Large world with one character", 
-    description: "Move character ZQSD\nblue bodies are sensors, click on show contacts to see the overlap with sensors", 
-    script: () => new Script15() 
-} as ScriptDescriptor
