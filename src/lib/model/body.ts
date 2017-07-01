@@ -871,8 +871,8 @@ export class Grid extends Body {
         let oldBody = tile.body
 
         if (oldBody) {
-            if (oldBody._width == 1) {
-                if (oldBody._height == 1) {
+            if (oldBody._width <= 1) {
+                if (oldBody._height <= 1) {
                     // one block body
                     let i = this._newBodies.indexOf(oldBody)
                     if (i >= 0) this._newBodies.splice(i, 1)
