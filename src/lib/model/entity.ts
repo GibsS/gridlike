@@ -701,6 +701,95 @@ export class Entity implements MoveAABB {
         this._world.removeEntity(this)
     }
 
+    cancelLeftOnewayContact(): boolean {
+        let hasOneway = false,
+            hasOnlyOneWay = true
+
+        for(let contact of this._lowers) {
+            if(contact.side == 1) {
+                if(contact.otherBody._leftCollide) {
+                    hasOnlyOneWay = false
+                } else {
+                    hasOneway = true
+                }
+            }
+        }
+
+        if(hasOneway && hasOnlyOneWay) {
+            this._x -= 0.001
+            this._xChangeContactFix();
+            return true
+        } else {
+            return false
+        }
+    }
+    cancelRightOnewayContact(): boolean {
+        let hasOneway = false,
+            hasOnlyOneWay = true
+
+        for(let contact of this._lowers) {
+            if(contact.side == 0) {
+                if(contact.otherBody._rightCollide) {
+                    hasOnlyOneWay = false
+                } else {
+                    hasOneway = true
+                }
+            }
+        }
+
+        if(hasOneway && hasOnlyOneWay) {
+            this._x += 0.001
+            this._xChangeContactFix();
+            return true
+        } else {
+            return false
+        }
+    }
+    cancelUpOnewayContact(): boolean {
+        let hasOneway = false,
+            hasOnlyOneWay = true
+
+        for(let contact of this._lowers) {
+            if(contact.side == 2) {
+                if(contact.otherBody._upCollide) {
+                    hasOnlyOneWay = false
+                } else {
+                    hasOneway = true
+                }
+            }
+        }
+
+        if(hasOneway && hasOnlyOneWay) {
+            this._y += 0.001
+            this._yChangeContactFix();
+            return true
+        } else {
+            return false
+        }
+    }
+    cancelDownOnewayContact(): boolean {
+        let hasOneway = false,
+            hasOnlyOneWay = true
+
+        for(let contact of this._lowers) {
+            if(contact.side == 3) {
+                if(contact.otherBody._downCollide) {
+                    hasOnlyOneWay = false
+                } else {
+                    hasOneway = true
+                }
+            }
+        }
+
+        if(hasOneway && hasOnlyOneWay) {
+            this._y -= 0.001
+            this._yChangeContactFix();
+            return true
+        } else {
+            return false
+        }
+    }
+
     move(dx: number, dy: number) {
         this._world._move(this, dx, dy)
     }

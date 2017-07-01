@@ -237,6 +237,12 @@ export declare class Entity {
     // remove entity from the world (all reference to it should be removed)
     destroy()
 
+    // CONTACTS
+    cancelLeftOnewayContact(): boolean
+    cancelRightOnewayContact(): boolean
+    cancelUpOnewayContact(): boolean
+    cancelDownOnewayContact(): boolean
+
     // simulates the movement of a single entity: does the same as World.simulate but only moves this one
     // entity
     move(dx: number, dy: number)
@@ -285,6 +291,9 @@ export declare abstract class Body {
     // calculate referential changes
     localToGlobal(x: number | { x: number, y: number }, y?: number): { x: number, y: number }
     globalToLocal(x: number | { x: number, y: number }, y?: number): { x: number, y: number }  
+
+    // definitely destroy a body
+    destroy()
 }
 
 export declare abstract class SmallBody extends Body {

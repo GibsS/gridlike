@@ -249,6 +249,10 @@ export abstract class Body implements EnabledAABB {
             this._higherContacts = null
         }
     }
+
+    destroy() {
+        this._entity.removeBody(this)
+    }
 }
 
 export abstract class SmallBody extends Body {

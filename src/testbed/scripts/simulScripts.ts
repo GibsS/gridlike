@@ -588,6 +588,10 @@ class Script12 extends Script {
         })
 
         charController.input(this, this.rect)
+
+        this.keyDown('s', () => {
+            this.rect.cancelDownOnewayContact()
+        })
     }
 
     update(time: number, delta: number) {

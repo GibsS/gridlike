@@ -206,8 +206,10 @@ export class World {
             this._removeTopEntity(entity)
         }
         entity._setParent(null, 0)
-        for(let c of _.clone(entity._childs)) {
-            c._setParent(null, 0)
+        if(entity._childs) {
+            for(let c of _.clone(entity._childs)) {
+                c._setParent(null, 0)
+            }
         }
         let i = this._ents[entity.level].indexOf(entity)
         if(i >= 0) {
@@ -466,6 +468,11 @@ export class World {
                         endOfCourse = true
                     }
 
+                    // TEMP: IF REMOVED, BREAK
+                    if(ent._topEntity == null) {
+                        break;
+                    }
+
                     if (endOfCourse) {
                         ent._x += (delta - time) * ent._vx
                         ent._y += (delta - time) * ent._vy
@@ -514,6 +521,11 @@ export class World {
                         }
                         if (remove) ent._removeLowers(remove)
                     }
+                }
+
+                // TEMP: IF REMOVED, BREAK
+                if(ent._topEntity == null) {
+                    continue;
                 }
 
                 // IF AN ENTITY HAS A CONTACT IN ONE DIRECTION, ADD EVERY CONTACTS THAT CAN REPLACE IT
