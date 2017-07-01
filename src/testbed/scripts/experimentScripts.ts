@@ -197,6 +197,68 @@ class Script2 extends Script {
     }
 }
 
+class Script3 extends Script {
+
+    ground: Entity
+    rect: Entity
+    arrows: Entity[]
+
+    init() {
+        this.arrows = []
+
+        //this.world.setLayerRule("character", "ground", "always")
+        this.world.setLayerRule("character", "arrow", "never")
+        // this.world.setLayerRule("arrow", "ground", "always")
+
+        this.rect = this.world.createRect({
+            x: 0, y: 0,
+            width: 1,
+            height: 1.5,
+            level: 1,
+            layer: "character"
+        })
+
+        this.ground = this.world.createEntity({
+            x: 0, y: 0, level: 0
+        })
+
+        for(let i = 0; i < 4000; i++) {
+            this.ground.createRect({
+                x: Math.random() * 1000 - 500, y: Math.random() * 10 - 10,
+                width: 1, height: 1,
+                layer: "ground"
+            })
+        }
+
+        charController.input(this, this.rect)
+    }
+    update(time: number, delta: number) {
+        charController.update(this.rect, time, delta, 5)
+
+        for(let arrow of this.arrows) {
+            arrow.vy -= 10 * delta
+        }
+    }
+    click(x: number, y: number, body: Body) {
+        let arrow = this.world.createRect({
+            x: this.rect.x, y: this.rect.y, 
+            width: 0.2, height: 0.2,
+            level: 1,
+            layer: "arrow"
+        })
+        let dx = (x - this.rect.x), dy = (y - this.rect.y), n = Math.sqrt(dx * dx + dy * dy)
+        arrow.vx = 10 * dx / n
+        arrow.vy = 10 * dy / n
+        arrow.listener = this
+        this.arrows.push(arrow)
+    }
+    contactStart(body: Body, otherBody: Body, side: string) {
+        this.arrows.splice(this.arrows.indexOf(body.entity), 1)
+        otherBody.entity.removeBody(otherBody)
+        body.entity.destroy()
+    }
+}
+
 export const ExperimentScript1 = {
     id: "Experiment1", 
     category: "Experiment", 
@@ -211,3 +273,10 @@ export const ExperimentScript2 = {
     description: "Move character ZQSD\nblue bodies are sensors,\nclick on show contacts to see\nthe overlap with sensors", 
     script: () => new Script2() 
 } as ScriptDescriptor
+export const ExperimentScript3 = {
+    id: "Experiment3",
+    category: "Experiment",
+    name: "Experiment 3: The square with a hypothetical bow", 
+    description: "Move character: ZQSD\nShoot arrow: click",
+    script: () => new Script3()
+}
