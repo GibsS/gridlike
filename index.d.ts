@@ -402,9 +402,9 @@ export declare class World {
 
     // ENTITIES
     createEntity(args: EntityArgs): Entity
-    createRect(args: RectArgs): Entity
-    createLine(args: LineArgs): Entity
-    createGrid(args: GridArgs): Entity
+    createRect(args: RectArgs & { level?: number }): Entity
+    createLine(args: LineArgs & { level?: number }): Entity
+    createGrid(args: GridArgs & { level?: number }): Entity
     removeEntity(entity: Entity)
 
     // QUERYING
